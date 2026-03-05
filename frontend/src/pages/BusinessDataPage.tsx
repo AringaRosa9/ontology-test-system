@@ -2,17 +2,217 @@ import { useEffect, useState } from 'react';
 import {
     Typography, Card, Upload, Table, Tag, Space, Button, message, Empty,
     Descriptions, Select, Modal, Row, Col, Popconfirm, Spin, Divider, Drawer, Tabs,
+    Form, Input, Switch, List, Checkbox, Badge, Alert,
 } from 'antd';
 import type { TabsProps } from 'antd';
 import {
     FileTextOutlined, FilePdfOutlined, DeleteOutlined,
     ExperimentOutlined, InboxOutlined, EyeOutlined, UserOutlined,
+    CloudServerOutlined, CloudDownloadOutlined, ApiOutlined, FolderOpenOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, OntologySnapshot, BusinessDataItem, GeneratedTestCase } from '../types';
 
 const { Dragger } = Upload;
 const API_BASE = 'http://localhost:8000';
+
+// ── MinIO Import Panel for Business Data ─────────────────────────────────────
+
+function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
+    const [form] = Form.useForm();
+    const [testing, setTesting] = useState(false);
+    const [connStatus, setConnStatus] = useState<any>(null);
+    const [browsing, setBrowsing] = useState(false);
+    const [objects, setObjects] = useState<any[]>([]);
+    const [currentBucket, setCurrentBucket] = useState('');
+    const [currentPrefix, setCurrentPrefix] = useState('');
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [pulling, setPulling] = useState(false);
+
+    const getConnValues = () => ({
+        endpoint: form.getFieldValue('endpoint') || 'localhost:9000',
+        access_key: form.getFieldValue('access_key') || '',
+        secret_key: form.getFieldValue('secret_key') || '',
+        secure: form.getFieldValue('secure') || false,
+    });
+
+    const handleTestConnection = async () => {
+        setTesting(true);
+        setConnStatus(null);
+        try {
+            const { data } = await api.post<ApiResponse<any>>('/import/minio/test-connection', getConnValues());
+            setConnStatus(data.data);
+            if (data.data.connected) {
+                message.success(`MinIO连接成功，共 ${data.data.buckets?.length || 0} 个存储桶`);
+            } else {
+                message.error(`连接失败: ${data.data.error}`);
+            }
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || '连接测试失败');
+        }
+        setTesting(false);
+    };
+
+    const handleBrowse = async (bucket: string, prefix: string = '') => {
+        setBrowsing(true);
+        try {
+            const { data } = await api.post<ApiResponse<any>>('/import/minio/browse', {
+                ...getConnValues(), bucket, prefix,
+            });
+            setObjects(data.data.objects || []);
+            setCurrentBucket(bucket);
+            setCurrentPrefix(prefix);
+            setSelectedKeys([]);
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || '浏览失败');
+        }
+        setBrowsing(false);
+    };
+
+    const handlePull = async () => {
+        if (!selectedKeys.length) { message.warning('请先选择文件'); return; }
+        setPulling(true);
+        try {
+            const { data } = await api.post<ApiResponse<any>>('/import/minio/pull', {
+                ...getConnValues(),
+                bucket: currentBucket,
+                objects: selectedKeys,
+            });
+            const d = data.data;
+            const parts = [];
+            if (d.resumes > 0) parts.push(`${d.resumes} 份简历PDF`);
+            if (d.jds > 0) parts.push(`${d.jds} 个JD CSV`);
+            if (d.ontologyFiles > 0) parts.push(`${d.ontologyFiles} 个本体JSON`);
+            message.success(`MinIO导入成功：${parts.join('，') || '0 文件'}`);
+            if (d.errors?.length) {
+                d.errors.forEach((err: string) => message.warning(err));
+            }
+            onImported();
+            setSelectedKeys([]);
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || 'MinIO拉取失败');
+        }
+        setPulling(false);
+    };
+
+    const formatSize = (bytes: number) => {
+        if (!bytes) return '-';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    const getFileTypeTag = (name: string) => {
+        const lower = name.toLowerCase();
+        if (lower.endsWith('.pdf')) return <Tag color="magenta">PDF</Tag>;
+        if (lower.endsWith('.csv')) return <Tag color="green">CSV</Tag>;
+        if (lower.endsWith('.json')) return <Tag color="blue">JSON</Tag>;
+        return <Tag>其他</Tag>;
+    };
+
+    return (
+        <Card title={<><CloudServerOutlined style={{ color: '#38bdf8', marginRight: 8 }} />从 MinIO 导入</>}
+            style={{ marginBottom: 20 }}>
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Alert type="info" showIcon message={
+                    <>
+                        从 MinIO 批量拉取：<strong>.pdf</strong> → 简历，
+                        <strong>.csv</strong> → JD，<strong>.json</strong> → 本体数据
+                    </>
+                } />
+                <Form form={form} layout="inline" initialValues={{
+                    endpoint: 'localhost:9000', access_key: '', secret_key: '', secure: false,
+                }}>
+                    <Form.Item label="Endpoint" name="endpoint">
+                        <Input placeholder="localhost:9000" style={{ width: 180 }} />
+                    </Form.Item>
+                    <Form.Item label="Access Key" name="access_key">
+                        <Input style={{ width: 150 }} />
+                    </Form.Item>
+                    <Form.Item label="Secret Key" name="secret_key">
+                        <Input.Password style={{ width: 150 }} />
+                    </Form.Item>
+                    <Form.Item label="HTTPS" name="secure" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button icon={<ApiOutlined />} loading={testing} onClick={handleTestConnection}>
+                            连接
+                        </Button>
+                    </Form.Item>
+                </Form>
+
+                {/* Bucket list */}
+                {connStatus?.connected && connStatus.buckets?.length > 0 && (
+                    <Space wrap>
+                        {connStatus.buckets.map((b: any) => (
+                            <Button key={b.name} size="small" icon={<FolderOpenOutlined />}
+                                type={currentBucket === b.name ? 'primary' : 'default'}
+                                onClick={() => handleBrowse(b.name)}>
+                                {b.name}
+                            </Button>
+                        ))}
+                    </Space>
+                )}
+
+                {/* Object browser */}
+                {currentBucket && (
+                    <Card size="small"
+                        title={<>
+                            {currentBucket}{currentPrefix ? ` / ${currentPrefix}` : ''}
+                            {browsing && <Spin size="small" style={{ marginLeft: 8 }} />}
+                        </>}
+                        extra={
+                            <Space>
+                                {currentPrefix && (
+                                    <Button size="small" onClick={() => {
+                                        const parts = currentPrefix.split('/').filter(Boolean);
+                                        parts.pop();
+                                        handleBrowse(currentBucket, parts.length ? parts.join('/') + '/' : '');
+                                    }}>上级目录</Button>
+                                )}
+                                <Badge count={selectedKeys.length} size="small">
+                                    <Button type="primary" size="small" icon={<CloudDownloadOutlined />}
+                                        loading={pulling} onClick={handlePull}
+                                        disabled={!selectedKeys.length}>
+                                        拉取选中
+                                    </Button>
+                                </Badge>
+                            </Space>
+                        }>
+                        <List size="small" dataSource={objects} locale={{ emptyText: '空目录' }}
+                            renderItem={(obj: any) => (
+                                <List.Item
+                                    actions={obj.isDir ? [
+                                        <Button size="small" type="link" onClick={() => handleBrowse(currentBucket, obj.name)}>打开</Button>
+                                    ] : []}
+                                >
+                                    <Space>
+                                        {!obj.isDir && (
+                                            <Checkbox
+                                                checked={selectedKeys.includes(obj.name)}
+                                                onChange={e => {
+                                                    setSelectedKeys(prev =>
+                                                        e.target.checked
+                                                            ? [...prev, obj.name]
+                                                            : prev.filter(k => k !== obj.name)
+                                                    );
+                                                }}
+                                            />
+                                        )}
+                                        {obj.isDir ? <FolderOpenOutlined style={{ color: '#fbbf24' }} /> : getFileTypeTag(obj.name)}
+                                        <span>{obj.name}</span>
+                                        {!obj.isDir && <Typography.Text type="secondary">{formatSize(obj.size)}</Typography.Text>}
+                                    </Space>
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
+                )}
+            </Space>
+        </Card>
+    );
+}
 
 export default function BusinessDataPage() {
     const [data, setData] = useState<BusinessDataItem[]>([]);
@@ -252,7 +452,7 @@ export default function BusinessDataPage() {
         <div>
             <Typography.Title level={3} className="page-title">业务数据管理</Typography.Title>
             <Typography.Paragraph style={{ color: '#9ba6c7' }}>
-                导入简历PDF和JD CSV，解析后与本体定义结合生成端到端测试用例
+                导入简历PDF和JD CSV（支持本地上传或从MinIO拉取），解析后与本体定义结合生成端到端测试用例
             </Typography.Paragraph>
 
             {/* Upload area */}
@@ -278,6 +478,9 @@ export default function BusinessDataPage() {
                     </Card>
                 </Col>
             </Row>
+
+            {/* MinIO Import */}
+            <MinIOBusinessPanel onImported={fetchData} />
 
             {/* Data Tabs */}
             <Card style={{ marginBottom: 16 }}>
