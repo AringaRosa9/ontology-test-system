@@ -10,6 +10,7 @@ import ExecutionPage from './pages/ExecutionPage';
 import HistoryPage from './pages/HistoryPage';
 import ReportPage from './pages/ReportPage';
 import ApiKeyPage from './pages/ApiKeyPage';
+import TestCaseLibraryPage from './pages/TestCaseLibraryPage';
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/ontology" element={<OntologyPage />} />
             <Route path="/business-data" element={<BusinessDataPage />} />
+            <Route path="/test-case-library" element={<TestCaseLibraryPage />} />
             <Route path="/component-test/:tab?" element={<ComponentTestPage />} />
             <Route path="/unified-test" element={<UnifiedTestPage />} />
             <Route path="/execution" element={<ExecutionPage />} />

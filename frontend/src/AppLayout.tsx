@@ -17,6 +17,7 @@ import {
     MenuUnfoldOutlined,
     FolderOpenOutlined,
     KeyOutlined,
+    BookOutlined,
 } from '@ant-design/icons';
 
 const { Sider, Content } = Layout;
@@ -33,6 +34,7 @@ const menuItems: MenuItem[] = [
         ],
     },
     { key: '/business-data', icon: <FolderOpenOutlined />, label: '业务数据管理' },
+    { key: '/test-case-library', icon: <BookOutlined />, label: '测试用例库' },
     {
         key: 'component-test-group',
         icon: <AppstoreOutlined />,
