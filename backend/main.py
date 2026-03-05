@@ -717,7 +717,7 @@ async def execute_tests(request: ExecuteRequest):
         "description": c.get("description"),
         "inputVariables": c.get("inputVariables"),
         "expectedOutcome": c.get("expectedOutcome"),
-    } for c in cases[:20]], ensure_ascii=False, indent=1)
+    } for c in cases[:100]], ensure_ascii=False, indent=1)
 
     ontology_summary = f"""Rules: {len(snap.get('rules', []))}
 DataObjects: {len(snap.get('dataobjects', []))}
