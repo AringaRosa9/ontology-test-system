@@ -1793,3 +1793,434 @@ async def toggle_api_key(key_id: str):
                 _persist_api_keys()
             return {"status": "ok", "data": {"keyId": key_id, "isActive": k["isActive"]}}
     raise HTTPException(404, "API Key不存在")
+
+
+# ─── Neo4j Import ─────────────────────────────────────────────────────────────
+
+class Neo4jConnectionRequest(BaseModel):
+    uri: str = "bolt://localhost:7687"
+    username: str = "neo4j"
+    password: str = ""
+    database: str = "neo4j"
+
+
+class Neo4jPullRequest(BaseModel):
+    uri: str = "bolt://localhost:7687"
+    username: str = "neo4j"
+    password: str = ""
+    database: str = "neo4j"
+    description: Optional[str] = None
+
+
+@app.post("/import/neo4j/test-connection")
+async def neo4j_test_connection(req: Neo4jConnectionRequest):
+    """Test Neo4j connection and return basic stats."""
+    try:
+        from neo4j import GraphDatabase
+    except ImportError:
+        raise HTTPException(500, "neo4j驱动未安装，请运行 pip install neo4j")
+
+    try:
+        driver = GraphDatabase.driver(req.uri, auth=(req.username, req.password))
+        with driver.session(database=req.database) as session:
+            # Get node count and label stats
+            result = session.run("CALL db.labels() YIELD label RETURN label")
+            labels = [r["label"] for r in result]
+            result = session.run("MATCH (n) RETURN count(n) as cnt")
+            node_count = result.single()["cnt"]
+            result = session.run("MATCH ()-[r]->() RETURN count(r) as cnt")
+            rel_count = result.single()["cnt"]
+            # Get relationship types
+            result = session.run("CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType")
+            rel_types = [r["relationshipType"] for r in result]
+        driver.close()
+        return {"status": "ok", "data": {
+            "connected": True,
+            "nodeCount": node_count,
+            "relationshipCount": rel_count,
+            "labels": labels,
+            "relationshipTypes": rel_types,
+        }}
+    except Exception as e:
+        return {"status": "ok", "data": {"connected": False, "error": str(e)}}
+
+
+@app.post("/import/neo4j/pull")
+async def neo4j_pull(req: Neo4jPullRequest):
+    """Pull graph data from Neo4j and create an ontology snapshot.
+
+    Mapping strategy:
+    - Nodes with label containing 'Rule'        → rules
+    - Nodes with label containing 'Action'       → actions
+    - Nodes with label containing 'Event'        → events
+    - All other nodes                            → dataobjects
+    - All relationships                          → links
+    """
+    try:
+        from neo4j import GraphDatabase
+    except ImportError:
+        raise HTTPException(500, "neo4j驱动未安装，请运行 pip install neo4j")
+
+    try:
+        driver = GraphDatabase.driver(req.uri, auth=(req.username, req.password))
+    except Exception as e:
+        raise HTTPException(400, f"Neo4j连接失败: {str(e)}")
+
+    rules = []
+    actions = []
+    events = []
+    dataobjects = []
+    links = []
+
+    try:
+        with driver.session(database=req.database) as session:
+            # Pull all nodes
+            result = session.run("MATCH (n) RETURN n, labels(n) as labels, elementId(n) as eid")
+            node_map = {}  # eid -> node data for link resolution
+            for record in result:
+                node = dict(record["n"])
+                lbls = record["labels"]
+                eid = record["eid"]
+                node["_labels"] = lbls
+                node["_id"] = eid
+                node_map[eid] = node
+
+                labels_lower = " ".join(lbls).lower()
+                if "rule" in labels_lower:
+                    rules.append(node)
+                elif "action" in labels_lower:
+                    actions.append(node)
+                elif "event" in labels_lower:
+                    events.append(node)
+                else:
+                    dataobjects.append(node)
+
+            # Pull all relationships
+            result = session.run(
+                "MATCH (a)-[r]->(b) "
+                "RETURN type(r) as relType, properties(r) as props, "
+                "elementId(a) as srcId, elementId(b) as tgtId, "
+                "labels(a) as srcLabels, labels(b) as tgtLabels"
+            )
+            for record in result:
+                src_labels = record["srcLabels"]
+                tgt_labels = record["tgtLabels"]
+                link = {
+                    "relationshipType": record["relType"],
+                    "sourceLabels": src_labels,
+                    "targetLabels": tgt_labels,
+                    "sourceId": record["srcId"],
+                    "targetId": record["tgtId"],
+                }
+                props = record["props"]
+                if props:
+                    link["properties"] = dict(props)
+                links.append(link)
+    except Exception as e:
+        driver.close()
+        raise HTTPException(400, f"Neo4j查询失败: {str(e)}")
+
+    driver.close()
+
+    # Create snapshot
+    snapshot_id = f"snap_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:8]}"
+    snapshot = {
+        "snapshotId": snapshot_id,
+        "sourceFiles": [f"neo4j://{req.uri}"],
+        "description": req.description or f"Neo4j导入 ({req.uri})",
+        "rules": rules,
+        "dataobjects": dataobjects,
+        "actions": actions,
+        "events": events,
+        "links": links,
+        "rulesCount": len(rules),
+        "dataObjectsCount": len(dataobjects),
+        "actionsCount": len(actions),
+        "eventsCount": len(events),
+        "linksCount": len(links),
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with _lock:
+        _snapshots.insert(0, snapshot)
+        _persist_snapshots()
+
+    return {"status": "ok", "data": {
+        "snapshotId": snapshot["snapshotId"],
+        "sourceFiles": snapshot["sourceFiles"],
+        "rulesCount": snapshot["rulesCount"],
+        "dataObjectsCount": snapshot["dataObjectsCount"],
+        "actionsCount": snapshot["actionsCount"],
+        "eventsCount": snapshot["eventsCount"],
+        "linksCount": snapshot["linksCount"],
+        "createdAt": snapshot["createdAt"],
+    }}
+
+
+# ─── MinIO Import ─────────────────────────────────────────────────────────────
+
+class MinIOConnectionRequest(BaseModel):
+    endpoint: str = "localhost:9000"
+    access_key: str = ""
+    secret_key: str = ""
+    secure: bool = False
+
+
+class MinIOBrowseRequest(BaseModel):
+    endpoint: str = "localhost:9000"
+    access_key: str = ""
+    secret_key: str = ""
+    secure: bool = False
+    bucket: str = ""
+    prefix: str = ""
+
+
+class MinIOPullRequest(BaseModel):
+    endpoint: str = "localhost:9000"
+    access_key: str = ""
+    secret_key: str = ""
+    secure: bool = False
+    bucket: str
+    objects: List[str]  # list of object keys to pull
+
+
+def _get_minio_client(endpoint: str, access_key: str, secret_key: str, secure: bool):
+    try:
+        from minio import Minio
+    except ImportError:
+        raise HTTPException(500, "minio SDK未安装，请运行 pip install minio")
+    return Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
+
+
+@app.post("/import/minio/test-connection")
+async def minio_test_connection(req: MinIOConnectionRequest):
+    """Test MinIO connection and list buckets."""
+    try:
+        client = _get_minio_client(req.endpoint, req.access_key, req.secret_key, req.secure)
+        buckets = client.list_buckets()
+        return {"status": "ok", "data": {
+            "connected": True,
+            "buckets": [{"name": b.name, "creationDate": str(b.creation_date)} for b in buckets],
+        }}
+    except Exception as e:
+        return {"status": "ok", "data": {"connected": False, "error": str(e)}}
+
+
+@app.post("/import/minio/browse")
+async def minio_browse(req: MinIOBrowseRequest):
+    """Browse objects in a MinIO bucket."""
+    try:
+        client = _get_minio_client(req.endpoint, req.access_key, req.secret_key, req.secure)
+        if not req.bucket:
+            # List all buckets
+            buckets = client.list_buckets()
+            return {"status": "ok", "data": {
+                "buckets": [{"name": b.name, "creationDate": str(b.creation_date)} for b in buckets],
+                "objects": [],
+            }}
+        # List objects in bucket
+        objects = client.list_objects(req.bucket, prefix=req.prefix or None, recursive=False)
+        items = []
+        for obj in objects:
+            items.append({
+                "name": obj.object_name,
+                "size": obj.size,
+                "isDir": obj.is_dir,
+                "lastModified": str(obj.last_modified) if obj.last_modified else None,
+            })
+        return {"status": "ok", "data": {"bucket": req.bucket, "prefix": req.prefix, "objects": items}}
+    except Exception as e:
+        raise HTTPException(400, f"MinIO浏览失败: {str(e)}")
+
+
+@app.post("/import/minio/pull")
+async def minio_pull(req: MinIOPullRequest):
+    """Pull files from MinIO and import them.
+
+    Auto-detects file types:
+    - .pdf → resume (business data)
+    - .csv → JD (business data)
+    - .json → ontology snapshot (dataobjects, actions, events, rules, links by filename)
+    """
+    try:
+        client = _get_minio_client(req.endpoint, req.access_key, req.secret_key, req.secure)
+    except Exception as e:
+        raise HTTPException(400, f"MinIO连接失败: {str(e)}")
+
+    results = {"resumes": 0, "jds": 0, "ontologyFiles": 0, "errors": [], "snapshotId": None}
+    ontology_sections = {"rules": [], "dataobjects": [], "actions": [], "events": [], "links": []}
+    ontology_source_files = []
+
+    for obj_key in req.objects:
+        try:
+            response = client.get_object(req.bucket, obj_key)
+            content = response.read()
+            response.close()
+            response.release_conn()
+            filename = obj_key.split("/")[-1]
+            lower_name = filename.lower()
+
+            if lower_name.endswith(".pdf"):
+                # Import as resume
+                try:
+                    import pdfplumber
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                        tmp.write(content)
+                        tmp_path = tmp.name
+                    raw_text = ""
+                    with pdfplumber.open(tmp_path) as pdf:
+                        for page in pdf.pages:
+                            t = page.extract_text()
+                            if t:
+                                raw_text += t + "\n"
+                    os.unlink(tmp_path)
+
+                    if not raw_text.strip():
+                        results["errors"].append(f"{filename}: PDF无文本内容")
+                        continue
+
+                    cleaned = _clean_pdf_text(raw_text)
+                    parsed_data = {"rawText": cleaned.strip() or raw_text.strip()}
+                    parsed_data.update(_regex_resume(cleaned))
+
+                    if gemini.is_configured:
+                        parse_prompt = f"""请从以下简历文本中提取结构化信息，返回JSON对象。
+文本含部分格式干扰字符，请忽略乱码、识别有意义的中文内容。
+只提取文本中明确存在的信息，不编造不存在的内容。
+
+返回格式（纯JSON）：
+{{
+  "name": "候选人姓名",
+  "phone": "电话或null",
+  "email": "邮箱或null",
+  "education": [{{"school": "学校", "degree": "学历", "major": "专业", "graduationYear": "年份"}}],
+  "experience": [{{"company": "公司", "title": "职位", "startDate": "开始", "endDate": "结束", "description": "职责简述"}}],
+  "skills": ["技能列表"],
+  "summary": "核心背景摘要（1-2句）"
+}}
+
+简历文本：
+{cleaned[:4500]}"""
+                        result = await gemini.generate_json(
+                            "你是专业简历解析器。从含格式干扰的简历文本中提取结构化数据，只输出文本中实际存在的内容，返回纯JSON。",
+                            parse_prompt, temp=0.1
+                        )
+                        if result and isinstance(result, dict):
+                            for k, v in result.items():
+                                if v is not None and v != "" and v != [] and k != "rawText":
+                                    parsed_data[k] = v
+
+                    item_id = f"bd_{uuid.uuid4().hex[:8]}"
+                    item = {
+                        "itemId": item_id,
+                        "type": "resume",
+                        "filename": filename,
+                        "parsedData": parsed_data,
+                        "pdfBase64": _base64.b64encode(content).decode("ascii"),
+                        "uploadedAt": datetime.now(timezone.utc).isoformat(),
+                    }
+                    with _lock:
+                        _business_data.insert(0, item)
+                        _persist_business_data()
+                    results["resumes"] += 1
+                except Exception as e:
+                    results["errors"].append(f"{filename}: PDF解析失败 - {str(e)[:100]}")
+
+            elif lower_name.endswith(".csv"):
+                # Import as JD
+                try:
+                    text = None
+                    for enc in ("utf-8-sig", "gbk", "utf-8", "latin-1"):
+                        try:
+                            text = content.decode(enc)
+                            break
+                        except Exception:
+                            pass
+                    if text is None:
+                        results["errors"].append(f"{filename}: CSV编码无法识别")
+                        continue
+
+                    all_rows = list(csv.reader(io.StringIO(text)))
+                    if not all_rows:
+                        results["errors"].append(f"{filename}: CSV文件为空")
+                        continue
+
+                    header_idx, max_ne = 0, 0
+                    for i, row in enumerate(all_rows[:6]):
+                        ne = sum(1 for c in row if c.strip())
+                        if ne > max_ne:
+                            max_ne, header_idx = ne, i
+
+                    headers = [h.strip() for h in all_rows[header_idx]]
+                    records = []
+                    for row in all_rows[header_idx + 1:]:
+                        if not any(c.strip() for c in row):
+                            continue
+                        rec = {headers[i]: row[i].strip() for i in range(min(len(headers), len(row))) if headers[i]}
+                        if any(v for v in rec.values()):
+                            records.append(rec)
+
+                    if not records:
+                        results["errors"].append(f"{filename}: CSV无有效数据")
+                        continue
+
+                    item_id = f"bd_{uuid.uuid4().hex[:8]}"
+                    item = {
+                        "itemId": item_id,
+                        "type": "jd",
+                        "filename": filename,
+                        "columns": [h for h in headers if h],
+                        "records": records,
+                        "recordCount": len(records),
+                        "uploadedAt": datetime.now(timezone.utc).isoformat(),
+                    }
+                    with _lock:
+                        _business_data.insert(0, item)
+                        _persist_business_data()
+                    results["jds"] += 1
+                except Exception as e:
+                    results["errors"].append(f"{filename}: CSV解析失败 - {str(e)[:100]}")
+
+            elif lower_name.endswith(".json"):
+                # Import as ontology data
+                try:
+                    raw = json.loads(content.decode("utf-8"))
+                    sections = _parse_ontology_json(raw, filename)
+                    for key in ontology_sections:
+                        if sections[key]:
+                            ontology_sections[key].extend(sections[key])
+                    ontology_source_files.append(filename)
+                    results["ontologyFiles"] += 1
+                except Exception as e:
+                    results["errors"].append(f"{filename}: JSON解析失败 - {str(e)[:100]}")
+            else:
+                results["errors"].append(f"{filename}: 不支持的文件类型")
+
+        except Exception as e:
+            results["errors"].append(f"{obj_key}: 下载失败 - {str(e)[:100]}")
+
+    # Create ontology snapshot if any JSON files were imported
+    if results["ontologyFiles"] > 0:
+        snapshot_id = f"snap_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:8]}"
+        snapshot = {
+            "snapshotId": snapshot_id,
+            "sourceFiles": [f"minio://{req.bucket}/{f}" for f in ontology_source_files],
+            "description": f"MinIO导入 ({req.bucket})",
+            "rules": ontology_sections["rules"],
+            "dataobjects": ontology_sections["dataobjects"],
+            "actions": ontology_sections["actions"],
+            "events": ontology_sections["events"],
+            "links": ontology_sections["links"],
+            "rulesCount": len(ontology_sections["rules"]),
+            "dataObjectsCount": len(ontology_sections["dataobjects"]),
+            "actionsCount": len(ontology_sections["actions"]),
+            "eventsCount": len(ontology_sections["events"]),
+            "linksCount": len(ontology_sections["links"]),
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+        }
+        with _lock:
+            _snapshots.insert(0, snapshot)
+            _persist_snapshots()
+        results["snapshotId"] = snapshot_id
+
+    return {"status": "ok", "data": results}
