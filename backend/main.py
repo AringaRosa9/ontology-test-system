@@ -48,6 +48,7 @@ CASES_FILE = DATA_DIR / "generated_cases.json"
 RUNS_FILE = DATA_DIR / "test_runs.json"
 BUSINESS_DATA_FILE = DATA_DIR / "business_data.json"
 API_KEYS_FILE = DATA_DIR / "api_keys.json"
+LIBRARY_FILE = DATA_DIR / "test_case_library.json"
 
 
 def _load_json(path: Path) -> list:
@@ -69,6 +70,7 @@ _cases: List[Dict] = _load_json(CASES_FILE)
 _runs: List[Dict] = _load_json(RUNS_FILE)
 _business_data: List[Dict] = _load_json(BUSINESS_DATA_FILE)
 _api_keys: List[Dict] = _load_json(API_KEYS_FILE)
+_library: List[Dict] = _load_json(LIBRARY_FILE)
 
 
 def _persist_snapshots():
@@ -89,6 +91,10 @@ def _persist_business_data():
 
 def _persist_api_keys():
     _save_json(API_KEYS_FILE, _api_keys)
+
+
+def _persist_library():
+    _save_json(LIBRARY_FILE, _library)
 
 
 # ─── Gemini LLM Client ───────────────────────────────────────────────────────
@@ -258,6 +264,34 @@ class ExecuteRequest(BaseModel):
 
 class ReportRequest(BaseModel):
     runId: str
+
+
+class LibraryCaseCreate(BaseModel):
+    title: str
+    description: str
+    category: str  # dataobjects | actions_events | rules | links | ontology
+    tags: List[str] = []
+    priority: str = "P1"
+    inputVariables: Dict[str, Any] = {}
+    expectedOutcome: str = ""
+    steps: List[str] = []
+
+
+class LibraryCaseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = None
+    priority: Optional[str] = None
+    inputVariables: Optional[Dict[str, Any]] = None
+    expectedOutcome: Optional[str] = None
+    steps: Optional[List[str]] = None
+
+
+class LibraryAIGenerateRequest(BaseModel):
+    category: str = "dataobjects"
+    snapshotId: str
+    count: int = 10
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────
@@ -1396,6 +1430,167 @@ Focus on practical, data-driven test scenarios."""
         _persist_cases()
 
     return {"status": "ok", "data": {"generated": cases, "totalCount": len(cases)}}
+
+
+# ─── Test Case Library ───────────────────────────────────────────────────────
+
+LIBRARY_CATEGORIES = ["dataobjects", "actions_events", "rules", "links", "ontology"]
+
+
+@app.get("/library/cases")
+async def list_library_cases(category: Optional[str] = None):
+    """List test cases in the library, optionally filtered by category."""
+    if category:
+        filtered = [c for c in _library if c.get("category") == category]
+    else:
+        filtered = list(_library)
+    return {"status": "ok", "data": filtered}
+
+
+@app.post("/library/cases")
+async def create_library_case(req: LibraryCaseCreate):
+    """Add a new test case to the library."""
+    if req.category not in LIBRARY_CATEGORIES:
+        raise HTTPException(400, f"Invalid category. Must be one of: {LIBRARY_CATEGORIES}")
+    case = {
+        "caseId": f"LIB-{uuid.uuid4().hex[:8].upper()}",
+        "title": req.title,
+        "description": req.description,
+        "category": req.category,
+        "tags": req.tags or [req.category],
+        "priority": req.priority,
+        "inputVariables": req.inputVariables,
+        "expectedOutcome": req.expectedOutcome,
+        "steps": req.steps,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    with _lock:
+        _library.append(case)
+        _persist_library()
+    return {"status": "ok", "data": case}
+
+
+@app.put("/library/cases/{case_id}")
+async def update_library_case(case_id: str, req: LibraryCaseUpdate):
+    """Update a test case in the library."""
+    with _lock:
+        for c in _library:
+            if c["caseId"] == case_id:
+                for field in ["title", "description", "category", "tags", "priority",
+                              "inputVariables", "expectedOutcome", "steps"]:
+                    val = getattr(req, field, None)
+                    if val is not None:
+                        c[field] = val
+                c["updatedAt"] = datetime.now(timezone.utc).isoformat()
+                _persist_library()
+                return {"status": "ok", "data": c}
+    raise HTTPException(404, "用例不存在")
+
+
+@app.delete("/library/cases/{case_id}")
+async def delete_library_case(case_id: str):
+    """Delete a test case from the library."""
+    with _lock:
+        before = len(_library)
+        _library[:] = [c for c in _library if c["caseId"] != case_id]
+        if len(_library) < before:
+            _persist_library()
+            return {"status": "ok", "message": "已删除"}
+    raise HTTPException(404, "用例不存在")
+
+
+@app.post("/library/generate")
+async def generate_library_cases(req: LibraryAIGenerateRequest):
+    """Use AI to generate test cases for the library."""
+    if req.category not in LIBRARY_CATEGORIES:
+        raise HTTPException(400, f"Invalid category. Must be one of: {LIBRARY_CATEGORIES}")
+
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == req.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "快照不存在")
+
+    category_descriptions = {
+        "dataobjects": "DataObjects（数据对象）— 验证属性、类型、约束、CRUD操作",
+        "actions_events": "Actions & Events（操作与事件）— 验证前置条件、副作用、触发时序",
+        "rules": "Rules（规则）— 验证规则逻辑、冲突检测、边界条件",
+        "links": "Links（关联关系）— 验证实体关联、基数约束、级联效应",
+        "ontology": "Ontology（本体综合）— 跨组件集成验证、E2E场景、一致性检查",
+    }
+
+    ontology_summary = f"""Ontology Snapshot ({snap['snapshotId']}):
+- Rules: {len(snap.get('rules', []))} (sample: {json.dumps(snap.get('rules', [])[:3], ensure_ascii=False, indent=1)})
+- DataObjects: {len(snap.get('dataobjects', []))} (sample: {json.dumps(snap.get('dataobjects', [])[:3], ensure_ascii=False, indent=1)})
+- Actions: {len(snap.get('actions', []))} (sample: {json.dumps(snap.get('actions', [])[:2], ensure_ascii=False, indent=1)})
+- Events: {len(snap.get('events', []))} events
+- Links: {len(snap.get('links', []))} links"""
+
+    prompt = f"""基于以下 Ontology 信息，为类别 "{category_descriptions[req.category]}" 生成 {req.count} 条高质量测试用例。
+
+## Ontology 上下文
+{ontology_summary}
+
+## 要求
+1. 每条用例必须包含以下字段：
+   - title: 简短中文标题（10-20字）
+   - description: 详细中文描述，说明测试目的和验证内容
+   - priority: "P0"（关键）| "P1"（重要）| "P2"（一般）
+   - tags: 相关标签数组（至少包含 "{req.category}"）
+   - inputVariables: 测试输入数据对象
+   - expectedOutcome: 预期结果描述
+   - steps: 测试步骤数组（2-5步）
+
+2. 生成多样化的测试场景，包括：正常场景、边界条件、异常场景、反例验证
+
+## 输出格式
+返回一个 JSON 数组，包含 {req.count} 条测试用例。
+"""
+
+    system = """你是 Palantir Ontology 测试架构师，专注于 HRO 招聘系统的本体测试用例设计。
+生成的用例应覆盖常见场景和边界条件，标题和描述使用中文。"""
+
+    result = await gemini.generate_json(system, prompt, temp=0.4)
+    if result is None:
+        raise HTTPException(500, gemini.last_error or "LLM调用失败，请检查API Key配置")
+
+    cases_raw = result if isinstance(result, list) else result.get("testCases", result.get("cases", []))
+    generated = []
+    for c in cases_raw:
+        lib_case = {
+            "caseId": f"LIB-{uuid.uuid4().hex[:8].upper()}",
+            "title": c.get("title", "未命名用例"),
+            "description": c.get("description", ""),
+            "category": req.category,
+            "tags": c.get("tags", [req.category]),
+            "priority": c.get("priority", "P1"),
+            "inputVariables": c.get("inputVariables", {}),
+            "expectedOutcome": c.get("expectedOutcome", ""),
+            "steps": c.get("steps", []),
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+        generated.append(lib_case)
+
+    with _lock:
+        _library.extend(generated)
+        _persist_library()
+
+    return {"status": "ok", "data": {"generated": generated, "totalCount": len(generated)}}
+
+
+@app.get("/library/stats")
+async def library_stats():
+    """Get counts per category."""
+    stats = {cat: 0 for cat in LIBRARY_CATEGORIES}
+    for c in _library:
+        cat = c.get("category", "")
+        if cat in stats:
+            stats[cat] += 1
+    return {"status": "ok", "data": stats}
 
 
 # ─── API Key Management ──────────────────────────────────────────────────────

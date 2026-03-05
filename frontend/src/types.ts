@@ -97,6 +97,20 @@ export interface ApiKeyItem {
     lastTestedAt: string | null;
 }
 
+export interface LibraryCase {
+    caseId: string;
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+    priority: string;
+    inputVariables: Record<string, any>;
+    expectedOutcome: string;
+    steps: string[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface ApiResponse<T> {
     status: string;
     data: T;
