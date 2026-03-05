@@ -516,14 +516,14 @@ COMPONENT_PROMPTS = {
 5. Action-Object Dependency Tests: Action target_objects match referenced objects""",
 }
 
-E2E_PROMPT = """Generate end-to-end integration test cases that cross all ontology layers:
-1. Action embedded rules reference valid rules in rules definitions
-2. Action triggered_event matches events catalog
-3. Event source_action traces back to producing action
-4. Action input source_object references valid DataObject properties
-5. Event state_mutations properties defined in target DataObject
-6. Link INVOLVES entries cover rule relatedEntities
-7. Full E2E pipeline: SCHEDULED_SYNC → syncFromClientSystem → REQUIREMENT_SYNCED → ... → onboardCandidate"""
+E2E_PROMPT = """生成跨越所有本体层的端到端集成测试用例（所有输出必须使用中文）：
+1. Action 内嵌规则引用的规则在 rules 定义中确实存在
+2. Action 的 triggered_event 与事件目录匹配
+3. Event 的 source_action 能回溯到产生它的 Action
+4. Action 输入的 source_object 引用了有效的 DataObject 属性
+5. Event 的 state_mutations 属性在目标 DataObject 中已定义
+6. Link 的 INVOLVES 条目覆盖了规则的 relatedEntities
+7. 完整 E2E 流水线：SCHEDULED_SYNC → syncFromClientSystem → REQUIREMENT_SYNCED → ... → onboardCandidate"""
 
 
 # ─── Test Case Generation ─────────────────────────────────────────────────────
@@ -627,20 +627,20 @@ Sample Links: {json.dumps(snap.get('links', [])[:5], ensure_ascii=False, indent=
 
     prompt = f"""{E2E_PROMPT}
 
-## Ontology Context
+## 本体上下文
 {context}
 
-## Output Format
-Return a JSON array of 5-8 E2E test cases. Each must have:
-- caseId: string (format: "TC-E2E-XXX")
+## 输出格式
+返回一个包含 5-8 个 E2E 测试用例的 JSON 数组。所有文本字段必须使用中文。每个对象必须包含：
+- caseId: string (格式: "TC-E2E-XXX")
 - component: "e2e"
 - strategy: "integration"
-- description: string
-- inputVariables: object
-- expectedOutcome: string
-- expectedWorkflow: array of step strings
+- description: string (详细的中文测试场景描述)
+- inputVariables: object (测试输入数据)
+- expectedOutcome: string (中文的预期结果描述)
+- expectedWorkflow: array of step strings (中文的步骤描述)
 - crossReferences: array of referenced component types
-- priority: "P0"
+- priority: "P0" | "P1"
 """
 
     result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.4)
