@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+:root {
+  --bg-base: #06080f;
+  --bg-card: #0b1020;
+  --bg-sider: #070b16;
+  --border: #24304f;
+  --primary: #22d3ee;
+  --text: #e6ecff;
+  --text-secondary: #9ba6c7;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Space Grotesk', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  background: var(--bg-base);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { min-height: 100vh; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3a61; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3d5291; }
+
+.ant-card { transition: transform 0.2s, box-shadow 0.3s; }
+.ant-card:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+
+.ant-tag { border-radius: 6px; }
+
+.ant-btn-primary {
+  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25);
+  transition: all 0.3s;
+}
+.ant-btn-primary:hover {
+  box-shadow: 0 12px 32px rgba(34, 211, 238, 0.35);
+  transform: translateY(-1px);
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(56, 189, 248, 0.04));
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #22d3ee, #a5b4fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-card .stat-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.page-title {
+  background: linear-gradient(90deg, #22d3ee, #a5b4fc, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}

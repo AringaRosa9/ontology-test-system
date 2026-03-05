@@ -1,0 +1,14 @@
+[
+  {
+    "keyId": "key_239470b5",
+    "provider": "custom",
+    "label": "test key",
+    "key": "sk-FiW7fRkzgtnAaW20HLwj7PCjRlCyrS8NjxYOZuj5kFmpuOEA",
+    "model": "gemini-3-pro-preview",
+    "baseUrl": "https://twob.pp.ua/v1",
+    "isActive": true,
+    "status": "valid",
+    "addedAt": "2026-03-05T07:19:02.974662+00:00",
+    "lastTestedAt": "2026-03-05T07:19:11.322633+00:00"
+  }
+]

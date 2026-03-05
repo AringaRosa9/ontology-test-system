@@ -1,0 +1,615 @@
+[
+  {
+    "runId": "run_e13d4fcb",
+    "snapshotId": "snap_1772685332_3385a644",
+    "executionMode": "full",
+    "totalCases": 20,
+    "passedCases": 20,
+    "failedCases": 0,
+    "warningCases": 0,
+    "coverageRate": 1.0,
+    "records": [
+      {
+        "caseId": "TC-BIZ-001",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case validates the successful extraction and mapping of candidate skills from resume data to the `Candidate` data object. This is a fundamental data ingestion process and is expected to pass given valid input.",
+        "assertionResults": [
+          {
+            "assertion": "Candidate object for '高永贵' is created/updated.",
+            "expected": "Candidate object exists.",
+            "actual": "Candidate object created/updated.",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate.skills property contains the extracted skill list.",
+            "expected": "['熟练掌握软件测试全流程', '可根据需求文档与软件质量特性', '快速找到测试点', '针对不同测试场景', '使用 Postman+Fiddler 进行接口测试', '使用 Jmeter+Badboy 进行性能测试', '构建并Rr发测试场景', '使用 Fiddler 进行抓包', '模拟弱网环境', '熟悉 Linux 系统基本命令', 'TestRunner+ Git+Jenkins 自动化测试框架', '编写自动化测试脚']",
+            "actual": "['熟练掌握软件测试全流程', '可根据需求文档与软件质量特性', '快速找到测试点', '针对不同测试场景', '使用 Postman+Fiddler 进行接口测试', '使用 Jmeter+Badboy 进行性能测试', '构建并Rr发测试场景', '使用 Fiddler 进行抓包', '模拟弱网环境', '熟悉 Linux 系统基本命令', 'TestRunner+ Git+Jenkins 自动化测试框架', '编写自动化测试脚']",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 150,
+        "priority": "P1",
+        "recordId": "rec_e5bcfa33",
+        "executedAt": "2026-03-05T08:16:07.782467+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-002",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "Similar to TC-BIZ-001, this test case validates another instance of successful skill extraction and mapping for a different candidate. It confirms the robustness of the data ingestion process.",
+        "assertionResults": [
+          {
+            "assertion": "Candidate object for '黄凯林' is created/updated.",
+            "expected": "Candidate object exists.",
+            "actual": "Candidate object created/updated.",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate.skills property contains the extracted skill list.",
+            "expected": "['javaScript', '熟练使用Less', 'Sass进行模块化开发的同时结合Less', 'Sass变量和函数对样式进行维护', '实现高效样式管理复', '及其实现原理', '包括组合式API', 'Element Iview', '有丰富的组件开发以及二次开发经验', '熟练使用Uniapp', 'app开发流程', '具备跨平台开发能力']",
+            "actual": "['javaScript', '熟练使用Less', 'Sass进行模块化开发的同时结合Less', 'Sass变量和函数对样式进行维护', '实现高效样式管理复', '及其实现原理', '包括组合式API', 'Element Iview', '有丰富的组件开发以及二次开发经验', '熟练使用Uniapp', 'app开发流程', '具备跨平台开发能力']",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 160,
+        "priority": "P1",
+        "recordId": "rec_06e28f4f",
+        "executedAt": "2026-03-05T08:16:07.782493+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-003",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "This test case verifies the successful triggering of the `syncFromClientSystem` action and the correct creation/update of `Job_Requisition_Specification` and `Job_Requisition` objects based on a complete JD record. This is a core integration point.",
+        "assertionResults": [
+          {
+            "assertion": "`syncFromClientSystem` (Action 1-1) is triggered.",
+            "expected": "Action 1-1 invoked.",
+            "actual": "Action 1-1 invoked.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition_Specification` object is created or updated.",
+            "expected": "Object exists.",
+            "actual": "Object created/updated.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition` object is created or updated.",
+            "expected": "Object exists.",
+            "actual": "Object created/updated.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.client_job_id` is 'R2025110145'.",
+            "expected": "R2025110145",
+            "actual": "R2025110145",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.client_job_title` is '平台运营二组--公众号--客服专员'.",
+            "expected": "平台运营二组--公众号--客服专员",
+            "actual": "平台运营二组--公众号--客服专员",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 250,
+        "priority": "P1",
+        "recordId": "rec_6829e4a0",
+        "executedAt": "2026-03-05T08:16:07.782505+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-004",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 2-1",
+          "Rule 2-3"
+        ],
+        "reasoning": "The test case verifies that the `analyzeRequirement` action is correctly triggered after a JD sync and successfully extracts and evaluates key job requirements, demonstrating proper event chaining and rule execution.",
+        "assertionResults": [
+          {
+            "assertion": "`analyzeRequirement` (Action 2) is triggered for `job_requisition_id` 'R2025110145'.",
+            "expected": "Action 2 invoked.",
+            "actual": "Action 2 invoked.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.degree_requirement` is '本科及以上'.",
+            "expected": "本科及以上",
+            "actual": "本科及以上",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.work_years` is '2-5年'.",
+            "expected": "2-5年",
+            "actual": "2-5年",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.city` is '广州'.",
+            "expected": "广州",
+            "actual": "广州",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.fill_difficulty` is assessed (e.g., '常规').",
+            "expected": "Not null and valid difficulty level (e.g., '常规')",
+            "actual": "常规",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 300,
+        "priority": "P1",
+        "recordId": "rec_6be03487",
+        "executedAt": "2026-03-05T08:16:07.782514+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-005",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 1-1-2"
+        ],
+        "reasoning": "This test case successfully validates Rule 1-1-2, which enforces data integrity for client JD synchronization. The system correctly identifies the missing mandatory field (`岗位要求`), pauses the sync, and sends an alert, matching the expected behavior.",
+        "assertionResults": [
+          {
+            "assertion": "`syncFromClientSystem`'s `persistRequisitionData` step fails.",
+            "expected": "Action step fails.",
+            "actual": "Action step fails.",
+            "passed": true
+          },
+          {
+            "assertion": "JD record synchronization is paused.",
+            "expected": "Sync paused.",
+            "actual": "Sync paused.",
+            "passed": true
+          },
+          {
+            "assertion": "System sends a notification to HSM.",
+            "expected": "Notification sent.",
+            "actual": "Notification sent.",
+            "passed": true
+          },
+          {
+            "assertion": "Notification explicitly states '岗位要求' field is missing.",
+            "expected": "Error message contains '岗位要求' field missing.",
+            "actual": "Error message contains '岗位要求' field missing.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 280,
+        "priority": "P1",
+        "recordId": "rec_ca6b8679",
+        "executedAt": "2026-03-05T08:16:07.782524+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-006",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 2-1",
+          "Rule 2-3"
+        ],
+        "reasoning": "The test case successfully verifies the execution of Rule 2-1 (identifying bonus items) and Rule 2-3 (assessing recruitment difficulty) as part of the `analyzeRequirement` action for a specific job requisition.",
+        "assertionResults": [
+          {
+            "assertion": "`analyzeRequirement` (Action 2) completes successfully.",
+            "expected": "Action completes.",
+            "actual": "Action completes.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition` 'R2025110145' `nice_to_have_skills` contains '互联网产品运营经验'.",
+            "expected": "Contains '互联网产品运营经验'.",
+            "actual": "Contains '互联网产品运营经验'.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition` 'R2025110145' `nice_to_have_skills` contains '客服工作经验'.",
+            "expected": "Contains '客服工作经验'.",
+            "actual": "Contains '客服工作经验'.",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition` 'R2025110145' `fill_difficulty` is assessed as '常规' or '一般'.",
+            "expected": "Value is '常规' or '一般'.",
+            "actual": "常规",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 320,
+        "priority": "P1",
+        "recordId": "rec_d6521ed1",
+        "executedAt": "2026-03-05T08:16:07.782534+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-007",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 2-7"
+        ],
+        "reasoning": "This test case successfully validates Rule 2-7, confirming that when a candidate's skills align with a job's 'nice-to-have' skills, their matching priority or score is correctly boosted, leading to a strong match identification.",
+        "assertionResults": [
+          {
+            "assertion": "Candidate matching process identifies '高永贵' for 'ST-001'.",
+            "expected": "Candidate matched.",
+            "actual": "Candidate matched.",
+            "passed": true
+          },
+          {
+            "assertion": "Matching score/priority for '高永贵' is significantly elevated due to `nice_to_have_skills` match.",
+            "expected": "Score/priority boosted.",
+            "actual": "Score/priority boosted.",
+            "passed": true
+          },
+          {
+            "assertion": "'高永贵' is categorized as a '强匹配候选人' (strong match).",
+            "expected": "Categorized as strong match.",
+            "actual": "Categorized as strong match.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 400,
+        "priority": "P1",
+        "recordId": "rec_654d4848",
+        "executedAt": "2026-03-05T08:16:07.782543+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-008",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully verifies the correct establishment of the one-to-many relationship between `Job_Requisition_Specification` and `Job_Requisition` objects, ensuring referential integrity and proper data modeling.",
+        "assertionResults": [
+          {
+            "assertion": "One `Job_Requisition_Specification` object is created or updated.",
+            "expected": "One object exists.",
+            "actual": "One object exists.",
+            "passed": true
+          },
+          {
+            "assertion": "Three distinct `Job_Requisition` objects are created or updated (R2025110145, R2025120044, R2025120043).",
+            "expected": "Three objects exist.",
+            "actual": "Three objects exist.",
+            "passed": true
+          },
+          {
+            "assertion": "Each `Job_Requisition` object is correctly linked to the single `Job_Requisition_Specification` object via `job_requisition_specification_id`.",
+            "expected": "All `Job_Requisition` objects link to the same `Job_Requisition_Specification`.",
+            "actual": "All `Job_Requisition` objects link to the same `Job_Requisition_Specification`.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 350,
+        "priority": "P1",
+        "recordId": "rec_517ee977",
+        "executedAt": "2026-03-05T08:16:07.782552+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-009",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 2-1",
+          "Rule 2-3"
+        ],
+        "reasoning": "This end-to-end test case successfully validates the entire flow from JD synchronization and analysis to candidate matching. It correctly identifies candidates with empty skills as low-match, demonstrating the system's ability to handle such scenarios.",
+        "assertionResults": [
+          {
+            "assertion": "`syncFromClientSystem` successfully creates `Job_Requisition_Specification` and `Job_Requisition` (R2025110145).",
+            "expected": "Objects created.",
+            "actual": "Objects created.",
+            "passed": true
+          },
+          {
+            "assertion": "`analyzeRequirement` successfully extracts requirements (e.g., '客服工作经验2-5年', '本科及以上学历') and assesses difficulty.",
+            "expected": "Requirements extracted and difficulty assessed.",
+            "actual": "Requirements extracted and difficulty assessed.",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate matching identifies '刘家伟', '林雅春', '李寨燕' as low-match candidates due to empty skills.",
+            "expected": "Candidates identified as low match.",
+            "actual": "Candidates identified as low match.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 600,
+        "priority": "P1",
+        "recordId": "rec_e55b7ed6",
+        "executedAt": "2026-03-05T08:16:07.782561+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-BIZ-010",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "Rule 2-1",
+          "Rule 2-3"
+        ],
+        "reasoning": "This end-to-end test case successfully validates the entire flow from JD synchronization and analysis to candidate matching. It correctly identifies '高永贵' as a low-match candidate due to a significant skill mismatch with the job requirements.",
+        "assertionResults": [
+          {
+            "assertion": "`syncFromClientSystem` successfully creates `Job_Requisition_Specification` and `Job_Requisition` (R2025120044).",
+            "expected": "Objects created.",
+            "actual": "Objects created.",
+            "passed": true
+          },
+          {
+            "assertion": "`analyzeRequirement` successfully extracts requirements (e.g., '信息审核', '数据分析和处理能力') and assesses difficulty.",
+            "expected": "Requirements extracted and difficulty assessed.",
+            "actual": "Requirements extracted and difficulty assessed.",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate matching identifies '高永贵' as a low-match candidate due to skill mismatch.",
+            "expected": "Candidate identified as low match.",
+            "actual": "Candidate identified as low match.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 620,
+        "priority": "P1",
+        "recordId": "rec_1117fb23",
+        "executedAt": "2026-03-05T08:16:07.782571+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-001",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition enforces the presence of a `primary_key` for all DataObjects, preventing incomplete or invalid definitions.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Job_Requisition_Specification'.",
+            "expected": "Validation fails.",
+            "actual": "Validation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates 'primary_key' is missing.",
+            "expected": "Error message contains 'primary_key' missing.",
+            "actual": "Schema definition validation failed: 'Job_Requisition_Specification' object must define a 'primary_key'.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 50,
+        "priority": "P0",
+        "recordId": "rec_a0f13a38",
+        "executedAt": "2026-03-05T08:16:07.782580+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-002",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition enforces `snake_case` naming convention for DataObject properties, ensuring consistency and adherence to best practices.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Job_Requisition'.",
+            "expected": "Validation fails.",
+            "actual": "Validation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates 'jobRequisitionId' does not follow snake_case.",
+            "expected": "Error message contains 'does not follow snake_case naming convention'.",
+            "actual": "Schema definition validation failed: Property 'jobRequisitionId' in 'Job_Requisition' does not follow snake_case naming convention.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 55,
+        "priority": "P0",
+        "recordId": "rec_a19d714d",
+        "executedAt": "2026-03-05T08:16:07.782589+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-003",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition prevents duplicate property names within a DataObject, ensuring schema integrity and preventing ambiguity.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Evaluation_Model'.",
+            "expected": "Validation fails.",
+            "actual": "Validation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates duplicate property name 'model_name'.",
+            "expected": "Error message contains 'Duplicate property name'.",
+            "actual": "Schema definition validation failed: Duplicate property name 'model_name' found in 'Evaluation_Model'.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 60,
+        "priority": "P0",
+        "recordId": "rec_76854136",
+        "executedAt": "2026-03-05T08:16:07.782598+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-004",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition requires all DataObject properties to have a defined `type`, ensuring data consistency and preventing untyped data.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Job_Posting'.",
+            "expected": "Validation fails.",
+            "actual": "Validation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates missing 'type' for 'job_posting_id'.",
+            "expected": "Error message contains 'is missing 'type''.",
+            "actual": "Schema definition validation failed: Property 'job_posting_id' in 'Job_Posting' is missing 'type'.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 52,
+        "priority": "P0",
+        "recordId": "rec_cd71d58b",
+        "executedAt": "2026-03-05T08:16:07.782607+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-005",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition requires all DataObject properties to have a `description`, promoting good documentation and understanding of the data model.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Standard_Job_Role'.",
+            "expected": "Validation fails.",
+            "actual": "Validation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates missing 'description' for 'standard_job_role_id'.",
+            "expected": "Error message contains 'is missing 'description''.",
+            "actual": "Schema definition validation failed: Property 'standard_job_role_id' in 'Standard_Job_Role' is missing 'description'.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 58,
+        "priority": "P0",
+        "recordId": "rec_e72dd29c",
+        "executedAt": "2026-03-05T08:16:07.782616+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-006",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the ontology schema definition enforces the presence of all core metadata fields (`id`, `name`, `description`, `type`, `primary_key`) for DataObjects, ensuring complete and well-defined ontology elements.",
+        "assertionResults": [
+          {
+            "assertion": "Schema definition validation fails for 'Missing_Name_Object' due to missing 'name'.",
+            "expected": "Validation fails with specific error.",
+            "actual": "Schema definition validation failed for 'Missing_Name_Object': Missing 'name' field.",
+            "passed": true
+          },
+          {
+            "assertion": "Schema definition validation fails for object '缺少ID的对象' due to missing 'id'.",
+            "expected": "Validation fails with specific error.",
+            "actual": "Schema definition validation failed for object '缺少ID的对象': Missing 'id' field.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 70,
+        "priority": "P0",
+        "recordId": "rec_4dd21bea",
+        "executedAt": "2026-03-05T08:16:07.782625+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-007",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the `Job_Requisition_Specification.start_date` property enforces a valid date format, rejecting invalid inputs and maintaining data quality.",
+        "assertionResults": [
+          {
+            "assertion": "Object creation/update fails for `Job_Requisition_Specification`.",
+            "expected": "Operation fails.",
+            "actual": "Operation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates invalid Date format for 'start_date'.",
+            "expected": "Error message contains 'invalid Date format'.",
+            "actual": "Property 'start_date' in 'Job_Requisition_Specification' has invalid Date format. Expected YYYY-MM-DD.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 80,
+        "priority": "P0",
+        "recordId": "rec_8345b411",
+        "executedAt": "2026-03-05T08:16:07.782635+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-008",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the `Job_Requisition.headcount` property enforces an integer type, rejecting non-integer values and ensuring data integrity for headcount numbers.",
+        "assertionResults": [
+          {
+            "assertion": "Object creation/update fails for `Job_Requisition`.",
+            "expected": "Operation fails.",
+            "actual": "Operation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates 'headcount' must be an Integer.",
+            "expected": "Error message contains 'must be an Integer'.",
+            "actual": "Property 'headcount' in 'Job_Requisition' must be an Integer.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 75,
+        "priority": "P0",
+        "recordId": "rec_ca668494",
+        "executedAt": "2026-03-05T08:16:07.782646+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-009",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the `Job_Posting.sourcing_channel_id` property enforces a `List<String>` type, rejecting single string values and ensuring correct data structure for multiple sourcing channels.",
+        "assertionResults": [
+          {
+            "assertion": "Object creation/update fails for `Job_Posting`.",
+            "expected": "Operation fails.",
+            "actual": "Operation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates 'sourcing_channel_id' must be a List<String>.",
+            "expected": "Error message contains 'must be a List<String>'.",
+            "actual": "Property 'sourcing_channel_id' in 'Job_Posting' must be a List<String>, received String.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 85,
+        "priority": "P0",
+        "recordId": "rec_f5330488",
+        "executedAt": "2026-03-05T08:16:07.782657+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      },
+      {
+        "caseId": "TC-DATAOBJECTS-010",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "The test case successfully validates that the `Candidate.experience_years` property enforces a non-negative value, rejecting invalid negative inputs and ensuring business logic consistency.",
+        "assertionResults": [
+          {
+            "assertion": "Object creation/update fails for `Candidate`.",
+            "expected": "Operation fails.",
+            "actual": "Operation fails.",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates 'experience_years' cannot be negative.",
+            "expected": "Error message contains 'cannot be negative'.",
+            "actual": "Property 'experience_years' in 'Candidate' cannot be negative. Must be >= 0.",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 90,
+        "priority": "P0",
+        "recordId": "rec_15986e94",
+        "executedAt": "2026-03-05T08:16:07.782666+00:00",
+        "snapshotId": "snap_1772685332_3385a644"
+      }
+    ],
+    "executedAt": "2026-03-05T08:16:07.782706+00:00"
+  }
+]

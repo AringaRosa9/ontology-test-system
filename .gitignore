@@ -1,0 +1,13 @@
+# user-requested
+/test_material/
+
+# common local/build artifacts
+/.venv/
+.DS_Store
+
+# frontend
+/frontend/node_modules/
+/frontend/dist/
+
+# backend
+/backend/.env

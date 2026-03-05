@@ -1,0 +1,943 @@
+[
+  {
+    "caseId": "TC-BIZ-001",
+    "component": "business_integration",
+    "strategy": "resume_mapping",
+    "description": "验证简历数据中'高永贵'的技能信息是否被正确提取并映射到候选人数据对象。",
+    "inputVariables": {
+      "resumeData": {
+        "filename": "【测试】高永贵.pdf",
+        "name": "高永贵",
+        "skills": [
+          "熟练掌握软件测试全流程",
+          "可根据需求文档与软件质量特性",
+          "快速找到测试点",
+          "针对不同测试场景",
+          "使用 Postman+Fiddler 进行接口测试",
+          "使用 Jmeter+Badboy 进行性能测试",
+          "构建并Rr发测试场景",
+          "使用 Fiddler 进行抓包",
+          "模拟弱网环境",
+          "熟悉 Linux 系统基本命令",
+          "TestRunner+ Git+Jenkins 自动化测试框架",
+          "编写自动化测试脚"
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功解析'高永贵'的简历，并将其技能列表准确地映射到`Candidate`数据对象的`skills`属性中。",
+    "priority": "P0",
+    "testCategory": "resume_mapping",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.575971+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-002",
+    "component": "business_integration",
+    "strategy": "resume_mapping",
+    "description": "验证简历数据中'黄凯林'的技能信息是否被正确提取并映射到候选人数据对象。",
+    "inputVariables": {
+      "resumeData": {
+        "filename": "【前端开发】黄凯林.pdf",
+        "name": "黄凯林",
+        "skills": [
+          "javaScript",
+          "熟练使用Less",
+          "Sass进行模块化开发的同时结合Less",
+          "Sass变量和函数对样式进行维护",
+          "实现高效样式管理复",
+          "及其实现原理",
+          "包括组合式API",
+          "Element Iview",
+          "有丰富的组件开发以及二次开发经验",
+          "熟练使用Uniapp",
+          "app开发流程",
+          "具备跨平台开发能力"
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功解析'黄凯林'的简历，并将其技能列表准确地映射到`Candidate`数据对象的`skills`属性中。",
+    "priority": "P0",
+    "testCategory": "resume_mapping",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.575993+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-003",
+    "component": "business_integration",
+    "strategy": "jd_mapping",
+    "description": "验证新的JD记录（平台运营二组--公众号--客服专员）是否正确触发`syncFromClientSystem`动作，并创建相应的`Job_Requisition_Specification`和`Job_Requisition`对象。",
+    "inputVariables": {
+      "jdRecord": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "岗位职责": "1. 负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2. 相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3. 针对问题的部门内或跨部门沟通等\n4. 业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补"
+      }
+    },
+    "expectedOutcome": "`syncFromClientSystem` (Action 1-1)被触发。系统成功创建或更新`Job_Requisition_Specification`和`Job_Requisition`对象，其中`Job_Requisition.client_job_id`为\"R2025110145\"，`Job_Requisition.client_job_title`为\"平台运营二组--公众号--客服专员\"，并填充其他相关属性。",
+    "priority": "P0",
+    "testCategory": "jd_mapping",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.575995+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-004",
+    "component": "business_integration",
+    "strategy": "jd_mapping",
+    "description": "验证JD同步成功后，`analyzeRequirement`动作是否被正确触发，并对招聘岗位进行分析。",
+    "inputVariables": {
+      "jobRequisitionId": "R2025110145"
+    },
+    "expectedOutcome": "`analyzeRequirement` (Action 2)被触发。系统对`job_requisition_id`为\"R2025110145\"的`Job_Requisition`对象进行分析，提取出关键要素，例如`degree_requirement`为\"本科及以上\"，`work_years`为\"2-5年\"，`city`为\"广州\"，并评估`fill_difficulty`（例如\"常规\"）。",
+    "priority": "P0",
+    "testCategory": "jd_mapping",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.575997+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-005",
+    "component": "business_integration",
+    "strategy": "rule_validation",
+    "description": "验证规则1-1-2（客户需求同步数据完整性校验）：当同步的JD记录缺少必填字段（如`岗位要求`）时，系统是否能正确暂停同步并发送告警。",
+    "inputVariables": {
+      "jdRecord": {
+        "城市": "广州",
+        "需求编码": "R2025120044",
+        "需求名称": "时效性项目-服务号关注区运营",
+        "级别": "初级2等",
+        "岗位类型": "信息审核",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "岗位职责": "1、协助落地执行推荐内容审核规则，监测规则效果，主动发现并反馈执行偏差，推动优化迭代；\n2、负责对接供应商，做好审核培训、答疑等运营工作；\n3、高效执行日常审核质检工作，并对各类问题做好跟进与闭环处理。",
+        "岗位要求": ""
+      }
+    },
+    "expectedOutcome": "`syncFromClientSystem` (Action 1-1)的`persistRequisitionData`步骤因规则1-1-2触发失败，该JD记录的同步被暂停。系统向HSM发送通知，明确指出`岗位要求`字段缺失。",
+    "priority": "P1",
+    "testCategory": "rule_validation",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.575999+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-006",
+    "component": "business_integration",
+    "strategy": "rule_validation",
+    "description": "验证规则2-1（岗位需求加分项与负向要求识别）和规则2-3（招聘难易度评估）：对“平台运营二组--公众号--客服专员”岗位进行分析，识别加分项并评估招聘难度。",
+    "inputVariables": {
+      "jobRequisitionId": "R2025110145"
+    },
+    "expectedOutcome": "在`analyzeRequirement` (Action 2)执行后，`Job_Requisition`对象\"R2025110145\"的`nice_to_have_skills`属性包含\"互联网产品运营经验\"和\"客服工作经验\"。`fill_difficulty`属性被评估为\"常规\"或\"一般\"。",
+    "priority": "P1",
+    "testCategory": "rule_validation",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.576000+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-007",
+    "component": "business_integration",
+    "strategy": "rule_validation",
+    "description": "验证规则2-7（加分项提升匹配优先级）：当候选人技能命中JD的加分项时，其匹配优先级是否被提升。",
+    "inputVariables": {
+      "jobRequisition": {
+        "job_requisition_id": "ST-001",
+        "job_requirement": "熟悉软件测试全流程, 接口测试 (Postman/Fiddler), 性能测试 (Jmeter), Linux系统基本命令, 自动化测试框架 (TestRunner+Git+Jenkins)",
+        "nice_to_have_skills": [
+          "Postman",
+          "Fiddler",
+          "Jmeter",
+          "Linux",
+          "TestRunner",
+          "Git",
+          "Jenkins"
+        ]
+      },
+      "candidateSkills": [
+        "熟练掌握软件测试全流程",
+        "使用 Postman+Fiddler 进行接口测试",
+        "使用 Jmeter+Badboy 进行性能测试",
+        "熟悉 Linux 系统基本命令",
+        "TestRunner+ Git+Jenkins 自动化测试框架"
+      ]
+    },
+    "expectedOutcome": "系统将'高永贵'识别为`job_requisition_id`为\"ST-001\"的岗位的强匹配候选人，其匹配分数或优先级因命中多个`nice_to_have_skills`而显著提升。",
+    "priority": "P1",
+    "testCategory": "rule_validation",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.576001+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-008",
+    "component": "business_integration",
+    "strategy": "link_verification",
+    "description": "验证`Job_Requisition_Specification`与`Job_Requisition`之间的一对多关系是否正确建立。",
+    "inputVariables": {
+      "jdFile": {
+        "filename": "JD样本.csv",
+        "sampleRecords": [
+          {
+            "需求编码": "R2025110145",
+            "需求名称": "平台运营二组--公众号--客服专员"
+          },
+          {
+            "需求编码": "R2025120044",
+            "需求名称": "时效性项目-服务号关注区运营"
+          },
+          {
+            "需求编码": "R2025120043",
+            "需求名称": "小程序运营助理"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功创建或更新一个`Job_Requisition_Specification`对象，并创建三个独立的`Job_Requisition`对象（R2025110145, R2025120044, R2025120043），每个`Job_Requisition`对象都通过`job_requisition_specification_id`属性正确关联到该`Job_Requisition_Specification`对象。",
+    "priority": "P1",
+    "testCategory": "link_verification",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.576003+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-009",
+    "component": "business_integration",
+    "strategy": "full_pipeline",
+    "description": "端到端流程：JD同步、分析和候选人匹配，针对“平台运营二组--公众号--客服专员”岗位和技能为空的候选人。",
+    "inputVariables": {
+      "jdRecord": {
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "岗位要求": "1.本科及以上学历...6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年"
+      },
+      "candidates": [
+        {
+          "filename": "刘家伟.pdf",
+          "name": "刘家伟",
+          "skills": []
+        },
+        {
+          "filename": "林雅春.pdf",
+          "name": "林雅春",
+          "skills": []
+        },
+        {
+          "filename": "李寨燕.pdf",
+          "name": "李寨燕",
+          "skills": []
+        }
+      ]
+    },
+    "expectedOutcome": "1. `syncFromClientSystem`成功创建`Job_Requisition_Specification`和`Job_Requisition`对象（R2025110145）。\n2. `analyzeRequirement`成功提取岗位要求（如“客服工作经验2-5年”、“本科及以上学历”）并评估难度。\n3. 候选人匹配流程（隐式）运行，由于“刘家伟”、“林雅春”、“李寨燕”的简历技能为空，他们被识别为低匹配度候选人。",
+    "priority": "P0",
+    "testCategory": "full_pipeline",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.576004+00:00"
+  },
+  {
+    "caseId": "TC-BIZ-010",
+    "component": "business_integration",
+    "strategy": "full_pipeline",
+    "description": "端到端流程：JD同步、分析和候选人匹配，针对“时效性项目-服务号关注区运营”岗位和技能不匹配的候选人（高永贵）。",
+    "inputVariables": {
+      "jdRecord": {
+        "需求编码": "R2025120044",
+        "需求名称": "时效性项目-服务号关注区运营",
+        "岗位类型": "信息审核",
+        "岗位要求": "1、踏实认真，执行力强，责任心强，工作细致，愿意深入业务；\n2、稳定性强，愿意长期耕耘，与团队共同成长；\n3、具备一定的excel等数据分析和处理能力，有供应商管理、人审标注、质检等经验优先。"
+      },
+      "candidate": {
+        "filename": "【测试】高永贵.pdf",
+        "name": "高永贵",
+        "skills": [
+          "熟练掌握软件测试全流程",
+          "使用 Postman+Fiddler 进行接口测试",
+          "使用 Jmeter+Badboy 进行性能测试",
+          "熟悉 Linux 系统基本命令",
+          "TestRunner+ Git+Jenkins 自动化测试框架"
+        ]
+      }
+    },
+    "expectedOutcome": "1. `syncFromClientSystem`成功创建`Job_Requisition_Specification`和`Job_Requisition`对象（R2025120044）。\n2. `analyzeRequirement`成功提取岗位要求（如“信息审核”、“数据分析和处理能力”、“供应商管理、人审标注、质检等经验优先”）并评估难度。\n3. 候选人匹配流程（隐式）运行，“高永贵”因其软件测试技能与JD的信息审核/运营要求严重不符，被识别为低匹配度候选人。",
+    "priority": "P0",
+    "testCategory": "full_pipeline",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:11:41.576006+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-001",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证DataObject定义中缺少primary_key的情况。系统应拒绝此类不完整的定义。",
+    "inputVariables": {
+      "id": "Job_Requisition_Specification",
+      "name": "外包招聘需求",
+      "description": "缺少主键的招聘需求定义",
+      "type": "data",
+      "properties": [
+        {
+          "name": "hro_service_contract_id",
+          "type": "String",
+          "description": "合同编号"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed: 'Job_Requisition_Specification' object must define a 'primary_key'.",
+    "priority": "P0",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960208+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-002",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证DataObject属性名称不符合snake_case命名规范的情况。系统应报告命名规范错误。",
+    "inputVariables": {
+      "id": "Job_Requisition",
+      "name": "招聘岗位",
+      "primary_key": "job_requisition_id",
+      "properties": [
+        {
+          "name": "jobRequisitionId",
+          "type": "String",
+          "description": "不符合snake_case的属性名"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed: Property 'jobRequisitionId' in 'Job_Requisition' does not follow snake_case naming convention.",
+    "priority": "P1",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960238+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-003",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证DataObject定义中存在重复属性名的情况。系统应拒绝此类定义。",
+    "inputVariables": {
+      "id": "Evaluation_Model",
+      "name": "候选人综合评估模型",
+      "primary_key": "evaluation_model_id",
+      "properties": [
+        {
+          "name": "evaluation_model_id",
+          "type": "String",
+          "description": "评估模型编号"
+        },
+        {
+          "name": "model_name",
+          "type": "String",
+          "description": "评估模型名称"
+        },
+        {
+          "name": "model_name",
+          "type": "String",
+          "description": "重复的评估模型名称"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed: Duplicate property name 'model_name' found in 'Evaluation_Model'.",
+    "priority": "P0",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960241+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-004",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "验证DataObject属性定义中缺少'type'字段的情况。系统应拒绝此类不完整的属性定义。",
+    "inputVariables": {
+      "id": "Job_Posting",
+      "name": "岗位发布信息",
+      "primary_key": "job_posting_id",
+      "properties": [
+        {
+          "name": "job_posting_id",
+          "description": "缺少类型的属性"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed: Property 'job_posting_id' in 'Job_Posting' is missing 'type'.",
+    "priority": "P1",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960242+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-005",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "验证DataObject属性定义中缺少'description'字段的情况。系统应报告定义不完整。",
+    "inputVariables": {
+      "id": "Standard_Job_Role",
+      "name": "标准岗位",
+      "primary_key": "standard_job_role_id",
+      "properties": [
+        {
+          "name": "standard_job_role_id",
+          "type": "String"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed: Property 'standard_job_role_id' in 'Standard_Job_Role' is missing 'description'.",
+    "priority": "P2",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960244+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-006",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "验证所有DataObject定义是否都包含'id', 'name', 'description', 'type', 'primary_key'等核心元数据字段。",
+    "inputVariables": {
+      "object_definitions": [
+        {
+          "id": "Missing_Name_Object",
+          "description": "一个缺少名称的DataObject",
+          "type": "data",
+          "primary_key": "id"
+        },
+        {
+          "name": "缺少ID的对象",
+          "description": "一个缺少ID的DataObject",
+          "type": "data",
+          "primary_key": "id"
+        }
+      ]
+    },
+    "expectedOutcome": "Schema definition validation failed for 'Missing_Name_Object': Missing 'name' field. Schema definition validation failed for object '缺少ID的对象': Missing 'id' field.",
+    "priority": "P0",
+    "testCategory": "Schema Definition Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960245+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-007",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Job_Requisition_Specification.start_date属性接收无效日期格式。系统应拒绝创建或更新。",
+    "inputVariables": {
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": "JRS-001",
+        "hro_service_contract_id": "HRO-C-001",
+        "client_id": "CLI-001",
+        "start_date": "2023/13/01"
+      }
+    },
+    "expectedOutcome": "Property 'start_date' in 'Job_Requisition_Specification' has invalid Date format. Expected YYYY-MM-DD.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960247+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-008",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Job_Requisition.headcount属性接收非整数值。系统应拒绝创建或更新。",
+    "inputVariables": {
+      "objectType": "Job_Requisition",
+      "properties": {
+        "job_requisition_id": "JR-001",
+        "job_requisition_specification_id": "JRS-001",
+        "headcount": 2.5
+      }
+    },
+    "expectedOutcome": "Property 'headcount' in 'Job_Requisition' must be an Integer.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960248+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-009",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Job_Posting.sourcing_channel_id属性接收单个字符串而非List<String>。系统应拒绝创建或更新。",
+    "inputVariables": {
+      "objectType": "Job_Posting",
+      "properties": {
+        "job_posting_id": "JP-001",
+        "job_requisition_id": [
+          "JR-001"
+        ],
+        "sourcing_channel_id": "SC-001"
+      }
+    },
+    "expectedOutcome": "Property 'sourcing_channel_id' in 'Job_Posting' must be a List<String>, received String.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960249+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-010",
+    "component": "dataobjects",
+    "strategy": "boundary",
+    "description": "验证Candidate.experience_years属性接收负数或过大值。系统应根据业务规则拒绝或警告。",
+    "inputVariables": {
+      "objectType": "Candidate",
+      "properties": {
+        "candidate_id": "C-001",
+        "name": "张三",
+        "experience_years": -1.5
+      }
+    },
+    "expectedOutcome": "Property 'experience_years' in 'Candidate' cannot be negative. Must be >= 0.",
+    "priority": "P1",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960251+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-011",
+    "component": "dataobjects",
+    "strategy": "boundary",
+    "description": "验证Job_Requisition.must_have_skills属性接收空列表。系统应允许但可能触发业务警告。",
+    "inputVariables": {
+      "objectType": "Job_Requisition",
+      "properties": {
+        "job_requisition_id": "JR-002",
+        "job_requisition_specification_id": "JRS-001",
+        "client_job_title": "测试工程师",
+        "must_have_skills": []
+      }
+    },
+    "expectedOutcome": "Object 'Job_Requisition' created/updated successfully with empty 'must_have_skills' list. (May trigger business rule warning for incomplete requirements).",
+    "priority": "P2",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960252+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-012",
+    "component": "dataobjects",
+    "strategy": "boundary",
+    "description": "验证Interview_Model.recommended_duration属性接收零或超出合理范围的整数。系统应拒绝或警告。",
+    "inputVariables": {
+      "objectType": "Interview_Model",
+      "properties": {
+        "interview_model_id": "IM-001",
+        "model_name": "初级面试模型",
+        "recommended_duration": 0
+      }
+    },
+    "expectedOutcome": "Property 'recommended_duration' in 'Interview_Model' must be a positive integer. Value 0 is invalid.",
+    "priority": "P1",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960253+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-013",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "验证Candidate.name属性（假设为必填）在创建时为空。系统应拒绝创建。",
+    "inputVariables": {
+      "objectType": "Candidate",
+      "properties": {
+        "candidate_id": "C-002",
+        "name": null,
+        "mobile": "13800000000"
+      }
+    },
+    "expectedOutcome": "Property 'name' in 'Candidate' cannot be null. It is a required field.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960254+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-014",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "验证Job_Requisition_Specification.job_requisition_specification_id（主键）在创建时为空。系统应拒绝创建。",
+    "inputVariables": {
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": null,
+        "hro_service_contract_id": "HRO-C-001",
+        "client_id": "CLI-001",
+        "start_date": "2023-01-01"
+      }
+    },
+    "expectedOutcome": "Primary key 'job_requisition_specification_id' for 'Job_Requisition_Specification' cannot be null.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960256+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-015",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "验证Standard_Job_Role.leveling_matrix属性接收无效JSON结构。系统应拒绝创建或更新。",
+    "inputVariables": {
+      "objectType": "Standard_Job_Role",
+      "properties": {
+        "standard_job_role_id": "SJR-001",
+        "name": "产品经理",
+        "leveling_matrix": "{'P1': 'Entry', 'P2': 'Junior'"
+      }
+    },
+    "expectedOutcome": "Property 'leveling_matrix' in 'Standard_Job_Role' contains invalid JSON format.",
+    "priority": "P0",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960257+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-016",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "验证Evaluation_Model.pass_threshold属性接收逻辑不一致的JSON（例如，min_score > max_score）。系统应拒绝或警告。",
+    "inputVariables": {
+      "objectType": "Evaluation_Model",
+      "properties": {
+        "evaluation_model_id": "EM-001",
+        "model_name": "通用评估模型",
+        "pass_threshold": {
+          "technical_score": {
+            "min": 80,
+            "max": 70
+          },
+          "culture_fit_score": {
+            "min": 60
+          }
+        }
+      }
+    },
+    "expectedOutcome": "Property 'pass_threshold' in 'Evaluation_Model' contains logical inconsistency: 'technical_score' min (80) is greater than max (70).",
+    "priority": "P1",
+    "testCategory": "Property Type & Constraint Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960259+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-017",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Job_Requisition_Specification.hro_service_contract_id引用不存在的HRO_Service_Contract。系统应拒绝创建。",
+    "inputVariables": {
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": "JRS-003",
+        "hro_service_contract_id": "NON-EXISTENT-HRO-C-001",
+        "client_id": "CLI-001",
+        "start_date": "2023-01-01"
+      }
+    },
+    "expectedOutcome": "Foreign key constraint violation: 'hro_service_contract_id' references non-existent 'HRO_Service_Contract' with ID 'NON-EXISTENT-HRO-C-001'.",
+    "priority": "P0",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960260+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-018",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Job_Requisition.job_requisition_specification_id引用不存在的Job_Requisition_Specification。系统应拒绝创建。",
+    "inputVariables": {
+      "objectType": "Job_Requisition",
+      "properties": {
+        "job_requisition_id": "JR-003",
+        "job_requisition_specification_id": "NON-EXISTENT-JRS-001",
+        "client_job_title": "高级开发工程师"
+      }
+    },
+    "expectedOutcome": "Foreign key constraint violation: 'job_requisition_specification_id' references non-existent 'Job_Requisition_Specification' with ID 'NON-EXISTENT-JRS-001'.",
+    "priority": "P0",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960261+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-019",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "验证Candidate.sourcing_channel_id引用不存在的Sourcing_Channel。系统应拒绝创建。",
+    "inputVariables": {
+      "objectType": "Candidate",
+      "properties": {
+        "candidate_id": "C-003",
+        "name": "李四",
+        "sourcing_channel_id": "NON-EXISTENT-SC-001"
+      }
+    },
+    "expectedOutcome": "Foreign key constraint violation: 'sourcing_channel_id' references non-existent 'Sourcing_Channel' with ID 'NON-EXISTENT-SC-001'.",
+    "priority": "P0",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960263+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-020",
+    "component": "dataobjects",
+    "strategy": "conflict",
+    "description": "验证Job_Requisition_Specification.job_requisition_id（List<String> FK）包含有效和无效的Job_Requisition ID。系统应拒绝创建或更新。",
+    "inputVariables": {
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": "JRS-004",
+        "hro_service_contract_id": "HRO-C-001",
+        "client_id": "CLI-001",
+        "job_requisition_id": [
+          "JR-001",
+          "NON-EXISTENT-JR-002",
+          "JR-003"
+        ]
+      }
+    },
+    "expectedOutcome": "Foreign key constraint violation: 'job_requisition_id' contains reference to non-existent 'Job_Requisition' with ID 'NON-EXISTENT-JR-002'.",
+    "priority": "P0",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960264+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-021",
+    "component": "dataobjects",
+    "strategy": "boundary",
+    "description": "验证Job_Posting.job_requisition_id（List<String> FK）为空列表。根据业务逻辑，岗位发布应至少关联一个招聘岗位。",
+    "inputVariables": {
+      "objectType": "Job_Posting",
+      "properties": {
+        "job_posting_id": "JP-002",
+        "job_requisition_id": [],
+        "title": "空关联岗位发布"
+      }
+    },
+    "expectedOutcome": "Business rule violation: 'Job_Posting' must be associated with at least one 'Job_Requisition'.",
+    "priority": "P1",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960265+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-022",
+    "component": "dataobjects",
+    "strategy": "boundary",
+    "description": "验证Job_Posting.sourcing_channel_id（List<String> FK）包含大量有效渠道ID。测试系统性能和FK处理能力。",
+    "inputVariables": {
+      "objectType": "Job_Posting",
+      "properties": {
+        "job_posting_id": "JP-003",
+        "job_requisition_id": [
+          "JR-001"
+        ],
+        "sourcing_channel_id": [
+          "SC-001",
+          "SC-002",
+          "SC-003",
+          "SC-004",
+          "SC-005",
+          "SC-006",
+          "SC-007",
+          "SC-008",
+          "SC-009",
+          "SC-010",
+          "SC-011",
+          "SC-012",
+          "SC-013",
+          "SC-014",
+          "SC-015",
+          "SC-016",
+          "SC-017",
+          "SC-018",
+          "SC-019",
+          "SC-020"
+        ],
+        "title": "多渠道发布岗位"
+      }
+    },
+    "expectedOutcome": "Object 'Job_Posting' created/updated successfully. All 20 'sourcing_channel_id' references validated.",
+    "priority": "P2",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960267+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-023",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "验证Job_Requisition_Specification引用Employee ID，但Employee对象本身存在SCHEMA问题（例如，Employee ID格式不正确）。",
+    "inputVariables": {
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": "JRS-005",
+        "hro_service_contract_id": "HRO-C-001",
+        "client_id": "CLI-001",
+        "sd_owner_id": "EMP_INVALID_FORMAT_123",
+        "recruiter_supervisor_id": "EMP-002",
+        "recruiter_id": [
+          "EMP-003",
+          "EMP-004"
+        ]
+      },
+      "referenced_employee_schema_issue": {
+        "employee_id": "EMP_INVALID_FORMAT_123",
+        "name": "无效员工",
+        "email": "invalid@example.com"
+      }
+    },
+    "expectedOutcome": "Foreign key constraint violation: 'sd_owner_id' references 'Employee' with ID 'EMP_INVALID_FORMAT_123', but the referenced 'Employee' object itself has a schema validation error (e.g., ID format mismatch).",
+    "priority": "P1",
+    "testCategory": "Object Relationship Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960268+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-024",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "尝试创建Job_Requisition对象，但其主键job_requisition_id已存在。系统应拒绝创建。",
+    "inputVariables": {
+      "operation": "CREATE",
+      "objectType": "Job_Requisition",
+      "properties": {
+        "job_requisition_id": "JR-EXISTING-001",
+        "job_requisition_specification_id": "JRS-001",
+        "client_job_title": "已存在岗位"
+      },
+      "existing_object": {
+        "job_requisition_id": "JR-EXISTING-001",
+        "client_job_title": "原岗位"
+      }
+    },
+    "expectedOutcome": "Creation failed: Object 'Job_Requisition' with ID 'JR-EXISTING-001' already exists.",
+    "priority": "P0",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960269+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-025",
+    "component": "dataobjects",
+    "strategy": "counter_example",
+    "description": "尝试修改Candidate对象，但更新的属性'non_existent_property'不存在于Schema中。系统应拒绝更新。",
+    "inputVariables": {
+      "operation": "MODIFY",
+      "objectType": "Candidate",
+      "objectId": "C-001",
+      "properties": {
+        "name": "张三更新",
+        "non_existent_property": "some_value"
+      }
+    },
+    "expectedOutcome": "Update failed: Property 'non_existent_property' does not exist in 'Candidate' schema.",
+    "priority": "P0",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960270+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-026",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "尝试创建Candidate对象，但缺少主键'candidate_id'。系统应拒绝创建。",
+    "inputVariables": {
+      "operation": "CREATE",
+      "objectType": "Candidate",
+      "properties": {
+        "name": "王五",
+        "mobile": "13911112222"
+      }
+    },
+    "expectedOutcome": "Creation failed: Primary key 'candidate_id' for 'Candidate' is missing.",
+    "priority": "P0",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960272+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-027",
+    "component": "dataobjects",
+    "strategy": "omission",
+    "description": "尝试创建Job_Requisition对象，但缺少'client_job_title'（假设为业务必填字段，即使Schema未强制）。系统应拒绝或警告。",
+    "inputVariables": {
+      "operation": "CREATE",
+      "objectType": "Job_Requisition",
+      "properties": {
+        "job_requisition_id": "JR-004",
+        "job_requisition_specification_id": "JRS-001",
+        "headcount": 1
+      }
+    },
+    "expectedOutcome": "Creation failed: Required business property 'client_job_title' for 'Job_Requisition' is missing.",
+    "priority": "P1",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960273+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-028",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "尝试修改Job_Requisition的job_requisition_specification_id，而该Job_Requisition已关联了Application对象。验证FK是否不可变或有级联影响。",
+    "inputVariables": {
+      "operation": "MODIFY",
+      "objectType": "Job_Requisition",
+      "objectId": "JR-001",
+      "properties": {
+        "job_requisition_specification_id": "JRS-NEW-001"
+      },
+      "existing_state": {
+        "job_requisition_id": "JR-001",
+        "job_requisition_specification_id": "JRS-OLD-001",
+        "has_linked_applications": true
+      }
+    },
+    "expectedOutcome": "Update failed: 'job_requisition_specification_id' cannot be modified for 'Job_Requisition' 'JR-001' as it has existing dependent 'Application' objects. (Or: Cascade update initiated, verify dependent objects are updated).",
+    "priority": "P1",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960275+00:00"
+  },
+  {
+    "caseId": "TC-DATAOBJECTS-029",
+    "component": "dataobjects",
+    "strategy": "challenge",
+    "description": "创建Job_Requisition_Specification对象，包含所有类型的属性，特别是List<String> FKs，确保所有属性都被正确解析和存储。",
+    "inputVariables": {
+      "operation": "CREATE",
+      "objectType": "Job_Requisition_Specification",
+      "properties": {
+        "job_requisition_specification_id": "JRS-FULL-001",
+        "hro_service_contract_id": "HRO-C-001",
+        "client_id": "CLI-001",
+        "job_requisition_id": [
+          "JR-001",
+          "JR-002"
+        ],
+        "start_date": "2023-01-01",
+        "deadline": "2023-12-31",
+        "create_time": "2023-01-01T10:00:00Z",
+        "create_by": "admin",
+        "sd_org_name": "交付服务部",
+        "sd_owner_id": "EMP-001",
+        "recruiter_supervisor_id": "EMP-002",
+        "recruiter_id": [
+          "EMP-003",
+          "EMP-004"
+        ],
+        "priority": "紧急",
+        "is_exclusive": true,
+        "number_of_competitors": 0,
+        "status": "进行中",
+        "completion_time": null
+      }
+    },
+    "expectedOutcome": "Object 'Job_Requisition_Specification' 'JRS-FULL-001' created successfully. All properties, including List<String> FKs, are correctly parsed, stored, and linked.",
+    "priority": "P0",
+    "testCategory": "State Mutation Coverage Tests",
+    "snapshotId": "snap_1772685332_3385a644",
+    "generatedAt": "2026-03-05T08:12:47.960276+00:00"
+  }
+]
