@@ -116,6 +116,27 @@ export interface LibraryCase {
     strategy?: string;
 }
 
+export interface ValidationErrorItem {
+    severity: 'P0' | 'P1' | 'P2';
+    code: string;
+    entityType: string;
+    entityId: string;
+    message: string;
+    evidence: string;
+}
+
+export interface ValidationReport {
+    isDeterministicallyValid: boolean;
+    runnable: boolean;
+    totalErrors: number;
+    blockerCount: number;
+    resultHash: string;
+    errors: ValidationErrorItem[];
+    errorsByCategory: Record<string, ValidationErrorItem[]>;
+    snapshotId?: string;
+    validatedAt?: string;
+}
+
 export interface ApiResponse<T> {
     status: string;
     data: T;

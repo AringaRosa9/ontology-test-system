@@ -8,9 +8,11 @@ import {
     UploadOutlined, DeleteOutlined, EyeOutlined, CloudDownloadOutlined,
     ApiOutlined, CheckCircleOutlined, CloseCircleOutlined,
     DatabaseOutlined, CloudServerOutlined, FolderOpenOutlined,
+    SafetyCertificateOutlined, ExclamationCircleOutlined,
+    WarningOutlined,
 } from '@ant-design/icons';
 import api from '../api';
-import type { ApiResponse, OntologySnapshot, OntologySnapshotDetail } from '../types';
+import type { ApiResponse, OntologySnapshot, OntologySnapshotDetail, ValidationReport } from '../types';
 
 // ── Neo4j Panel ──────────────────────────────────────────────────────────────
 
@@ -342,6 +344,8 @@ export default function OntologyPage() {
     const [snapshots, setSnapshots] = useState<OntologySnapshot[]>([]);
     const [uploading, setUploading] = useState(false);
     const [detail, setDetail] = useState<OntologySnapshotDetail | null>(null);
+    const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+    const [validating, setValidating] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchSnapshots = () => {
@@ -384,7 +388,32 @@ export default function OntologyPage() {
         try {
             const { data } = await api.get<ApiResponse<OntologySnapshotDetail>>(`/ontology/snapshots/${id}`);
             setDetail(data.data);
+            // Auto-load validation report
+            handleValidate(id);
         } catch { message.error('加载详情失败'); }
+    };
+
+    const handleValidate = async (id: string) => {
+        setValidating(true);
+        try {
+            const { data } = await api.get<ApiResponse<ValidationReport>>(`/ontology/snapshots/${id}/validation`);
+            setValidationReport(data.data);
+        } catch {
+            setValidationReport(null);
+        }
+        setValidating(false);
+    };
+
+    const handleRevalidate = async (id: string) => {
+        setValidating(true);
+        try {
+            const { data } = await api.post<ApiResponse<ValidationReport>>(`/ontology/snapshots/${id}/validate`);
+            setValidationReport(data.data);
+            message.success('校验完成');
+        } catch {
+            message.error('校验失败');
+        }
+        setValidating(false);
     };
 
     const importTabItems: TabsProps['items'] = [
@@ -473,7 +502,7 @@ export default function OntologyPage() {
             </Card>
 
             {detail && (
-                <Card title={`快照详情 — ${detail.snapshotId}`}>
+                <Card title={`快照详情 — ${detail.snapshotId}`} style={{ marginBottom: 24 }}>
                     <Descriptions bordered size="small" column={3}>
                         <Descriptions.Item label="Rules">{detail.rulesCount}</Descriptions.Item>
                         <Descriptions.Item label="DataObjects">{detail.dataObjectsCount}</Descriptions.Item>
@@ -482,6 +511,99 @@ export default function OntologyPage() {
                         <Descriptions.Item label="Links">{detail.linksCount}</Descriptions.Item>
                         <Descriptions.Item label="来源">{detail.sourceFiles?.join(', ')}</Descriptions.Item>
                     </Descriptions>
+                </Card>
+            )}
+
+            {detail && (
+                <Card
+                    title={
+                        <Space>
+                            <SafetyCertificateOutlined />
+                            确定性校验报告
+                            {validating && <Spin size="small" />}
+                        </Space>
+                    }
+                    extra={
+                        <Button
+                            size="small"
+                            onClick={() => handleRevalidate(detail.snapshotId)}
+                            loading={validating}
+                        >
+                            重新校验
+                        </Button>
+                    }
+                >
+                    {validationReport ? (
+                        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                            <Descriptions bordered size="small" column={4}>
+                                <Descriptions.Item label="可运转">
+                                    {validationReport.runnable
+                                        ? <Tag icon={<CheckCircleOutlined />} color="success">是</Tag>
+                                        : <Tag icon={<CloseCircleOutlined />} color="error">否</Tag>}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="确定性校验">
+                                    {validationReport.isDeterministicallyValid
+                                        ? <Tag color="success">通过</Tag>
+                                        : <Tag color="error">未通过</Tag>}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="总错误数">{validationReport.totalErrors}</Descriptions.Item>
+                                <Descriptions.Item label="P0阻塞项">{validationReport.blockerCount}</Descriptions.Item>
+                            </Descriptions>
+
+                            {validationReport.totalErrors > 0 && (
+                                <Tabs
+                                    size="small"
+                                    items={Object.entries(validationReport.errorsByCategory || {})
+                                        .filter(([, errs]) => errs.length > 0)
+                                        .map(([cat, errs]) => ({
+                                            key: cat,
+                                            label: (
+                                                <Badge count={errs.length} size="small" offset={[8, 0]}>
+                                                    <span>{cat}</span>
+                                                </Badge>
+                                            ),
+                                            children: (
+                                                <Table
+                                                    rowKey={(_, i) => `${cat}_${i}`}
+                                                    dataSource={errs}
+                                                    size="small"
+                                                    pagination={{ pageSize: 10 }}
+                                                    columns={[
+                                                        {
+                                                            title: '级别', dataIndex: 'severity', width: 70,
+                                                            render: (s: string) => (
+                                                                <Tag color={s === 'P0' ? 'red' : s === 'P1' ? 'orange' : 'default'}>
+                                                                    {s === 'P0' && <ExclamationCircleOutlined style={{ marginRight: 4 }} />}
+                                                                    {s === 'P1' && <WarningOutlined style={{ marginRight: 4 }} />}
+                                                                    {s}
+                                                                </Tag>
+                                                            ),
+                                                        },
+                                                        { title: '错误码', dataIndex: 'code', width: 200 },
+                                                        { title: '实体ID', dataIndex: 'entityId', width: 160, ellipsis: true },
+                                                        { title: '说明', dataIndex: 'message' },
+                                                        { title: '证据', dataIndex: 'evidence', ellipsis: true, width: 200 },
+                                                    ]}
+                                                />
+                                            ),
+                                        }))}
+                                />
+                            )}
+
+                            {validationReport.totalErrors === 0 && (
+                                <Alert type="success" showIcon
+                                    message="本体通过全部确定性校验，无任何错误"
+                                    description={`结果哈希: ${validationReport.resultHash?.slice(0, 16)}…`}
+                                />
+                            )}
+
+                            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                                结果哈希: {validationReport.resultHash} （同一快照重复运行产出完全一致）
+                            </Typography.Text>
+                        </Space>
+                    ) : (
+                        <Alert type="info" showIcon message="点击「查看」按钮加载快照后自动执行确定性校验" />
+                    )}
                 </Card>
             )}
         </div>
