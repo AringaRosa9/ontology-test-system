@@ -1,0 +1,3010 @@
+[
+  {
+    "caseId": "LIB-3D178B56",
+    "title": "创建有效的外包招聘需求",
+    "description": "验证系统是否能成功创建一条具有所有必填且有效属性的外包招聘需求（Job_Requisition_Specification）记录。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition_Specification",
+      "CRUD",
+      "create",
+      "normal_scenario"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_specification_id": "JRS-20231026-001",
+      "hro_service_contract_id": "HSC-CONTRACT-001",
+      "client_id": "CLIENT-A-001",
+      "start_date": "2023-10-26",
+      "deadline": "2024-03-31",
+      "create_time": "2023-10-26T10:00:00Z",
+      "create_by": "system_agent",
+      "sd_org_name": "交付一部",
+      "sd_owner_id": "EMP-001",
+      "recruiter_supervisor_id": "EMP-002",
+      "priority": "紧急",
+      "is_exclusive": true,
+      "number_of_competitors": 0,
+      "status": "进行中"
+    },
+    "expectedOutcome": "系统成功创建Job_Requisition_Specification记录，所有属性值与输入一致，且记录状态为“进行中”。",
+    "steps": [
+      "准备有效的客户ID、合同ID和员工ID。",
+      "调用创建Job_Requisition_Specification的API或功能，传入所有有效属性值。",
+      "验证数据库中是否存在新创建的Job_Requisition_Specification记录。",
+      "验证新创建记录的所有属性值是否与输入数据完全匹配。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094782+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094797+00:00"
+  },
+  {
+    "caseId": "LIB-710BD16E",
+    "title": "创建外包招聘需求时关联无效客户ID",
+    "description": "验证系统在外包招聘需求（Job_Requisition_Specification）创建时，如果关联的客户ID（client_id）不存在，是否能正确拒绝创建并返回错误信息。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition_Specification",
+      "CRUD",
+      "create",
+      "invalid_fk",
+      "error_handling"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_specification_id": "JRS-20231026-002",
+      "hro_service_contract_id": "HSC-CONTRACT-001",
+      "client_id": "NON-EXISTENT-CLIENT",
+      "start_date": "2023-10-26",
+      "deadline": "2024-03-31",
+      "create_time": "2023-10-26T10:05:00Z",
+      "create_by": "system_agent",
+      "sd_org_name": "交付一部",
+      "sd_owner_id": "EMP-001",
+      "recruiter_supervisor_id": "EMP-002",
+      "priority": "一般",
+      "is_exclusive": false,
+      "number_of_competitors": 2,
+      "status": "未启动"
+    },
+    "expectedOutcome": "系统拒绝创建Job_Requisition_Specification记录，并返回明确的错误信息，指示client_id无效或不存在。",
+    "steps": [
+      "尝试调用创建Job_Requisition_Specification的API或功能，传入一个系统中不存在的client_id。",
+      "验证系统是否返回错误响应，且错误信息明确指出外键约束失败或客户不存在。",
+      "验证数据库中没有创建对应的Job_Requisition_Specification记录。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094815+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094818+00:00"
+  },
+  {
+    "caseId": "LIB-B98D2DBE",
+    "title": "更新外包招聘需求截止日期早于开始日期",
+    "description": "验证系统在外包招聘需求（Job_Requisition_Specification）更新时，如果将截止日期（deadline）修改为早于开始日期（start_date），是否能正确拒绝更新并返回错误信息。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition_Specification",
+      "CRUD",
+      "update",
+      "date_constraint",
+      "boundary_condition"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_specification_id": "JRS-20231026-001",
+      "new_deadline": "2023-09-01"
+    },
+    "expectedOutcome": "系统拒绝更新Job_Requisition_Specification记录，并返回错误信息，指示截止日期不能早于开始日期。",
+    "steps": [
+      "前置条件：确保存在一条Job_Requisition_Specification记录（如JRS-20231026-001），其start_date为'2023-10-26'。",
+      "尝试调用更新Job_Requisition_Specification的API或功能，将该记录的deadline更新为'2023-09-01'。",
+      "验证系统是否返回错误响应，且错误信息明确指出日期逻辑不合法。",
+      "验证数据库中该记录的deadline字段未被修改。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094835+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094837+00:00"
+  },
+  {
+    "caseId": "LIB-BBB0269D",
+    "title": "创建有效的招聘岗位并关联外包招聘需求",
+    "description": "验证系统是否能成功创建一条具有所有必填且有效属性的招聘岗位（Job_Requisition）记录，并正确关联到已存在的外包招聘需求。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition",
+      "CRUD",
+      "create",
+      "normal_scenario",
+      "foreign_key"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "JR-20231026-001",
+      "job_requisition_specification_id": "JRS-20231026-001",
+      "client_job_id": "CLIENT-JOB-001",
+      "client_job_title": "Java开发工程师",
+      "job_responsibility": "负责后端服务开发",
+      "job_requirement": "3年以上Java开发经验",
+      "headcount": 2,
+      "city": "上海",
+      "salary_range": "15K-25K/月",
+      "required_arrival_time": "2023-12-01T09:00:00Z",
+      "work_years": 3,
+      "degree_requirement": "本科"
+    },
+    "expectedOutcome": "系统成功创建Job_Requisition记录，所有属性值与输入一致，且正确关联到Job_Requisition_Specification。",
+    "steps": [
+      "前置条件：确保存在一条Job_Requisition_Specification记录（如JRS-20231026-001）。",
+      "调用创建Job_Requisition的API或功能，传入所有有效属性值，包括有效的job_requisition_specification_id。",
+      "验证数据库中是否存在新创建的Job_Requisition记录。",
+      "验证新创建记录的所有属性值是否与输入数据完全匹配，特别是job_requisition_specification_id的关联是否正确。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094847+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094849+00:00"
+  },
+  {
+    "caseId": "LIB-4DBDB5D3",
+    "title": "招聘岗位工作年限属性类型验证（非整数）",
+    "description": "验证系统在创建或更新招聘岗位（Job_Requisition）时，如果工作年限（work_years）属性传入非整数类型值，是否能正确拒绝操作并返回类型错误。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition",
+      "property_validation",
+      "type_check",
+      "error_handling"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "JR-20231026-002",
+      "job_requisition_specification_id": "JRS-20231026-001",
+      "client_job_id": "CLIENT-JOB-002",
+      "client_job_title": "前端开发工程师",
+      "job_responsibility": "负责前端页面开发",
+      "job_requirement": "2年以上前端开发经验",
+      "headcount": 1,
+      "city": "北京",
+      "salary_range": "12K-20K/月",
+      "required_arrival_time": "2023-12-15T09:00:00Z",
+      "work_years": "三年",
+      "degree_requirement": "大专"
+    },
+    "expectedOutcome": "系统拒绝创建Job_Requisition记录，并返回明确的错误信息，指示work_years字段类型不匹配（应为整数）。",
+    "steps": [
+      "尝试调用创建Job_Requisition的API或功能，将work_years字段传入字符串“三年”而不是整数。",
+      "验证系统是否返回错误响应，且错误信息明确指出work_years字段的类型错误。",
+      "验证数据库中没有创建对应的Job_Requisition记录。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094860+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094862+00:00"
+  },
+  {
+    "caseId": "LIB-585594E6",
+    "title": "更新招聘岗位必会技能列表（List<String>）",
+    "description": "验证系统是否能正确更新招聘岗位（Job_Requisition）的必会技能（must_have_skills）列表，包括添加、删除和修改技能项。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition",
+      "CRUD",
+      "update",
+      "list_property"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "JR-20231026-001",
+      "initial_skills": [
+        "Java",
+        "Spring Boot"
+      ],
+      "updated_skills": [
+        "Java",
+        "Spring Boot",
+        "MySQL",
+        "Redis"
+      ]
+    },
+    "expectedOutcome": "系统成功更新Job_Requisition记录的must_have_skills列表，新列表与updated_skills输入一致。",
+    "steps": [
+      "前置条件：确保存在一条Job_Requisition记录（如JR-20231026-001），并初始化其must_have_skills为['Java', 'Spring Boot']。",
+      "调用更新Job_Requisition的API或功能，将must_have_skills更新为['Java', 'Spring Boot', 'MySQL', 'Redis']。",
+      "验证数据库中该记录的must_have_skills字段是否已更新为预期的列表。",
+      "再次更新must_have_skills，尝试移除一个技能，验证列表是否正确变化。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094872+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094874+00:00"
+  },
+  {
+    "caseId": "LIB-2A857B07",
+    "title": "更新招聘岗位招聘人数为负值",
+    "description": "验证系统在更新招聘岗位（Job_Requisition）时，如果将招聘人数（headcount）修改为负数，是否能正确拒绝更新并返回错误信息。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition",
+      "CRUD",
+      "update",
+      "constraint_violation",
+      "boundary_condition"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "JR-20231026-001",
+      "new_headcount": -1
+    },
+    "expectedOutcome": "系统拒绝更新Job_Requisition记录，并返回错误信息，指示headcount不能为负数。",
+    "steps": [
+      "前置条件：确保存在一条Job_Requisition记录（如JR-20231026-001），其headcount为正值。",
+      "尝试调用更新Job_Requisition的API或功能，将headcount更新为-1。",
+      "验证系统是否返回错误响应，且错误信息明确指出headcount的取值范围不合法。",
+      "验证数据库中该记录的headcount字段未被修改。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094883+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094886+00:00"
+  },
+  {
+    "caseId": "LIB-07A91E99",
+    "title": "读取招聘岗位并验证外键关联数据",
+    "description": "验证系统是否能成功读取招聘岗位（Job_Requisition）记录，并能通过外键正确获取其关联的外包招聘需求（Job_Requisition_Specification）的详细信息。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Requisition",
+      "CRUD",
+      "read",
+      "foreign_key_retrieval"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "JR-20231026-001"
+    },
+    "expectedOutcome": "系统成功读取Job_Requisition记录，并能获取到其job_requisition_specification_id对应的Job_Requisition_Specification的完整信息。",
+    "steps": [
+      "前置条件：确保存在一条Job_Requisition记录（如JR-20231026-001），且其关联的Job_Requisition_Specification（如JRS-20231026-001）也存在。",
+      "调用读取Job_Requisition的API或功能，传入job_requisition_id。",
+      "验证返回的Job_Requisition数据中包含job_requisition_specification_id。",
+      "尝试通过job_requisition_specification_id获取关联的Job_Requisition_Specification的详细信息（如start_date, deadline, client_id等），并验证其正确性。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094896+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094898+00:00"
+  },
+  {
+    "caseId": "LIB-665E83DF",
+    "title": "创建岗位发布信息并关联多个招聘岗位和渠道",
+    "description": "验证系统是否能成功创建一条岗位发布信息（Job_Posting）记录，并正确关联到多个招聘岗位（Job_Requisition）和多个渠道来源（Sourcing_Channel）。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Posting",
+      "CRUD",
+      "create",
+      "multi_link_property"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_posting_id": "JP-20231026-001",
+      "job_requisition_id": [
+        "JR-20231026-001",
+        "JR-20231026-003"
+      ],
+      "sourcing_channel_id": [
+        "CHANNEL-LAGOU",
+        "CHANNEL-BOSS"
+      ],
+      "title": "急聘Java/前端开发工程师",
+      "responsibility": "负责前后端开发",
+      "requirement": "3年以上经验，精通Java/JavaScript",
+      "publish_time": "2023-10-26T11:00:00Z",
+      "publish_status": "已发布"
+    },
+    "expectedOutcome": "系统成功创建Job_Posting记录，其job_requisition_id和sourcing_channel_id列表与输入一致。",
+    "steps": [
+      "前置条件：确保存在多个Job_Requisition记录（如JR-20231026-001, JR-20231026-003）和多个Sourcing_Channel记录（如CHANNEL-LAGOU, CHANNEL-BOSS）。",
+      "调用创建Job_Posting的API或功能，传入所有有效属性值，包括job_requisition_id和sourcing_channel_id的列表。",
+      "验证数据库中是否存在新创建的Job_Posting记录。",
+      "验证新创建记录的job_requisition_id和sourcing_channel_id列表是否与输入数据完全匹配。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094908+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094910+00:00"
+  },
+  {
+    "caseId": "LIB-CAC150AF",
+    "title": "更新岗位发布信息发布状态",
+    "description": "验证系统是否能成功更新岗位发布信息（Job_Posting）的发布状态（publish_status），例如从“已发布”更新为“已下线”。",
+    "category": "dataobjects",
+    "tags": [
+      "dataobjects",
+      "Job_Posting",
+      "CRUD",
+      "update",
+      "status_change"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_posting_id": "JP-20231026-001",
+      "new_publish_status": "已下线"
+    },
+    "expectedOutcome": "系统成功更新Job_Posting记录的publish_status字段为“已下线”。",
+    "steps": [
+      "前置条件：确保存在一条Job_Posting记录（如JP-20231026-001），其publish_status为“已发布”。",
+      "调用更新Job_Posting的API或功能，将该记录的publish_status更新为“已下线”。",
+      "验证数据库中该记录的publish_status字段是否已成功更新为“已下线”。"
+    ],
+    "createdAt": "2026-03-06T03:09:36.094920+00:00",
+    "updatedAt": "2026-03-06T03:09:36.094922+00:00"
+  },
+  {
+    "caseId": "LIB-AAB2A38E",
+    "title": "客户需求系统数据自动采集-正常场景",
+    "description": "验证系统在配置正确、客户系统正常的情况下，能否自动登录、扫描、读取需求信息，并按预设字段映射关系成功转换为系统内部需求记录。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "integration",
+      "data_sync",
+      "normal_flow"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_rms_system_status": "运行中",
+      "client_rms_system_credentials": "有效凭证",
+      "client_rms_system_mapping": "完整字段映射",
+      "customer_system_new_requirement": "存在新增需求"
+    },
+    "expectedOutcome": "系统自动登录客户系统，成功采集并转换新增需求数据，创建新的Job_Requisition_Specification和Job_Requisition记录。无告警通知。",
+    "steps": [
+      "配置一个有效的Client_RMS_System记录，包含有效凭证和完整字段映射。",
+      "在客户需求系统中创建一条新的需求记录。",
+      "等待系统自动同步或手动触发syncFromClientSystem Action。",
+      "验证系统是否成功创建了对应的Job_Requisition_Specification和Job_Requisition记录，且字段值与客户系统一致。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942054+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942075+00:00"
+  },
+  {
+    "caseId": "LIB-4A0D12EF",
+    "title": "客户需求系统数据自动采集-页面结构变更告警",
+    "description": "验证当客户需求系统页面结构发生变更，导致系统无法正常抓取字段时，系统是否能立即暂停采集并向系统管理员发送告警通知。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "integration",
+      "data_sync",
+      "error_handling",
+      "alert"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_rms_system_config": "正常",
+      "customer_system_page_structure": "模拟变更，关键字段无法匹配"
+    },
+    "expectedOutcome": "系统暂停数据采集，并向系统管理员发送包含具体告警信息的通知。",
+    "steps": [
+      "配置一个有效的Client_RMS_System记录，包含有效凭证和完整字段映射。",
+      "模拟客户需求系统页面结构变更，使得Rule 1-1-1中列出的关键字段（如需求编号、需求名称）无法被系统识别抓取。",
+      "等待系统自动同步或手动触发syncFromClientSystem Action。",
+      "验证系统是否暂停采集，并向系统管理员发送了“客户需求管理系统数据采集异常”的告警通知。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942107+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942114+00:00"
+  },
+  {
+    "caseId": "LIB-7D709730",
+    "title": "客户需求同步数据完整性校验-必填字段缺失",
+    "description": "验证系统在将客户需求数据同步至需求系统前，若映射后的必填字段缺失，系统是否能暂停同步操作，并向HSM发送通知，明确列出缺失字段。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "data_validation",
+      "error_handling",
+      "notification"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "raw_requirement_data": "模拟采集数据，其中Job_Requisition.client_job_title字段为空"
+    },
+    "expectedOutcome": "该条需求同步操作被暂停，系统向HSM发送通知，明确指出缺失的必填字段。",
+    "steps": [
+      "模拟monitorAndFetchRequirement步骤输出的raw_requirement_data，其中包含一条需求，但其映射后的Job_Requisition.client_job_title字段为空。",
+      "触发persistRequisitionData步骤。",
+      "验证该需求未被同步到数据库中。",
+      "验证HSM是否收到“客户需求同步数据完整性校验未通过”的通知，且通知内容明确列出了缺失的client_job_title字段。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942138+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942143+00:00"
+  },
+  {
+    "caseId": "LIB-A3003099",
+    "title": "线下开拓需求管理-客户系统未发布需求",
+    "description": "验证HSM在客户系统未发布需求的情况下，能否在需求管理系统内成功创建线下开拓需求，并正确填写临时编号。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "manual_entry",
+      "normal_flow"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "hsm_action": "创建线下需求",
+      "client_system_status": "客户系统未发布该需求",
+      "job_requisition_client_job_temp_id": "填写临时编号"
+    },
+    "expectedOutcome": "系统成功创建Job_Requisition记录，client_job_temp_id字段被正确保存，client_job_id为空。",
+    "steps": [
+      "HSM登录系统，选择创建线下需求。",
+      "输入需求详情，将client_job_id留空，client_job_temp_id填写一个临时编号。",
+      "提交创建。",
+      "验证系统是否成功创建了Job_Requisition记录，且client_job_temp_id有值，client_job_id为空。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942165+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942170+00:00"
+  },
+  {
+    "caseId": "LIB-8C8F5C74",
+    "title": "线下需求正式发布确认-相似度边界触发",
+    "description": "验证当当日新增的人工线下需求与系统同步需求在岗位类别、工作城市、岗位职责三个字段的综合相似度恰好为90%时，系统是否能正确向HSM推送“线下需求正式发布确认”通知。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "similarity_matching",
+      "boundary_condition",
+      "notification"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "offline_requisition_A": "当日新增线下需求",
+      "system_requisition_B": "当日新增系统同步需求",
+      "similarity_score": "岗位类别、工作城市、岗位职责综合相似度为90%"
+    },
+    "expectedOutcome": "系统向HSM推送“线下需求正式发布确认”通知，通知中包含匹配信息及相似度数值。",
+    "steps": [
+      "创建一条线下需求A。",
+      "创建一条系统同步需求B，确保其与A的岗位类别、工作城市、岗位职责字段内容经过相似度计算后，综合相似度恰好为90%。",
+      "等待系统执行每日比对任务。",
+      "验证HSM是否收到包含A和B匹配信息及90%相似度数值的通知。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942192+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942198+00:00"
+  },
+  {
+    "caseId": "LIB-987A82FD",
+    "title": "字节客户岗位类别合同授权校验-未授权岗位",
+    "description": "验证当目标客户为“字节”，且招聘岗位类别不在其年框合同授权的职位类别列表内时，系统是否能生成“职位类别待确认”待办任务并阻止需求继续推进。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "client_specific",
+      "contract_compliance",
+      "blocking",
+      "alert"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_name": "字节",
+      "hro_service_contract_authorized_job_categories": "不包含当前Job_Requisition.job_type",
+      "job_requisition_job_type": "软件测试工程师"
+    },
+    "expectedOutcome": "系统生成“职位类别待确认”待办任务分配给HSM，并阻止Job_Requisition进入后续招聘流程。HSM收到“职位类别待确认”的Email通知。",
+    "steps": [
+      "创建一个Client记录，client_id关联“字节”。",
+      "创建一个HRO_Service_Contract记录，authorized_job_categories字段不包含“软件测试工程师”。",
+      "创建一个Job_Requisition记录，client_id关联“字节”，job_type设置为“软件测试工程师”。",
+      "触发analyzeRequirement Action。",
+      "验证系统是否生成了“职位类别待确认”的待办任务，且Job_Requisition的状态未推进到“可启动招聘”。",
+      "验证HSM是否收到“职位类别待确认”的Email通知。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942219+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942224+00:00"
+  },
+  {
+    "caseId": "LIB-8FD60644",
+    "title": "历史需求复用-相似度边界触发复用",
+    "description": "验证当新需求与历史需求的需求名称、岗位职责、岗位要求三个字段的相似度均恰好高于95%时，系统是否能自动复用历史需求已澄清内容并向HSM发送通知。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "similarity_matching",
+      "boundary_condition",
+      "reuse",
+      "notification"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "historical_requisition_A": "已澄清的历史Job_Requisition记录",
+      "new_requisition_B": "新Job_Requisition，与A相似度均高于95%"
+    },
+    "expectedOutcome": "系统自动复用历史需求的已澄清内容填充至当前新需求，并向HSM发送“检测到历史同类需求画像可复用”的通知。",
+    "steps": [
+      "创建一条已完成澄清的Job_Requisition记录A，包含完整的结构化字段和澄清内容。",
+      "创建一条新的Job_Requisition记录B，其需求名称、岗位职责、岗位要求字段内容与A高度相似，模拟相似度计算结果均高于95%。",
+      "触发analyzeRequirement Action。",
+      "验证B的结构化字段（如must_have_skills, clarify_questions等）是否被A的澄清内容填充。",
+      "验证HSM是否收到“检测到历史同类需求画像可复用”的通知。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942247+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942252+00:00"
+  },
+  {
+    "caseId": "LIB-B2430DA9",
+    "title": "婚育风险候选人审核-满足硬性且加分项过半",
+    "description": "验证当被标记为“婚育风险-禁止推荐”的候选人，满足岗位全部硬性要求且命中加分项达半数以上时，系统是否能向HSM发送审核提醒。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "candidate_management",
+      "special_case",
+      "review",
+      "notification"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate_A_status": "婚育风险-禁止推荐",
+      "job_requisition_P_hard_requirements": "5个硬性要求",
+      "job_requisition_P_bonus_items": "4个加分项",
+      "candidate_A_match": "满足所有5个硬性要求，命中3个加分项"
+    },
+    "expectedOutcome": "系统向HSM发送审核提醒，包含候选人A的信息、硬性要求清单和加分项清单。",
+    "steps": [
+      "创建一个Job_Requisition记录P，定义5个must_have_skills和4个nice_to_have_skills。",
+      "创建一个Candidate记录A，将其标记为“婚育风险-禁止推荐”，并模拟其简历内容满足P的所有must_have_skills，且命中3个nice_to_have_skills。",
+      "模拟系统进行简历匹配或触发相关审核流程。",
+      "验证HSM是否收到包含候选人A信息、硬性要求和加分项清单的审核提醒。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942273+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942278+00:00"
+  },
+  {
+    "caseId": "LIB-2A57FA6D",
+    "title": "婚育风险候选人审核-不满足硬性要求",
+    "description": "验证当被标记为“婚育风险-禁止推荐”的候选人，未能满足岗位全部硬性要求时，系统是否维持禁止推荐状态，不触发HSM审核。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "candidate_management",
+      "special_case",
+      "negative_case"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "candidate_A_status": "婚育风险-禁止推荐",
+      "job_requisition_P_hard_requirements": "5个硬性要求",
+      "candidate_A_match": "只满足4个硬性要求"
+    },
+    "expectedOutcome": "系统维持候选人A的“婚育风险-禁止推荐”状态，不向HSM发送审核提醒。",
+    "steps": [
+      "创建一个Job_Requisition记录P，定义5个must_have_skills。",
+      "创建一个Candidate记录A，将其标记为“婚育风险-禁止推荐”，并模拟其简历内容只满足P的4个must_have_skills。",
+      "模拟系统进行简历匹配或触发相关审核流程。",
+      "验证HSM未收到关于候选人A的审核提醒，且候选人A仍处于“禁止推荐”状态。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942300+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942305+00:00"
+  },
+  {
+    "caseId": "LIB-72E3F06A",
+    "title": "需求澄清后重新分析-仍存在待澄清项",
+    "description": "验证HSM录入澄清内容后，若系统重新分析发现仍存在未明确的待澄清项，是否能自动创建新一轮澄清待办任务。",
+    "category": "rules",
+    "tags": [
+      "rules",
+      "workflow",
+      "iteration",
+      "clarification"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_P_initial_clarify_questions": "3个待澄清项",
+      "hsm_clarification_input": "解决2个问题，留下1个未解决"
+    },
+    "expectedOutcome": "系统重新执行需求分析，输出更新后的结构化需求和包含剩余1个待澄清项的列表，并自动创建新一轮澄清待办任务分配给HSM。",
+    "steps": [
+      "创建一个Job_Requisition记录P，使其在analyzeRequirement后产生3个clarify_questions。",
+      "模拟HSM录入澄清内容，解决其中2个问题，但故意留下1个问题未解决或模糊不清。",
+      "触发analyzeRequirement Action（模拟HSM确认后系统重新分析）。",
+      "验证Job_Requisition记录P的clarify_questions列表仍包含1个未解决的问题。",
+      "验证系统是否自动创建了新一轮的澄清待办任务，并分配给HSM。"
+    ],
+    "createdAt": "2026-03-06T03:14:12.942328+00:00",
+    "updatedAt": "2026-03-06T03:14:12.942333+00:00"
+  },
+  {
+    "caseId": "LIB-BIZ-C01C463E",
+    "title": "验证简历数据（刘家伟.pdf）中的姓名、教育背景、工作经验和技能是否正确映射到C",
+    "description": "验证简历数据（刘家伟.pdf）中的姓名、教育背景、工作经验和技能是否正确映射到Candidate和Resume DataObject的相应属性中。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "resume_mapping"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "resumeData": {
+        "filename": "刘家伟.pdf",
+        "name": "刘家伟",
+        "skills": [
+          "计算机四级证书",
+          "Office办公软件 (Word, Excel)",
+          "计算机初级网页制作",
+          "3C数码产品技术",
+          "吉客云订单异常信息处理",
+          "客服团队管理",
+          "沟通协调",
+          "数据分析工具 (Excel, SQL)"
+        ],
+        "education": [
+          {
+            "school": "广东海洋大学",
+            "degree": "本科",
+            "major": "工商管理",
+            "graduationYear": "2020"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州研趣信息科技有限公司",
+            "title": "储备客服组长",
+            "startDate": "2023.10",
+            "endDate": "2025.9",
+            "description": "负责客服团队管理与建设，包括招聘、培训、绩效考核及日常管理，确保团队具备专业3C产品知识和服务技能。监督处理复杂客户咨询与投诉，提供3C数码产品售后技术支持。制定并优化客服工作流程，分析客户反馈和服务数据，提升服务质量。组织团队学习3C产品技术细节，建立更新客服知识库。与研发、销售、技术支持等部门协作，解决产品问题并推动优化，协调处理重大客户投诉。收集分析客服数据，生成报告，发现服务瓶颈并提出优化方案。定期组织团队培训，培养核心骨干。通过优化客服流程和技术培训，客户满意度从85%提升至92%，成功处理多起复杂投诉，建立标准化售后支持流程，提高团队效率。熟悉3C数码产品技术特点及吉客云订单异常处理，具备客服团队管理经验和沟通协调能力，掌握数据分析工具（Excel、SQL）。"
+          },
+          {
+            "company": "贝朗(中国)卫浴有限公司",
+            "title": "售后技术支持",
+            "startDate": "2018.06",
+            "endDate": "2023.08",
+            "description": "负责各系统平台（如ERP、金蝶）异常数据监控与处理，分析BUG并反馈研发团队，协调解决系统技术难题。负责ERP、金蝶等系统的日常测试与维护，确保功能正常运行和系统稳定性。提供售后技术支持，包括电话接听及现场服务，平均每天处理10+个客户咨询或故障报修，提供快速解决方案。管理并优化技术支持知识库，记录整理客户问题及解决方法。维护客户关系，与客户良好沟通，解释技术问题，安抚情绪，提升满意度。收集客户需求与反馈，协助改进售后服务流程。协助编写并更新售后技术支持手册和文档，整理常见问题解决方案，并通过知识分享与培训提升团队技术水平。"
+          },
+          {
+            "company": "广州市梦洁宝贝蓝门数字营销有限公司",
+            "title": "客服组长",
+            "startDate": "2016.11",
+            "endDate": "2018.06",
+            "description": "负责客服团队日常运营管理，制定工作计划和目标，监督评估客服人员表现。组织业务培训，提升客服人员业务知识、话术技巧和服务流程，开发更新培训材料。通过团队建设和激励提升团队凝聚力，建立沟通机制。规范完善客服话术系统，持续优化话术内容，提高服务效率和客户满意度。分析并优化客户服务流程，确保符合公司政策和服务标准。监督维护天猫、京东、抖音等电商平台店铺形象，检查店铺评分和客户评价。制定服务标准和规范，通过抽查和数据分析监控服务质量。负责多平台售后接待工作，建立快速响应机制，处理客户咨询和投诉。协助处理复杂售后问题，与仓储、物流、销售等部门协作。收集整理售后数据，分析投诉原因，提出预防措施，优化售后服务流程和策略。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功解析刘家伟的简历，创建或更新Candidate和Resume DataObject。Candidate.name应为'刘家伟'，Resume.education应包含'广东海洋大学, 本科, 工商管理, 2020'，Resume.experience应包含所有三段工作经历，Resume.skills应包含所有列出的技能。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099792+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099799+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-001",
+    "strategy": "resume_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-9BA80C82",
+    "title": "验证简历数据（黄凯林.pdf）中的多样化技能（技术、软技能）是否被正确提取并映射",
+    "description": "验证简历数据（黄凯林.pdf）中的多样化技能（技术、软技能）是否被正确提取并映射到Resume DataObject。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "resume_mapping"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "resumeData": {
+        "filename": "【前端开发】黄凯林.pdf",
+        "name": "黄凯林",
+        "skills": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "Less",
+          "Sass",
+          "Vue2",
+          "Vue3",
+          "Element UI",
+          "Iview-design",
+          "Vant",
+          "uview",
+          "Uniapp",
+          "webpack",
+          "Vite",
+          "NPM",
+          "Yarn",
+          "PNPM",
+          "AngularJS 1.0",
+          "unity 2D",
+          "Git",
+          "SVN",
+          "axios",
+          "jQuery",
+          "tailwindcss",
+          "autoprefixer",
+          "postcss",
+          "Pinia",
+          "微信SDK",
+          "JSBridge",
+          "ztree",
+          "Apifox",
+          "Google Analytics",
+          "Web Worker",
+          "Keep-Alive",
+          "html2canvas"
+        ],
+        "education": [
+          {
+            "school": "广东省外语艺术职业学院",
+            "degree": "大专",
+            "major": "计算机应用技术",
+            "graduationYear": "2021"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州汇思信息科技股份有限公司",
+            "title": "web前端开发",
+            "startDate": "2021年09月",
+            "endDate": "2024年11月",
+            "description": "具备独立负责项目能力，能够全程把控项目开发与交付；根据用户在某个模块的使用率进行简化，减少复杂操作，实现组件复用化以节省开发时间；使用Git、SVN代码管理工具，进行代码管理、分支管理和合并，与团队协作开发。"
+          },
+          {
+            "company": "广州亿博汇智新技术有限公司",
+            "title": "前端开发",
+            "startDate": "2024年12月",
+            "endDate": "2025年12月",
+            "description": "负责公司新销售翼门户、组件库的礼包功能开发；与产品经理和设计师合作，推动需求分析与功能实现，编写高质量代码，优化页面性能，推动项目顺利完成。"
+          },
+          {
+            "company": "安徽农商银行",
+            "title": "前端开发",
+            "startDate": "2023年03月",
+            "endDate": "2023年11月",
+            "description": "主要负责首页、个人中心、课程中心、考试中心、专题课程定制功能开发；实现类低代码平台拖拽生成表单功能；全局封装uni.request请求拦截器，统一处理请求和响应；完成WxSdk接入，实现微信Api一键分享；使用uview自定义tabBar实现底部菜单栏自定义；利用html2canvas技术实现将HTML内容转换为图片的功能，便于生成和分享营销海报。"
+          },
+          {
+            "company": "中翰科技",
+            "title": "web前端开发",
+            "startDate": "2024年02月",
+            "endDate": "2024年06月",
+            "description": "主要负责PC端日常维护，包括首页、个人中心、班前会、三卡学习和工匠课堂等模块，同时将移动端JSP功能重构为uni-app技术栈；采用uni-app结合Vue2，重构移动端项目，优化项目架构，提升代码可维护性；深度优化Keep-Alive机制，并成功迁移至多个项目，提升整体用户交互体验；封装IView的Table组件，实现多页多选及回选侧边栏功能；独立封装Vue2版本固钉组件，增强页面交互性和用户体验。"
+          },
+          {
+            "company": "湖南银行",
+            "title": "web前端开发",
+            "startDate": "2024年06月",
+            "endDate": "2024年10月",
+            "description": "主要负责首页、数字录入、汉字录入、课程管理等模块，成功完成H5集成至e讯通，统一身份认证平台集成产品学习平台；优化webpack配置，项目打包速度提升20%，体积减少10%；推进统一身份认证平台与产品学习平台集成，实现多架构业务系统单点登录；利用JSBridge实现原生App与Webview内容加载及原生功能对接，封装公共原生请求与原生桥通信模块；封装通用目录树组件ztree，支持大数据树结构分页渲染和异步加载，实现勾选数据回显及自定义图标，并对外暴露常用API，提升组件复用率30%。"
+          },
+          {
+            "company": "客优云ERP",
+            "title": "前端开发",
+            "startDate": "2024年12月",
+            "endDate": "2025年03月",
+            "description": "封装通用动态表单组件，支持10+类型配置项，减少页面开发时间20%；应用Web Worker实现文件分片上传，优化大文件传输速度提升30%；集成Google Analytics跟踪用户行为，分析商品发布流程转化率，为产品迭代提供数据支撑；使用Apifox Mock后端接口数据，缩短项目整体交付周期。"
+          },
+          {
+            "company": "翼门户/新销售/组件库",
+            "title": "前端开发工程师",
+            "startDate": "2025年03月",
+            "endDate": "2025年12月",
+            "description": "翼门户/新销售项目是基于H5嵌入安卓WebView应用，为电信员工打造便捷内部办公软件，实现页面适配、双webview切换及数据同步，并支持部分业务自动任务。快捷宽带项目是基于H5嵌入微信小程序WebView应用，提供公寓内宽带办理业务，实现Pinia状态持久化、网页跳转小程序及不同场景支付需求。组件库基于Vant二次封装，为分公司提供组件业务能力。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功解析黄凯林的简历，Resume.skills属性应包含所有列出的技术技能（如'HTML', 'CSS', 'JavaScript', 'Vue3', 'Git'等）和软技能（如项目管理、协作等）。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099809+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099811+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-002",
+    "strategy": "resume_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-371CC7AF",
+    "title": "验证客户需求系统中的新JD记录（客服专员）是否正确触发`syncFromClie",
+    "description": "验证客户需求系统中的新JD记录（客服专员）是否正确触发`syncFromClientSystem` Action，并创建`Job_Requisition_Specification`和`Job_Requisition` DataObject。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "jd_mapping"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      }
+    },
+    "expectedOutcome": "`syncFromClientSystem` Action成功执行。系统创建新的`Job_Requisition_Specification`和`Job_Requisition`对象。`Job_Requisition.client_job_id`应为'R2025110145'，`Job_Requisition.client_job_title`应为'平台运营二组--公众号--客服专员'，`Job_Requisition.job_responsibility`和`Job_Requisition.job_requirement`应包含JD中的详细描述，`Job_Requisition.salary_range`为'4000-4500'，`Job_Requisition.city`为'广州半年替补'，`Job_Requisition.degree_requirement`为'本科及以上'，`Job_Requisition.work_years`为'2-5年'。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099817+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099818+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-003",
+    "strategy": "jd_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-0104BA33",
+    "title": "验证JD同步后，`analyzeRequirement` Action是否被触发",
+    "description": "验证JD同步后，`analyzeRequirement` Action是否被触发，并正确执行初始结构化要素提取。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "jd_mapping"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      }
+    },
+    "expectedOutcome": "`analyzeRequirement` Action被触发。`assessFeasibilityAndDifficulty`步骤执行，根据规则`2-2`，系统从JD中提取并结构化记录七项关键要素（学历要求：本科及以上；工作年限下限：2年；办公地点：杨协成大厦；招聘人数：1；岗位职责：负责公众平台业务客服咨询等；岗位要求：有互联网产品运营或客服工作经验者优先等）。`Job_Requisition.must_have_skills`和`Job_Requisition.nice_to_have_skills`等字段被填充。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099825+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099826+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-004",
+    "strategy": "jd_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-46AE422C",
+    "title": "验证规则`1-1-2`（客户需求同步数据完整性校验）：当客户JD数据缺少关键必填",
+    "description": "验证规则`1-1-2`（客户需求同步数据完整性校验）：当客户JD数据缺少关键必填字段（如'岗位要求'）时，系统是否暂停同步并向HSM发送告警通知。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110146",
+        "需求名称": "测试缺失岗位要求JD",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询",
+        "岗位要求": "",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      }
+    },
+    "expectedOutcome": "在`syncFromClientSystem` Action的`persistRequisitionData`步骤中，规则`1-1-2`被触发。系统暂停该条JD的同步操作，并向HSM发送`SYNC_FAILED_ALERT`通知，明确指出'岗位要求'字段缺失，等待HSM补充确认。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099832+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099833+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-005",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-A56C4A01",
+    "title": "验证规则`2-3`（招聘难易度评估）是否根据JD的薪资、学历和经验要求进行正确评",
+    "description": "验证规则`2-3`（招聘难易度评估）是否根据JD的薪资、学历和经验要求进行正确评估。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      }
+    },
+    "expectedOutcome": "在`analyzeRequirement` Action的`assessFeasibilityAndDifficulty`步骤中，规则`2-3`被触发。根据JD的'本科及以上学历'、'2-5年客服工作经验'和'4000-4500'的薪资范围，系统将`Job_Requisition.fill_difficulty`评估为'常规'或'低薪高配'（取决于市场行情，此处假设为'常规'）。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099839+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099840+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-006",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-B569D0EB",
+    "title": "验证规则`2-7`（加分项优先级）和`2-8`（负向要求处理）在简历匹配中的应用",
+    "description": "验证规则`2-7`（加分项优先级）和`2-8`（负向要求处理）在简历匹配中的应用。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州",
+        "需求编码": "R2025120044",
+        "需求名称": "时效性项目-服务号关注区运营",
+        "级别": "初级2等",
+        "岗位类型": "信息审核",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中（重点）",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营二组",
+        "业务PM": "",
+        "初面试官": "面试官：brownzhao",
+        "复试官": "",
+        "需求发布时间": "2025/12/10",
+        "需求关闭时间": "",
+        "岗位职责": "1、协助落地执行推荐内容审核规则，监测规则效果，主动发现并反馈执行偏差，推动优化迭代；\n2、负责对接供应商，做好审核培训、答疑等运营工作；\n3、高效执行日常审核质检工作，并对各类问题做好跟进与闭环处理。",
+        "岗位要求": "1、踏实认真，执行力强，责任心强，工作细致，愿意深入业务；\n2、稳定性强，愿意长期耕耘，与团队共同成长；\n3、具备一定的excel等数据分析和处理能力，有供应商管理、人审标注、质检等经验优先。",
+        "产品": "",
+        "交付澄清": "内容审核、内容质检、内容安全、审核运营、质量运营、人审标注、标注管理",
+        "面试方式": "",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      },
+      "candidateData": {
+        "filename": "李寨燕.pdf",
+        "name": "李寨燕",
+        "skills": [
+          "药学知识",
+          "GMP准则",
+          "药品生产质量控制",
+          "食品质量与安全知识",
+          "QA工作流程",
+          "生产过程监控",
+          "文件管理",
+          "偏差管理",
+          "质量检验管理",
+          "问题分析与解决",
+          "食品安全员高级",
+          "计算机二级"
+        ],
+        "education": [
+          {
+            "school": "广州工商学院",
+            "degree": "本科",
+            "major": "食品质量与安全",
+            "graduationYear": "2024"
+          },
+          {
+            "school": "广东食品药品职业学院",
+            "degree": "大专",
+            "major": "中药学",
+            "graduationYear": "2021"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广东华晟生物制药有限公司",
+            "title": "体系专员",
+            "startDate": "2025.9",
+            "endDate": "至今",
+            "description": "质量管理体系建立与维护：协助公司质量管理体系文件的建立、修订、废止的全流程管理，确保其符合《兽药生产质量管理规范》（兽药GMP）及其他相关法规要求。文件控制：协同各部门收集、整合、优化业务需求，并将其转化为标准化的体系文件文件，负责编制全公司的体系的文件，包括版本控制、起草、发放、回收和归档。内外部审计支持：执行内部审计计划，参与各部门的GMP符合性检查，识别体系运行中的风险，协助应对外部审计，包括官方检查、客户审计、第三方认证，负责准备工作。产品放行与供应链管理：负责产品批签收的审核工作，确保相关生产、检验记录完整、准确，符合相关标准与法规，参与进厂原材料的验收审核。"
+          },
+          {
+            "company": "广东大翔中药制药有限公司",
+            "title": "现场QA",
+            "startDate": "2024.2",
+            "endDate": "2025.7",
+            "description": "生产过程监控：严格执行生产过程监控，通过实时监督关键控制点（CCPs）,确保生产活动100%符合GMP规范和SOP要求，保障产品质量与法规符合性。文件管理：审核生产记录、检验记录、批记录等文件，确保其完整性和合规性。编写、修订和质量管理相关文件（如SOP、验证文件、质量标准等）。偏差管理：对生产、检验、储存等环节中出现的偏差进行调查和分析制定，纠正和预防措施，降低重复性问题发生率，并完善SOP。审计管理：参与内部审计，检查各部门是否符合GMP要求，编写后续的审计报告，提出改进建议并跟踪整改情况，协助对外审计，准备审计所需文件，跟进审计问题的整改。供应商管理：参与供应商审计，确保原材料、外包服务符合质量要求并管理供应商档案。抽检与取样：深入车间、仓库确认其设施、环境等是否符合GMP准则，并对发现的问题拟定解决方案，组织相关部门实施落地，按GMP要求进行取样送检。质量回顾：组织年度质量回顾的编写及审核、归档。"
+          },
+          {
+            "company": "广州叮当快药职业有限公司",
+            "title": "药品验收员",
+            "startDate": "2021.6",
+            "endDate": "2022.08",
+            "description": "质量管理：负责公司购进药品和销后退回药品的质量验收工作并且严格执行药品管理制度和操作规程，对验收药品的质量负责。建立验收记录：负责建立药品验收记录。数据统计：定期统计分析和上报验收情况，验收中发现的质量情况及时记录。问题处理：对不合格药品进行跟踪处理，且对不合格药品进行报销、销毁实施监督。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "在JD2的`analyzeRequirement`过程中，'有供应商管理、人审标注、质检等经验优先'被识别为`nice_to_have_skills`。在简历匹配阶段，李寨燕简历中的'供应商管理'经验将触发规则`2-7`，提升她在JD2推荐列表中的排序优先级。由于JD2无明确负向要求，规则`2-8`不会触发负向处理。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099846+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099847+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-007",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-4A3EC050",
+    "title": "验证JD同步后，`Job_Requisition`与`Job_Requisiti",
+    "description": "验证JD同步后，`Job_Requisition`与`Job_Requisition_Specification`之间，以及候选人简历上传后`Candidate`与`Resume`之间是否正确建立关联。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "link_verification"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      },
+      "resumeData": {
+        "filename": "刘家伟.pdf",
+        "name": "刘家伟",
+        "skills": [
+          "计算机四级证书",
+          "Office办公软件 (Word, Excel)",
+          "计算机初级网页制作",
+          "3C数码产品技术",
+          "吉客云订单异常信息处理",
+          "客服团队管理",
+          "沟通协调",
+          "数据分析工具 (Excel, SQL)"
+        ],
+        "education": [
+          {
+            "school": "广东海洋大学",
+            "degree": "本科",
+            "major": "工商管理",
+            "graduationYear": "2020"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州研趣信息科技有限公司",
+            "title": "储备客服组长",
+            "startDate": "2023.10",
+            "endDate": "2025.9",
+            "description": "负责客服团队管理与建设，包括招聘、培训、绩效考核及日常管理，确保团队具备专业3C产品知识和服务技能。监督处理复杂客户咨询与投诉，提供3C数码产品售后技术支持。制定并优化客服工作流程，分析客户反馈和服务数据，提升服务质量。组织团队学习3C产品技术细节，建立更新客服知识库。与研发、销售、技术支持等部门协作，解决产品问题并推动优化，协调处理重大客户投诉。收集分析客服数据，生成报告，发现服务瓶颈并提出优化方案。定期组织团队培训，培养核心骨干。通过优化客服流程和技术培训，客户满意度从85%提升至92%，成功处理多起复杂投诉，建立标准化售后支持流程，提高团队效率。熟悉3C数码产品技术特点及吉客云订单异常处理，具备客服团队管理经验和沟通协调能力，掌握数据分析工具（Excel、SQL）。"
+          },
+          {
+            "company": "贝朗(中国)卫浴有限公司",
+            "title": "售后技术支持",
+            "startDate": "2018.06",
+            "endDate": "2023.08",
+            "description": "负责各系统平台（如ERP、金蝶）异常数据监控与处理，分析BUG并反馈研发团队，协调解决系统技术难题。负责ERP、金蝶等系统的日常测试与维护，确保功能正常运行和系统稳定性。提供售后技术支持，包括电话接听及现场服务，平均每天处理10+个客户咨询或故障报修，提供快速解决方案。管理并优化技术支持知识库，记录整理客户问题及解决方法。维护客户关系，与客户良好沟通，解释技术问题，安抚情绪，提升满意度。收集客户需求与反馈，协助改进售后服务流程。协助编写并更新售后技术支持手册和文档，整理常见问题解决方案，并通过知识分享与培训提升团队技术水平。"
+          },
+          {
+            "company": "广州市梦洁宝贝蓝门数字营销有限公司",
+            "title": "客服组长",
+            "startDate": "2016.11",
+            "endDate": "2018.06",
+            "description": "负责客服团队日常运营管理，制定工作计划和目标，监督评估客服人员表现。组织业务培训，提升客服人员业务知识、话术技巧和服务流程，开发更新培训材料。通过团队建设和激励提升团队凝聚力，建立沟通机制。规范完善客服话术系统，持续优化话术内容，提高服务效率和客户满意度。分析并优化客户服务流程，确保符合公司政策和服务标准。监督维护天猫、京东、抖音等电商平台店铺形象，检查店铺评分和客户评价。制定服务标准和规范，通过抽查和数据分析监控服务质量。负责多平台售后接待工作，建立快速响应机制，处理客户咨询和投诉。协助处理复杂售后问题，与仓储、物流、销售等部门协作。收集整理售后数据，分析投诉原因，提出预防措施，优化售后服务流程和策略。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功创建JD1对应的`Job_Requisition_Specification`和`Job_Requisition`，并正确建立`Job_Requisition.job_requisition_specification_id`链接。同时，系统创建刘家伟的`Candidate`和`Resume`对象，并正确建立`Candidate.resume_id`链接。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099853+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099854+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-008",
+    "strategy": "link_verification"
+  },
+  {
+    "caseId": "LIB-BIZ-64C85059",
+    "title": "验证从JD同步到简历匹配的完整招聘流程，针对一个高度匹配的候选人。",
+    "description": "验证从JD同步到简历匹配的完整招聘流程，针对一个高度匹配的候选人。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "full_pipeline"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      },
+      "candidateData": {
+        "filename": "刘家伟.pdf",
+        "name": "刘家伟",
+        "skills": [
+          "计算机四级证书",
+          "Office办公软件 (Word, Excel)",
+          "计算机初级网页制作",
+          "3C数码产品技术",
+          "吉客云订单异常信息处理",
+          "客服团队管理",
+          "沟通协调",
+          "数据分析工具 (Excel, SQL)"
+        ],
+        "education": [
+          {
+            "school": "广东海洋大学",
+            "degree": "本科",
+            "major": "工商管理",
+            "graduationYear": "2020"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州研趣信息科技有限公司",
+            "title": "储备客服组长",
+            "startDate": "2023.10",
+            "endDate": "2025.9",
+            "description": "负责客服团队管理与建设，包括招聘、培训、绩效考核及日常管理，确保团队具备专业3C产品知识和服务技能。监督处理复杂客户咨询与投诉，提供3C数码产品售后技术支持。制定并优化客服工作流程，分析客户反馈和服务数据，提升服务质量。组织团队学习3C产品技术细节，建立更新客服知识库。与研发、销售、技术支持等部门协作，解决产品问题并推动优化，协调处理重大客户投诉。收集分析客服数据，生成报告，发现服务瓶颈并提出优化方案。定期组织团队培训，培养核心骨干。通过优化客服流程和技术培训，客户满意度从85%提升至92%，成功处理多起复杂投诉，建立标准化售后支持流程，提高团队效率。熟悉3C数码产品技术特点及吉客云订单异常处理，具备客服团队管理经验和沟通协调能力，掌握数据分析工具（Excel、SQL）。"
+          },
+          {
+            "company": "贝朗(中国)卫浴有限公司",
+            "title": "售后技术支持",
+            "startDate": "2018.06",
+            "endDate": "2023.08",
+            "description": "负责各系统平台（如ERP、金蝶）异常数据监控与处理，分析BUG并反馈研发团队，协调解决系统技术难题。负责ERP、金蝶等系统的日常测试与维护，确保功能正常运行和系统稳定性。提供售后技术支持，包括电话接听及现场服务，平均每天处理10+个客户咨询或故障报修，提供快速解决方案。管理并优化技术支持知识库，记录整理客户问题及解决方法。维护客户关系，与客户良好沟通，解释技术问题，安抚情绪，提升满意度。收集客户需求与反馈，协助改进售后服务流程。协助编写并更新售后技术支持手册和文档，整理常见问题解决方案，并通过知识分享与培训提升团队技术水平。"
+          },
+          {
+            "company": "广州市梦洁宝贝蓝门数字营销有限公司",
+            "title": "客服组长",
+            "startDate": "2016.11",
+            "endDate": "2018.06",
+            "description": "负责客服团队日常运营管理，制定工作计划和目标，监督评估客服人员表现。组织业务培训，提升客服人员业务知识、话术技巧和服务流程，开发更新培训材料。通过团队建设和激励提升团队凝聚力，建立沟通机制。规范完善客服话术系统，持续优化话术内容，提高服务效率和客户满意度。分析并优化客户服务流程，确保符合公司政策和服务标准。监督维护天猫、京东、抖音等电商平台店铺形象，检查店铺评分和客户评价。制定服务标准和规范，通过抽查和数据分析监控服务质量。负责多平台售后接待工作，建立快速响应机制，处理客户咨询和投诉。协助处理复杂售后问题，与仓储、物流、销售等部门协作。收集整理售后数据，分析投诉原因，提出预防措施，优化售后服务流程和策略。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "1. JD1通过`syncFromClientSystem`创建`Job_Requisition`。\n2. `analyzeRequirement`对JD1进行分析，提取硬性要求和加分项。\n3. 刘家伟的简历被解析，创建`Candidate`和`Resume`对象。\n4. 匹配算法将刘家伟识别为JD1的高度匹配候选人，因为其拥有丰富的客服团队管理、售后技术支持经验和数据分析能力，符合JD的学历和经验要求。\n5. 系统为刘家伟和JD1创建`Application`对象，并进入后续流程。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099859+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099860+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-009",
+    "strategy": "full_pipeline"
+  },
+  {
+    "caseId": "LIB-BIZ-2BC7BA21",
+    "title": "验证从JD同步到简历匹配的完整招聘流程，针对一个不匹配的候选人。",
+    "description": "验证从JD同步到简历匹配的完整招聘流程，针对一个不匹配的候选人。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "full_pipeline"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jdData": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "实时动态": "无待筛",
+        "简历要求": "3份以上",
+        "客筛频率": "新开未",
+        "优先级": "高",
+        "需求状态": "招聘中",
+        "对接HSM": "叶丽芳",
+        "催筛计划/状态说明": "",
+        "目前待筛选简历推送时间": "",
+        "oa部门": "WXG微信事业群/开放平台部/运营中心/平台运营一组",
+        "业务PM": "",
+        "初面试官": "面试官：blankguan；v_didiwang",
+        "复试官": "",
+        "需求发布时间": "2025/12/15",
+        "需求关闭时间": "",
+        "岗位职责": "1.  负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2.  相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3.  针对问题的部门内或跨部门沟通等\n4.  业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "产品": "",
+        "交付澄清": "",
+        "面试方式": "现场",
+        "已筛简历通过原因（客户系统）": "",
+        "已筛简历不通过原因（客户系统）": "",
+        "参考简历": "",
+        "hr反馈": ""
+      },
+      "candidateData": {
+        "filename": "【前端开发】黄凯林.pdf",
+        "name": "黄凯林",
+        "skills": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "Less",
+          "Sass",
+          "Vue2",
+          "Vue3",
+          "Element UI",
+          "Iview-design",
+          "Vant",
+          "uview",
+          "Uniapp",
+          "webpack",
+          "Vite",
+          "NPM",
+          "Yarn",
+          "PNPM",
+          "AngularJS 1.0",
+          "unity 2D",
+          "Git",
+          "SVN",
+          "axios",
+          "jQuery",
+          "tailwindcss",
+          "autoprefixer",
+          "postcss",
+          "Pinia",
+          "微信SDK",
+          "JSBridge",
+          "ztree",
+          "Apifox",
+          "Google Analytics",
+          "Web Worker",
+          "Keep-Alive",
+          "html2canvas"
+        ],
+        "education": [
+          {
+            "school": "广东省外语艺术职业学院",
+            "degree": "大专",
+            "major": "计算机应用技术",
+            "graduationYear": "2021"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州汇思信息科技股份有限公司",
+            "title": "web前端开发",
+            "startDate": "2021年09月",
+            "endDate": "2024年11月",
+            "description": "具备独立负责项目能力，能够全程把控项目开发与交付；根据用户在某个模块的使用率进行简化，减少复杂操作，实现组件复用化以节省开发时间；使用Git、SVN代码管理工具，进行代码管理、分支管理和合并，与团队协作开发。"
+          },
+          {
+            "company": "广州亿博汇智新技术有限公司",
+            "title": "前端开发",
+            "startDate": "2024年12月",
+            "endDate": "2025年12月",
+            "description": "负责公司新销售翼门户、组件库的礼包功能开发；与产品经理和设计师合作，推动需求分析与功能实现，编写高质量代码，优化页面性能，推动项目顺利完成。"
+          },
+          {
+            "company": "安徽农商银行",
+            "title": "前端开发",
+            "startDate": "2023年03月",
+            "endDate": "2023年11月",
+            "description": "主要负责首页、个人中心、课程中心、考试中心、专题课程定制功能开发；实现类低代码平台拖拽生成表单功能；全局封装uni.request请求拦截器，统一处理请求和响应；完成WxSdk接入，实现微信Api一键分享；使用uview自定义tabBar实现底部菜单栏自定义；利用html2canvas技术实现将HTML内容转换为图片的功能，便于生成和分享营销海报。"
+          },
+          {
+            "company": "中翰科技",
+            "title": "web前端开发",
+            "startDate": "2024年02月",
+            "endDate": "2024年06月",
+            "description": "主要负责PC端日常维护，包括首页、个人中心、班前会、三卡学习和工匠课堂等模块，同时将移动端JSP功能重构为uni-app技术栈；采用uni-app结合Vue2，重构移动端项目，优化项目架构，提升代码可维护性；深度优化Keep-Alive机制，并成功迁移至多个项目，提升整体用户交互体验；封装IView的Table组件，实现多页多选及回选侧边栏功能；独立封装Vue2版本固钉组件，增强页面交互性和用户体验。"
+          },
+          {
+            "company": "湖南银行",
+            "title": "web前端开发",
+            "startDate": "2024年06月",
+            "endDate": "2024年10月",
+            "description": "主要负责首页、数字录入、汉字录入、课程管理等模块，成功完成H5集成至e讯通，统一身份认证平台集成产品学习平台；优化webpack配置，项目打包速度提升20%，体积减少10%；推进统一身份认证平台与产品学习平台集成，实现多架构业务系统单点登录；利用JSBridge实现原生App与Webview内容加载及原生功能对接，封装公共原生请求与原生桥通信模块；封装通用目录树组件ztree，支持大数据树结构分页渲染和异步加载，实现勾选数据回显及自定义图标，并对外暴露常用API，提升组件复用率30%。"
+          },
+          {
+            "company": "客优云ERP",
+            "title": "前端开发",
+            "startDate": "2024年12月",
+            "endDate": "2025年03月",
+            "description": "封装通用动态表单组件，支持10+类型配置项，减少页面开发时间20%；应用Web Worker实现文件分片上传，优化大文件传输速度提升30%；集成Google Analytics跟踪用户行为，分析商品发布流程转化率，为产品迭代提供数据支撑；使用Apifox Mock后端接口数据，缩短项目整体交付周期。"
+          },
+          {
+            "company": "翼门户/新销售/组件库",
+            "title": "前端开发工程师",
+            "startDate": "2025年03月",
+            "endDate": "2025年12月",
+            "description": "翼门户/新销售项目是基于H5嵌入安卓WebView应用，为电信员工打造便捷内部办公软件，实现页面适配、双webview切换及数据同步，并支持部分业务自动任务。快捷宽带项目是基于H5嵌入微信小程序WebView应用，提供公寓内宽带办理业务，实现Pinia状态持久化、网页跳转小程序及不同场景支付需求。组件库基于Vant二次封装，为分公司提供组件业务能力。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "1. JD1通过`syncFromClientSystem`创建`Job_Requisition`。\n2. `analyzeRequirement`对JD1进行分析，提取客服相关要求。\n3. 黄凯林的简历被解析，创建`Candidate`和`Resume`对象。\n4. 匹配算法将黄凯林识别为JD1的低匹配或不匹配候选人，因为其技能和经验主要集中在前端开发，与客服岗位要求不符。\n5. 系统不会为黄凯林和JD1创建`Application`对象，或将其标记为'不适合'。",
+    "steps": [],
+    "createdAt": "2026-03-06T03:22:19.099866+00:00",
+    "updatedAt": "2026-03-06T03:22:19.099867+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-010",
+    "strategy": "full_pipeline"
+  },
+  {
+    "caseId": "LIB-F43D4A0A",
+    "title": "E2E: 字节新需求激活沉睡候选人并成功推进",
+    "description": "验证规则9-1的端到端流程：当字节客户发布新需求时，系统能否自动识别并激活匹配的沉睡候选人，通知招聘专员跟进，并在候选人确认活跃且有意向后，将其顺利推入正常匹配流程，确保数据流转和状态更新的准确性。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "integration",
+      "e2e",
+      "consistency",
+      "rule-9-1",
+      "Candidate",
+      "Job_Requisition",
+      "Application"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client": {
+        "client_id": "BYTE001",
+        "client_name": "字节跳动"
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR001_BYTE",
+        "client_id": "BYTE001",
+        "status": "已发布"
+      },
+      "candidate": {
+        "candidate_id": "CAND001_SLEEP",
+        "status": "沉睡",
+        "last_active_date": "2023-01-01",
+        "matching_skills": [
+          "Java",
+          "Spring Boot"
+        ]
+      },
+      "recruiter": {
+        "employee_id": "EMP001",
+        "name": "招聘专员A"
+      }
+    },
+    "expectedOutcome": "系统成功激活沉睡候选人，生成占坑记录，通知招聘专员。招聘专员回写“活跃且有意向”后，系统释放占坑，将候选人推入正常匹配流程，Application状态更新为“匹配中”。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟字节客户发布新的招聘需求（JR001_BYTE），系统检测到新需求下发。"
+      },
+      {
+        "step_number": 2,
+        "description": "系统根据规则9-1，自动检索并匹配到处于“沉睡”状态的候选人CAND001_SLEEP，并为其生成“占坑”记录，同时向招聘专员EMP001发送通知。"
+      },
+      {
+        "step_number": 3,
+        "description": "模拟招聘专员EMP001与候选人CAND001_SLEEP沟通后，在系统回写结果为“活跃且有意向”。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否释放CAND001_SLEEP的“占坑”状态，并将其推入正常匹配流程，Application状态更新为“匹配中”。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859306+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859327+00:00"
+  },
+  {
+    "caseId": "LIB-B4ED82EA",
+    "title": "E2E: 内部面试邀约到评估完整流程",
+    "description": "验证从内部面试邀约（Action 11）到AI面试评估（Action 12）的端到端流程，包括面试记录的创建、AI面试完成事件的触发、评估报告的生成以及相关对象状态的正确更新。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "integration",
+      "e2e",
+      "action-11",
+      "action-12",
+      "event-AI_INTERVIEW_COMPLETED",
+      "Interview_Record",
+      "Evaluation_Report"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND002",
+        "name": "李明",
+        "email": "liming@example.com"
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR002",
+        "job_name": "高级Java开发工程师",
+        "evaluation_model_id": "MODEL_TECH_V1"
+      },
+      "application": {
+        "application_id": "APP002",
+        "candidate_id": "CAND002",
+        "job_requisition_id": "JR002",
+        "status": "内部面试待邀约"
+      }
+    },
+    "expectedOutcome": "系统成功发送AI面试邀请，创建面试记录。AI面试完成后，系统自动生成综合评估报告，更新面试记录状态，并根据评估结果触发后续流程事件。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "触发MATCH_PASSED_NEED_INTERVIEW事件，系统执行inviteInternalInterview (Action 11)，为CAND002生成AI面试邀请并发送邮件。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否成功创建Interview_Record记录（包含面试链接），并更新Application状态为“内部面试中”。"
+      },
+      {
+        "step_number": 3,
+        "description": "模拟候选人CAND002完成AI面试，系统触发AI_INTERVIEW_COMPLETED事件，并执行evaluateInterview (Action 12)。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否根据MODEL_TECH_V1模型生成Evaluation_Report，更新Interview_Record的interview_result为“通过”，并触发EVALUATION_PASSED事件。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859344+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859348+00:00"
+  },
+  {
+    "caseId": "LIB-4A10191B",
+    "title": "跨组件集成: 腾讯WXG回流候选人强制报备流程",
+    "description": "验证规则15-31：当候选人申请腾讯WXG事业群岗位且有腾讯历史从业经历时，系统能否正确暂停推荐包生成，强制触发“人工回流备案”待办任务，并在HSM完成报备后才继续流程。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "integration",
+      "rule-15-31",
+      "Candidate",
+      "Client",
+      "Client_Department",
+      "Approval_Request"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND003",
+        "name": "王强",
+        "work_experience": [
+          {
+            "company": "腾讯",
+            "start_date": "2020-01-01",
+            "end_date": "2022-06-30"
+          }
+        ]
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR003_WXG",
+        "client_id": "TENCENT001",
+        "client_department_id": "WXG_DEPT"
+      },
+      "client": {
+        "client_id": "TENCENT001",
+        "client_name": "腾讯"
+      },
+      "client_department": {
+        "client_department_id": "WXG_DEPT",
+        "dept_name": "WXG事业群"
+      },
+      "application": {
+        "application_id": "APP003",
+        "candidate_id": "CAND003",
+        "job_requisition_id": "JR003_WXG"
+      }
+    },
+    "expectedOutcome": "系统在检测到WXG回流候选人后，暂停推荐包生成，自动生成“人工回流备案”待办任务给HSM并发送邮件通知。HSM完成报备并在系统确认后，推荐包生成流程继续。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟候选人CAND003申请JR003_WXG岗位，系统开始生成推荐包。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否检测到CAND003的腾讯历史从业经历和WXG事业群申请，并根据规则15-31暂停推荐包生成，自动生成Approval_Request（类型为“人工回流备案”）并分配给HSM。"
+      },
+      {
+        "step_number": 3,
+        "description": "模拟HSM完成外部报备并在系统内确认Approval_Request为“已完成”。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否在HSM确认后，自动恢复并继续推荐包生成流程。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859360+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859363+00:00"
+  },
+  {
+    "caseId": "LIB-1964841F",
+    "title": "一致性检查: 入职材料缺失阻断流程",
+    "description": "验证规则30-7：在办理入职电子流时，系统能否准确检测到“原单位离职证明”和“无劳动关系承诺书”同时缺失的情况，并立即阻断流程，不允许任何审批放行，以规避双重用工风险。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "consistency",
+      "rule-30-7",
+      "Application",
+      "Approval_Request",
+      "Compliance_Document"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND004",
+        "name": "张三"
+      },
+      "job_offer": {
+        "job_offer_id": "OFFER004",
+        "candidate_id": "CAND004",
+        "status": "已接受"
+      },
+      "application": {
+        "application_id": "APP004",
+        "candidate_id": "CAND004",
+        "status": "待入职"
+      },
+      "compliance_documents": [
+        {
+          "document_type": "身份证复印件",
+          "status": "已上传"
+        },
+        {
+          "document_type": "学历证明",
+          "status": "已上传"
+        }
+      ]
+    },
+    "expectedOutcome": "系统检测到关键合规材料缺失后，立即阻断入职电子流，不允许审批通过，并向相关人员发出风险提示。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟候选人CAND004的入职电子流启动，但“原单位离职证明”和“与上家单位无劳动关系承诺书”均未上传。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否根据规则30-7，判定存在双重劳动关系风险，并立即阻断入职流程，阻止任何审批操作。"
+      },
+      {
+        "step_number": 3,
+        "description": "尝试进行审批操作（例如，模拟HR点击“同意入职”），验证系统是否拒绝该操作并给出明确的阻断提示。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否向相关负责人（如HR或招聘专员）发送风险告警通知。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859375+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859377+00:00"
+  },
+  {
+    "caseId": "LIB-41E8C3DE",
+    "title": "边界条件: 外部背调红灯一票否决",
+    "description": "验证规则26-1：当外部背调报告中出现违法犯罪记录等“红灯”项时，系统能否立即自动终止该候选人的招聘流程，确保零容忍严重诚信问题。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "boundary",
+      "rule-26-1",
+      "Background_Check",
+      "Candidate",
+      "Application"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND005",
+        "name": "李四"
+      },
+      "application": {
+        "application_id": "APP005",
+        "candidate_id": "CAND005",
+        "status": "背调中"
+      },
+      "background_check_report": {
+        "report_id": "BC005",
+        "candidate_id": "CAND005",
+        "status": "已完成",
+        "red_flags": [
+          "违法犯罪记录"
+        ]
+      }
+    },
+    "expectedOutcome": "系统检测到背调红灯项后，立即自动终止候选人CAND005的招聘流程，Application状态更新为“已淘汰”，并记录淘汰原因。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟候选人CAND005的外部背调报告BC005完成，报告中明确包含“违法犯罪记录”红灯项。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否根据规则26-1，立即自动终止CAND005的招聘流程。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证Application APP005的状态是否更新为“已淘汰”，且淘汰原因明确指出为“背调红灯：违法犯罪记录”。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否生成相应的通知或事件，告知相关招聘专员流程已终止。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859387+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859389+00:00"
+  },
+  {
+    "caseId": "LIB-C67BC96E",
+    "title": "跨组件集成: 线下开拓需求上传与简历重推",
+    "description": "验证规则17-6：当HSM将客户系统公开发布的线下开拓需求录入公司系统后，系统能否在1小时内将原临时岗位下所有Application关联的简历ID批量重新推送至对应的正式岗位编号，确保数据一致性和流程连续性。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "integration",
+      "rule-17-6",
+      "Job_Requisition",
+      "Application",
+      "Resume"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "client": {
+        "client_id": "BYTE002",
+        "client_name": "字节跳动"
+      },
+      "temp_job_requisition": {
+        "job_requisition_id": "JR_TEMP_001",
+        "client_id": "BYTE002",
+        "status": "临时岗位"
+      },
+      "formal_job_requisition": {
+        "job_requisition_id": "JR_FORMAL_001",
+        "client_id": "BYTE002",
+        "status": "已发布"
+      },
+      "applications": [
+        {
+          "application_id": "APP_T001",
+          "job_requisition_id": "JR_TEMP_001",
+          "candidate_id": "CAND006A",
+          "resume_id": "RES006A"
+        },
+        {
+          "application_id": "APP_T002",
+          "job_requisition_id": "JR_TEMP_001",
+          "candidate_id": "CAND006B",
+          "resume_id": "RES006B"
+        }
+      ]
+    },
+    "expectedOutcome": "HSM录入正式岗位后1小时内，系统自动将临时岗位下的所有Application关联的简历ID重新推送至正式岗位，并更新Application的job_requisition_id。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟HSM在客户系统公开发布岗位后1小时内，将线下开拓需求（正式岗位JR_FORMAL_001）录入公司需求管理系统。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否识别到JR_FORMAL_001与原临时岗位JR_TEMP_001的关联关系。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证系统是否在规定时间内（1小时内）自动批量更新APP_T001和APP_T002的job_requisition_id为JR_FORMAL_001，并确保关联的简历ID（RES006A, RES006B）被重新推送。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证更新后的Application记录数据一致性，确保所有相关字段正确映射。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859399+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859401+00:00"
+  },
+  {
+    "caseId": "LIB-1D176897",
+    "title": "E2E: JD发布自动化与手动协同及异常处理",
+    "description": "验证Action 7 (publishJD) 的端到端流程，包括自动发布到支持API的渠道、生成手动发布任务给招聘专员，以及在API发布失败时的告警和重试机制。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "e2e",
+      "integration",
+      "action-7",
+      "Job_Posting",
+      "Sourcing_Channel",
+      "Event CHANNEL_PUBLISHED_FAILED"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_posting": {
+        "job_posting_id": "JP001",
+        "jd_content": "高级前端工程师",
+        "publish_status": "待发布"
+      },
+      "sourcing_channels": [
+        {
+          "sourcing_channel_id": "SC001",
+          "channel_name": "BOSS直聘",
+          "support_api": true
+        },
+        {
+          "sourcing_channel_id": "SC002",
+          "channel_name": "拉勾网",
+          "support_api": false
+        },
+        {
+          "sourcing_channel_id": "SC003",
+          "channel_name": "智联招聘",
+          "support_api": true,
+          "api_status": "失败"
+        }
+      ],
+      "recruiter": {
+        "employee_id": "EMP002",
+        "name": "招聘专员B"
+      }
+    },
+    "expectedOutcome": "系统成功自动发布到BOSS直聘，生成拉勾网的手动发布任务。智联招聘API发布失败后重试一次，若仍失败则向招聘专员发送告警，并更新Job_Posting状态。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "触发TASK_ASSIGNED事件，系统执行publishJD (Action 7)，开始发布JP001到SC001、SC002、SC003。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统是否成功通过API将JD发布到SC001 (BOSS直聘)，并更新JP001的publish_status和publish_time。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证系统是否为SC002 (拉勾网) 生成手动发布任务，并通知招聘专员EMP002。"
+      },
+      {
+        "step_number": 4,
+        "description": "模拟SC003 (智联招聘) 的API发布首次失败，验证系统是否自动重试一次。若重试仍失败，验证系统是否向招聘专员EMP002发送CHANNEL_PUBLISHED_FAILED告警通知。"
+      },
+      {
+        "step_number": 5,
+        "description": "验证JP001的publish_status是否最终更新为“部分发布成功”或类似状态，并记录各渠道的发布结果。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859411+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859413+00:00"
+  },
+  {
+    "caseId": "LIB-D4E1BD90",
+    "title": "一致性检查: 沉睡候选人激活后意向不符回退",
+    "description": "验证规则9-1的负面路径：当系统激活沉睡候选人并通知招聘专员后，若候选人表示“不活跃”或“无意向”，系统能否正确释放占坑并将其恢复为沉睡状态，确保数据一致性。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "consistency",
+      "negative",
+      "rule-9-1",
+      "Candidate",
+      "Application"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "client": {
+        "client_id": "BYTE003",
+        "client_name": "字节跳动"
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR004_BYTE",
+        "client_id": "BYTE003",
+        "status": "已发布"
+      },
+      "candidate": {
+        "candidate_id": "CAND007_SLEEP",
+        "status": "沉睡",
+        "last_active_date": "2023-01-01",
+        "matching_skills": [
+          "Python",
+          "AI"
+        ]
+      },
+      "application": {
+        "application_id": "APP007",
+        "candidate_id": "CAND007_SLEEP",
+        "job_requisition_id": "JR004_BYTE",
+        "status": "占坑中"
+      },
+      "recruiter": {
+        "employee_id": "EMP003",
+        "name": "招聘专员C"
+      }
+    },
+    "expectedOutcome": "招聘专员回写“不活跃”或“无意向”后，系统成功释放占坑，并将候选人CAND007_SLEEP恢复为“沉睡”状态，Application状态更新为“已淘汰”或“已释放”。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟字节新需求JR004_BYTE下发，系统根据规则9-1激活沉睡候选人CAND007_SLEEP，并为其生成“占坑”记录，Application APP007状态变为“占坑中”，通知招聘专员EMP003。"
+      },
+      {
+        "step_number": 2,
+        "description": "模拟招聘专员EMP003与候选人CAND007_SLEEP沟通后，在系统回写结果为“不活跃”或“无意向”。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证系统是否成功释放CAND007_SLEEP的“占坑”状态。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证候选人CAND007_SLEEP的状态是否恢复为“沉睡”，Application APP007状态是否更新为“已淘汰”或“已释放”。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859423+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859425+00:00"
+  },
+  {
+    "caseId": "LIB-2191297C",
+    "title": "边界条件: WXG回流候选人报备任务超时未完成",
+    "description": "验证规则15-31的边界条件：当腾讯WXG回流候选人触发强制报备任务后，若HSM未能及时完成报备，系统能否持续阻断推荐包生成流程，并提供相应的超时提醒或升级机制。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "boundary",
+      "negative",
+      "rule-15-31",
+      "Approval_Request"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND008",
+        "name": "赵六",
+        "work_experience": [
+          {
+            "company": "腾讯",
+            "start_date": "2021-01-01",
+            "end_date": "2023-03-31"
+          }
+        ]
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR005_WXG",
+        "client_id": "TENCENT001",
+        "client_department_id": "WXG_DEPT"
+      },
+      "application": {
+        "application_id": "APP008",
+        "candidate_id": "CAND008",
+        "job_requisition_id": "JR005_WXG"
+      },
+      "approval_request": {
+        "approval_request_id": "AR008",
+        "type": "人工回流备案",
+        "status": "待处理",
+        "assignee_id": "HSM001",
+        "created_at": "2024-01-01T10:00:00Z"
+      }
+    },
+    "expectedOutcome": "HSM未在规定时间内完成报备，系统持续阻断推荐包生成，并可能触发超时提醒或升级通知。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟候选人CAND008申请JR005_WXG岗位，系统根据规则15-31暂停推荐包生成，并生成“人工回流备案”待办任务AR008给HSM001。"
+      },
+      {
+        "step_number": 2,
+        "description": "模拟HSM001未在合理时间内（例如，超过24小时）完成AR008报备任务。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证系统是否持续阻断APP008的推荐包生成流程，不允许其继续。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否向HSM001或其上级发送超时提醒或升级通知。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859435+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859437+00:00"
+  },
+  {
+    "caseId": "LIB-5B254D2E",
+    "title": "跨组件集成: 内部面试评估模型缺失异常处理",
+    "description": "验证Action 12 (evaluateInterview) 在关键配置缺失时的异常处理能力：如果招聘岗位关联的评估模型（evaluation_model_id）为空或无效，系统能否优雅地处理错误，避免流程中断，并向相关人员发出告警。",
+    "category": "ontology",
+    "tags": [
+      "ontology",
+      "integration",
+      "abnormal",
+      "action-12",
+      "Job_Requisition",
+      "Evaluation_Report"
+    ],
+    "priority": "P2",
+    "inputVariables": {
+      "candidate": {
+        "candidate_id": "CAND009",
+        "name": "钱七"
+      },
+      "job_requisition": {
+        "job_requisition_id": "JR006_NO_MODEL",
+        "job_name": "测试工程师",
+        "evaluation_model_id": null
+      },
+      "application": {
+        "application_id": "APP009",
+        "candidate_id": "CAND009",
+        "job_requisition_id": "JR006_NO_MODEL",
+        "status": "内部面试完成"
+      },
+      "interview_record": {
+        "interview_record_id": "IR009",
+        "application_id": "APP009",
+        "recording_url": "http://example.com/interview_video_009.mp4",
+        "interview_result": "待评估"
+      }
+    },
+    "expectedOutcome": "系统在执行evaluateInterview时，检测到评估模型缺失，阻止评估报告生成，记录错误，并向招聘专员发送告警通知，Application状态保持不变或更新为“评估失败”。",
+    "steps": [
+      {
+        "step_number": 1,
+        "description": "模拟候选人CAND009完成AI面试，触发AI_INTERVIEW_COMPLETED事件，系统执行evaluateInterview (Action 12)。"
+      },
+      {
+        "step_number": 2,
+        "description": "验证系统在Action 12的evaluateWithModel步骤中，能否检测到JR006_NO_MODEL的evaluation_model_id为null。"
+      },
+      {
+        "step_number": 3,
+        "description": "验证系统是否阻止Evaluation_Report的生成，并记录详细的错误信息（如“评估模型配置缺失”）。"
+      },
+      {
+        "step_number": 4,
+        "description": "验证系统是否向负责JR006_NO_MODEL的招聘专员发送告警通知，提示评估失败及原因。"
+      },
+      {
+        "step_number": 5,
+        "description": "验证Application APP009的状态是否更新为“评估失败”或保持“内部面试完成”，而不是进入后续流程。"
+      }
+    ],
+    "createdAt": "2026-03-06T03:27:18.859447+00:00",
+    "updatedAt": "2026-03-06T03:27:18.859450+00:00"
+  },
+  {
+    "caseId": "LIB-A231570D",
+    "title": "正常招聘流程链创建",
+    "description": "验证从外包招聘需求到录用通知书的完整关联关系能够正确建立，包括招聘需求、招聘岗位、候选人、简历、职位投递申请和录用通知书。",
+    "category": "links",
+    "tags": [
+      "links",
+      "normal_flow",
+      "creation"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_specification_id": "SPEC001",
+      "hro_service_contract_id": "CONTRACT001",
+      "client_id": "CLIENT001",
+      "job_requisition_id": "REQ001",
+      "standard_job_role_id": "ROLE001",
+      "evaluation_model_id": "EVAL001",
+      "candidate_id": "CAND001",
+      "resume_id": "RES001",
+      "application_id": "APP001",
+      "salary_scheme_id": "SALARY001",
+      "job_offer_id": "OFFER001"
+    },
+    "expectedOutcome": "所有实体（招聘需求、招聘岗位、候选人、简历、职位投递申请、录用通知书）之间建立正确的关联关系，并且状态流转正常。",
+    "steps": [
+      "创建 Client (CLIENT001) 和 HRO_Service_Contract (CONTRACT001)。",
+      "创建 Job_Requisition_Specification (SPEC001) 并关联到 CLIENT001 和 CONTRACT001。",
+      "创建 Standard_Job_Role (ROLE001) 和 Evaluation_Model (EVAL001)。",
+      "创建 Job_Requisition (REQ001) 并关联到 SPEC001、ROLE001 和 EVAL001。",
+      "创建 Candidate (CAND001)。",
+      "创建 Resume (RES001) 并关联到 CAND001。",
+      "创建 Application (APP001) 并关联到 CAND001、REQ001 和 RES001。",
+      "创建 Salary_Scheme (SALARY001)。",
+      "创建 Job_Offer (OFFER001) 并关联到 APP001、CAND001、REQ001 和 SALARY001。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247895+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247914+00:00"
+  },
+  {
+    "caseId": "LIB-93F65328",
+    "title": "招聘岗位独立创建验证",
+    "description": "验证是否可以创建 Job_Requisition 而不关联任何 Job_Requisition_Specification。根据本体，Job_Requisition 的 job_requisition_specification_id 是外键，应强制关联。",
+    "category": "links",
+    "tags": [
+      "links",
+      "boundary_condition",
+      "referential_integrity"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "REQ002",
+      "job_requisition_specification_id": null,
+      "standard_job_role_id": "ROLE002",
+      "evaluation_model_id": "EVAL002"
+    },
+    "expectedOutcome": "系统应拒绝创建 Job_Requisition，并返回错误信息，提示必须关联一个有效的 Job_Requisition_Specification。",
+    "steps": [
+      "创建 Standard_Job_Role (ROLE002) 和 Evaluation_Model (EVAL002)。",
+      "尝试创建 Job_Requisition (REQ002)，不提供 job_requisition_specification_id，但关联 ROLE002 和 EVAL002。",
+      "验证系统是否返回错误信息并阻止创建。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247932+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247935+00:00"
+  },
+  {
+    "caseId": "LIB-DBC9EA89",
+    "title": "删除已关联客户单位的级联效应",
+    "description": "验证当一个 Client 被删除时，所有与其关联的 Job_Requisition_Specification、HRO_Service_Contract、Job_Grade_Rate、Client_Department、Stakeholder 和 Client_Preference 是否会受到级联删除或引用完整性保护。",
+    "category": "links",
+    "tags": [
+      "links",
+      "cascading_effect",
+      "referential_integrity",
+      "deletion"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_id": "CLIENT002",
+      "job_requisition_specification_id": "SPEC002",
+      "hro_service_contract_id": "CONTRACT002",
+      "job_grade_rate_id": "RATE002",
+      "client_department_id": "DEPT002",
+      "stakeholder_id": "STAKE002",
+      "client_preference_id": "PREF002"
+    },
+    "expectedOutcome": "系统应阻止删除 Client (CLIENT002)，并提示存在关联的子实体，要求先删除子实体或明确级联删除意图。",
+    "steps": [
+      "创建 Client (CLIENT002)。",
+      "创建并关联 Job_Requisition_Specification (SPEC002) 到 CLIENT002。",
+      "创建并关联 HRO_Service_Contract (CONTRACT002) 到 CLIENT002。",
+      "创建并关联 Job_Grade_Rate (RATE002) 到 CLIENT002。",
+      "创建并关联 Client_Department (DEPT002) 到 CLIENT002。",
+      "创建并关联 Stakeholder (STAKE002) 到 CLIENT002。",
+      "创建并关联 Client_Preference (PREF002) 到 CLIENT002。",
+      "尝试删除 Client (CLIENT002)。",
+      "验证系统是否返回错误信息并阻止删除操作。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247947+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247950+00:00"
+  },
+  {
+    "caseId": "LIB-32EF9CF7",
+    "title": "候选人多份简历关联验证",
+    "description": "验证一个 Candidate 可以关联多份 Resume，并且每份简历可以有不同的 is_original 状态（原始/优化）。",
+    "category": "links",
+    "tags": [
+      "links",
+      "cardinality",
+      "multi-value"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "candidate_id": "CAND002",
+      "resume_id_original": "RES002_ORIG",
+      "resume_id_optimized": "RES002_OPT"
+    },
+    "expectedOutcome": "Candidate (CAND002) 成功关联两份 Resume (RES002_ORIG, RES002_OPT)，且 is_original 属性正确记录。",
+    "steps": [
+      "创建 Candidate (CAND002)。",
+      "创建 Resume (RES002_ORIG)，设置 candidate_id 为 CAND002，is_original 为 true。",
+      "创建 Resume (RES002_OPT)，设置 candidate_id 为 CAND002，is_original 为 false。",
+      "查询 CAND002，验证其关联的 Resume 列表是否包含 RES002_ORIG 和 RES002_OPT，并检查 is_original 属性。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247962+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247964+00:00"
+  },
+  {
+    "caseId": "LIB-A5D3076A",
+    "title": "黑名单候选人职位投递拦截",
+    "description": "验证当 Candidate 处于 Blacklist 时，系统是否能有效阻止其创建新的 Application。",
+    "category": "links",
+    "tags": [
+      "links",
+      "exception_scenario",
+      "blacklist",
+      "security"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate_id": "CAND003",
+      "blacklist_id": "BL001",
+      "job_requisition_id": "REQ003",
+      "application_id": "APP003"
+    },
+    "expectedOutcome": "系统应阻止 Candidate (CAND003) 创建 Application (APP003)，并返回相应的错误信息，提示候选人已被列入黑名单。",
+    "steps": [
+      "创建 Candidate (CAND003)。",
+      "创建 Blacklist (BL001) 并关联到 CAND003，设置 lock_reason 为“简历造假”。",
+      "创建 Job_Requisition (REQ003)。",
+      "尝试创建 Application (APP003) 并关联到 CAND003 和 REQ003。",
+      "验证系统是否返回错误信息并阻止创建该 Application。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247975+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247978+00:00"
+  },
+  {
+    "caseId": "LIB-BB45E9E5",
+    "title": "岗位发布信息多岗位关联验证",
+    "description": "验证一个 Job_Posting 可以成功关联多个 Job_Requisition，以支持聚合发布逻辑。",
+    "category": "links",
+    "tags": [
+      "links",
+      "cardinality",
+      "multi-value"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_posting_id": "POST001",
+      "job_requisition_ids": [
+        "REQ004",
+        "REQ005"
+      ]
+    },
+    "expectedOutcome": "Job_Posting (POST001) 成功关联 Job_Requisition (REQ004) 和 Job_Requisition (REQ005)。",
+    "steps": [
+      "创建 Job_Requisition (REQ004)。",
+      "创建 Job_Requisition (REQ005)。",
+      "创建 Job_Posting (POST001) 并将 job_requisition_id 属性设置为 [\"REQ004\", \"REQ005\"]。",
+      "查询 POST001，验证其 job_requisition_id 列表是否正确包含 REQ004 和 REQ005。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.247988+00:00",
+    "updatedAt": "2026-03-06T04:57:47.247991+00:00"
+  },
+  {
+    "caseId": "LIB-1E94A9C2",
+    "title": "删除有活动申请的招聘岗位的级联效应",
+    "description": "验证当一个 Job_Requisition 被删除时，如果它有正在进行中的 Application，系统是否会阻止删除或正确处理级联效应。",
+    "category": "links",
+    "tags": [
+      "links",
+      "cascading_effect",
+      "referential_integrity",
+      "deletion"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "REQ006",
+      "candidate_id": "CAND004",
+      "application_id": "APP004",
+      "application_status": "待处理"
+    },
+    "expectedOutcome": "系统应阻止删除 Job_Requisition (REQ006)，并提示存在关联的活动 Application (APP004)。",
+    "steps": [
+      "创建 Job_Requisition (REQ006)。",
+      "创建 Candidate (CAND004)。",
+      "创建 Application (APP004) 并关联到 REQ006 和 CAND004，设置状态为“待处理”。",
+      "尝试删除 Job_Requisition (REQ006)。",
+      "验证系统是否返回错误信息并阻止删除操作。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.248002+00:00",
+    "updatedAt": "2026-03-06T04:57:47.248004+00:00"
+  },
+  {
+    "caseId": "LIB-4969AA10",
+    "title": "录用通知书无薪资计划验证",
+    "description": "验证 Job_Offer 是否可以不关联 Salary_Scheme。根据本体，Job_Offer CONTAINS Salary_Scheme，且 Job_Offer.salary_scheme_id 是外键，这通常意味着是强制关联。",
+    "category": "links",
+    "tags": [
+      "links",
+      "boundary_condition",
+      "referential_integrity"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_offer_id": "OFFER002",
+      "job_requisition_id": "REQ007",
+      "candidate_id": "CAND005",
+      "salary_scheme_id": null
+    },
+    "expectedOutcome": "系统应拒绝创建 Job_Offer (OFFER002)，并返回错误信息，提示必须关联一个有效的 Salary_Scheme。",
+    "steps": [
+      "创建 Job_Requisition (REQ007)。",
+      "创建 Candidate (CAND005)。",
+      "尝试创建 Job_Offer (OFFER002)，不提供 salary_scheme_id，但关联 REQ007 和 CAND005。",
+      "验证系统是否报错或强制要求输入有效的 salary_scheme_id。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.248015+00:00",
+    "updatedAt": "2026-03-06T04:57:47.248018+00:00"
+  },
+  {
+    "caseId": "LIB-423667EB",
+    "title": "内部员工多候选人管理验证",
+    "description": "验证一个 Employee (招聘专员) 可以成功管理多个 Candidate。",
+    "category": "links",
+    "tags": [
+      "links",
+      "cardinality",
+      "multi-value"
+    ],
+    "priority": "P2",
+    "inputVariables": {
+      "employee_id": "EMP001",
+      "candidate_ids": [
+        "CAND006",
+        "CAND007"
+      ]
+    },
+    "expectedOutcome": "Employee (EMP001) 成功关联 Candidate (CAND006) 和 Candidate (CAND007)，且 Candidate 的 recruited_by 属性正确记录。",
+    "steps": [
+      "创建 Employee (EMP001)，角色为“招聘专员”。",
+      "创建 Candidate (CAND006)，设置 recruited_by 为 EMP001。",
+      "创建 Candidate (CAND007)，设置 recruited_by 为 EMP001。",
+      "查询 CAND006 和 CAND007，验证其 recruited_by 属性是否正确指向 EMP001。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.248029+00:00",
+    "updatedAt": "2026-03-06T04:57:47.248031+00:00"
+  },
+  {
+    "caseId": "LIB-D9322B25",
+    "title": "录用通知书锁定已锁定岗位的反例验证",
+    "description": "验证一个 Job_Requisition 在被一个 Job_Offer 锁定后，是否能被另一个 Job_Offer 再次锁定。根据本体，Job_Offer [:LOCKS] Job_Requisition 意味着一个岗位在同一时间只能被一个 Offer 锁定。",
+    "category": "links",
+    "tags": [
+      "links",
+      "exception_scenario",
+      "locking",
+      "concurrency"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "REQ008",
+      "candidate_id_1": "CAND008",
+      "job_offer_id_1": "OFFER003",
+      "candidate_id_2": "CAND009",
+      "job_offer_id_2": "OFFER004"
+    },
+    "expectedOutcome": "第一个 Job_Offer (OFFER003) 成功锁定 Job_Requisition (REQ008)。第二个 Job_Offer (OFFER004) 尝试锁定 REQ008 时，系统应阻止操作并返回错误信息，提示该岗位已被锁定。",
+    "steps": [
+      "创建 Job_Requisition (REQ008)。",
+      "创建 Candidate (CAND008) 和 Candidate (CAND009)。",
+      "创建 Salary_Scheme (SALARY002) 和 Salary_Scheme (SALARY003)。",
+      "创建 Application (APP005) 关联 CAND008 和 REQ008。",
+      "创建 Job_Offer (OFFER003) 并关联到 APP005、CAND008、REQ008 和 SALARY002，使其成功锁定 REQ008。",
+      "创建 Application (APP006) 关联 CAND009 和 REQ008。",
+      "尝试创建 Job_Offer (OFFER004) 并关联到 APP006、CAND009、REQ008 和 SALARY003。",
+      "验证系统是否返回错误信息并阻止 OFFER004 锁定 REQ008。"
+    ],
+    "createdAt": "2026-03-06T04:57:47.248042+00:00",
+    "updatedAt": "2026-03-06T04:57:47.248045+00:00"
+  },
+  {
+    "caseId": "LIB-7CC3496D",
+    "title": "客户需求系统正常同步新需求",
+    "description": "验证`syncFromClientSystem` Action在所有前置条件满足时，能够成功从客户系统同步新增的招聘需求数据，并正确创建或更新内部系统对象，触发相应的成功事件。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "normal_flow",
+      "syncFromClientSystem",
+      "REQUIREMENT_SYNCED"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_rms_system_id": "CLIENT_RMS_001",
+      "client_id": "CLIENT_001",
+      "sync_frequency": "每日",
+      "credentials": "valid_credentials_string",
+      "status_mapping_rules": {
+        "client_field_1": "our_field_1"
+      },
+      "client_system_has_new_requisitions": 3
+    },
+    "expectedOutcome": "系统成功从客户系统同步3条新需求，创建对应的Job_Requisition_Specification和Job_Requisition记录，并触发REQUIREMENT_SYNCED事件。Job_Requisition_Specification和Job_Requisition的状态应为正常。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "确保Client_RMS_System记录状态为'运行中'，credentials有效，status_mapping_rules已配置，sync_frequency已设定，且RAAS_System处于可用状态。"
+      },
+      {
+        "step": 2,
+        "description": "模拟客户需求管理系统中有3条全新的招聘需求数据。"
+      },
+      {
+        "step": 3,
+        "description": "触发SCHEDULED_SYNC事件，启动syncFromClientSystem Action。"
+      },
+      {
+        "step": 4,
+        "description": "验证系统是否创建了3条新的Job_Requisition_Specification和Job_Requisition记录，并检查记录的关键字段是否与客户系统数据一致。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了REQUIREMENT_SYNCED事件，且事件Payload中包含正确的synced_job_requisition_ids。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051672+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051689+00:00"
+  },
+  {
+    "caseId": "LIB-08AEE208",
+    "title": "客户系统同步凭证失效异常处理",
+    "description": "验证`syncFromClientSystem` Action在前置条件`Client_RMS_System.credentials`失效时，能够正确识别异常，终止同步并触发告警事件。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "exception_handling",
+      "syncFromClientSystem",
+      "SYNC_FAILED_ALERT"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "client_rms_system_id": "CLIENT_RMS_002",
+      "client_id": "CLIENT_002",
+      "sync_frequency": "每日",
+      "credentials": "invalid_credentials_string",
+      "status_mapping_rules": {
+        "client_field_1": "our_field_1"
+      },
+      "client_system_has_new_requisitions": 1
+    },
+    "expectedOutcome": "同步操作失败，系统不会创建或更新Job_Requisition_Specification和Job_Requisition记录，并触发SYNC_FAILED_ALERT事件，通知HSM凭证失效。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "确保Client_RMS_System记录状态为'运行中'，但故意将credentials字段设置为无效值。"
+      },
+      {
+        "step": 2,
+        "description": "模拟客户需求管理系统中有1条新的招聘需求数据。"
+      },
+      {
+        "step": 3,
+        "description": "触发SCHEDULED_SYNC事件，启动syncFromClientSystem Action。"
+      },
+      {
+        "step": 4,
+        "description": "验证系统日志中是否记录了凭证失效的错误信息，且未创建或更新任何Job_Requisition_Specification和Job_Requisition记录。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了SYNC_FAILED_ALERT事件，且告警信息明确指出凭证失效原因。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051712+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051716+00:00"
+  },
+  {
+    "caseId": "LIB-D388D899",
+    "title": "需求分析无待澄清项正常完成",
+    "description": "验证`analyzeRequirement` Action在接收到完整清晰的需求数据时，能够成功完成分析，不产生待澄清问题，并更新招聘岗位记录。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "normal_flow",
+      "analyzeRequirement",
+      "ANALYSIS_COMPLETED"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "JR_001",
+      "client_id": "CLIENT_001",
+      "job_requirement": "明确的岗位要求",
+      "job_responsibility": "明确的岗位职责"
+    },
+    "expectedOutcome": "需求分析成功完成，Job_Requisition记录的fill_difficulty等字段被更新，clarify_questions字段为空列表，并触发ANALYSIS_COMPLETED事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟REQUIREMENT_SYNCED事件已送达，且Job_Requisition记录（JR_001）存在，其job_requirement和job_responsibility字段均非空且内容清晰。"
+      },
+      {
+        "step": 2,
+        "description": "触发analyzeRequirement Action，输入job_requisition_id和client_id。"
+      },
+      {
+        "step": 3,
+        "description": "验证Job_Requisition记录（JR_001）的fill_difficulty、must_have_skills、nice_to_have_skills等字段已被更新。"
+      },
+      {
+        "step": 4,
+        "description": "验证Job_Requisition记录（JR_001）的clarify_questions字段为空列表。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了ANALYSIS_COMPLETED事件，且事件Payload中包含正确的分析结果。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051731+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051735+00:00"
+  },
+  {
+    "caseId": "LIB-01E26E35",
+    "title": "需求分析触发高风险预警（字节合同外职位）",
+    "description": "验证`analyzeRequirement` Action在处理字节客户需求时，若岗位类别不在合同授权范围内，能够触发高风险预警并阻止流程继续。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "boundary_condition",
+      "analyzeRequirement",
+      "HIGH_RISK_REQUIREMENT_ALERT"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "JR_002",
+      "client_id": "BYTE_CLIENT_001",
+      "job_requirement": "明确的岗位要求",
+      "job_responsibility": "明确的岗位职责",
+      "job_category": "非法务类",
+      "hro_service_contract_id": "BYTE_CONTRACT_001",
+      "authorized_job_categories": [
+        "法务类",
+        "财务类"
+      ]
+    },
+    "expectedOutcome": "需求分析完成，但系统触发HIGH_RISK_REQUIREMENT_ALERT事件，通知HSM“职位类别待确认”，并阻止该需求进入下一环节。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟REQUIREMENT_SYNCED事件已送达，Job_Requisition记录（JR_002）存在，其client_id关联到“字节”客户，岗位类别为“非法务类”。"
+      },
+      {
+        "step": 2,
+        "description": "确保HRO_Service_Contract记录（BYTE_CONTRACT_001）存在，且authorized_job_categories字段仅包含“法务类”和“财务类”。"
+      },
+      {
+        "step": 3,
+        "description": "触发analyzeRequirement Action，输入job_requisition_id和client_id。"
+      },
+      {
+        "step": 4,
+        "description": "验证Job_Requisition记录（JR_002）的status未更新为“可启动招聘”，且流程被阻止。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了HIGH_RISK_REQUIREMENT_ALERT事件，且告警信息明确指出“职位类别待确认”。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051749+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051752+00:00"
+  },
+  {
+    "caseId": "LIB-0D32760F",
+    "title": "需求澄清所有问题解决并就绪",
+    "description": "验证`clarifyRequirement` Action在HSM录入所有待澄清问题的反馈后，能够成功更新招聘岗位信息，并将澄清状态标记为“Ready”。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "normal_flow",
+      "clarifyRequirement",
+      "CLARIFICATION_READY"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "JR_003",
+      "clarify_questions": [
+        "薪资范围模糊",
+        "到岗时间不明确"
+      ],
+      "clarification_feedback": {
+        "薪资范围模糊": "已明确为10K-15K",
+        "到岗时间不明确": "已明确为两周内"
+      }
+    },
+    "expectedOutcome": "Job_Requisition记录的must_have_skills、salary_range、required_arrival_time等字段被更新，clarify_questions字段变为空，并触发CLARIFICATION_READY事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟ANALYSIS_COMPLETED事件已送达，Job_Requisition记录（JR_003）存在，且clarify_questions字段包含多个待澄清问题。"
+      },
+      {
+        "step": 2,
+        "description": "模拟HSM在系统中录入所有待澄清问题的反馈，确保所有问题都得到明确答复。"
+      },
+      {
+        "step": 3,
+        "description": "触发clarifyRequirement Action的recordAndValidateResult步骤。"
+      },
+      {
+        "step": 4,
+        "description": "验证Job_Requisition记录（JR_003）的相应字段（如salary_range、required_arrival_time）已被更新，且clarify_questions字段变为空列表。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了CLARIFICATION_READY事件，且事件Payload中包含更新后的岗位信息。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051766+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051769+00:00"
+  },
+  {
+    "caseId": "LIB-B844CD0A",
+    "title": "JD生成并自动脱敏客户名称",
+    "description": "验证`createJD` Action在生成职位描述时，能够自动识别并移除JD内容中的客户名称，确保信息脱敏。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "data_privacy",
+      "createJD",
+      "JD_GENERATED"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "JR_004",
+      "client_id": "CLIENT_004",
+      "client_name": "某知名科技公司",
+      "job_responsibility": "负责某知名科技公司产品的开发",
+      "job_requirement": "熟悉某知名科技公司技术栈"
+    },
+    "expectedOutcome": "成功生成Job_Posting记录，JD内容中不包含“某知名科技公司”字样，而是替换为通用描述或移除，并触发JD_GENERATED事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟CLARIFICATION_READY事件已送达，Job_Requisition记录（JR_004）存在，且job_responsibility和job_requirement字段包含客户名称“某知名科技公司”。"
+      },
+      {
+        "step": 2,
+        "description": "触发createJD Action，输入job_requisition_id和client_id。"
+      },
+      {
+        "step": 3,
+        "description": "验证新创建的Job_Posting记录的jd_content字段中，客户名称“某知名科技公司”已被移除或替换为通用描述（如“某领先科技公司”）。"
+      },
+      {
+        "step": 4,
+        "description": "验证是否触发了JD_GENERATED事件，且事件Payload中包含脱敏后的JD内容。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051783+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051787+00:00"
+  },
+  {
+    "caseId": "LIB-DFE1C44C",
+    "title": "高难度招聘任务智能分配给高产能专员",
+    "description": "验证`assignRecruitTasks` Action在处理高难度招聘需求时，能够根据招聘专员的历史产能进行智能匹配，优先分配给高产能专员。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "intelligent_allocation",
+      "assignRecruitTasks",
+      "TASK_ASSIGNED"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_requisition_id": "JR_005",
+      "fill_difficulty": "低薪高配",
+      "urgency_level": "高",
+      "available_recruiters": [
+        {
+          "employee_id": "REC_001",
+          "name": "张三",
+          "current_tasks": 2,
+          "closed_requisitions_6m": 15
+        },
+        {
+          "employee_id": "REC_002",
+          "name": "李四",
+          "current_tasks": 5,
+          "closed_requisitions_6m": 5
+        }
+      ]
+    },
+    "expectedOutcome": "招聘任务成功分配给历史产能最高的招聘专员（REC_001），Job_Requisition_Specification记录的recruiter_id字段被更新，并触发TASK_ASSIGNED事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟JD_APPROVED事件已送达，Job_Requisition记录（JR_005）存在，且fill_difficulty为“低薪高配”，urgency_level为“高”。"
+      },
+      {
+        "step": 2,
+        "description": "确保系统中存在多名招聘专员，其中REC_001的历史产能（closed_requisitions_6m）显著高于REC_002。"
+      },
+      {
+        "step": 3,
+        "description": "触发assignRecruitTasks Action，输入job_requisition_id、fill_difficulty和urgency_level。"
+      },
+      {
+        "step": 4,
+        "description": "验证Job_Requisition_Specification记录中，recruiter_id字段被更新为REC_001。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了TASK_ASSIGNED事件，且事件Payload中包含assigned_recruiter_id为REC_001。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051801+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051804+00:00"
+  },
+  {
+    "caseId": "LIB-5144B971",
+    "title": "API渠道发布失败后自动重试成功",
+    "description": "验证`publishJD` Action在API渠道首次发布失败时，能够执行自动重试机制，并在重试成功后更新发布状态。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "retry_mechanism",
+      "publishJD",
+      "CHANNEL_PUBLISHED"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "job_posting_id": "JP_001",
+      "target_channels": [
+        {
+          "sourcing_channel_id": "API_CHANNEL_001",
+          "channel_name": "智联招聘",
+          "supports_api": true
+        }
+      ],
+      "api_first_attempt_status": "失败",
+      "api_second_attempt_status": "成功"
+    },
+    "expectedOutcome": "首次发布失败，系统自动重试并成功，Job_Posting记录的publish_status更新为“已发布”，并触发CHANNEL_PUBLISHED事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟TASK_ASSIGNED事件已送达，Job_Posting记录（JP_001）存在且JD内容已审核通过。"
+      },
+      {
+        "step": 2,
+        "description": "配置API_CHANNEL_001渠道，使其在首次调用时返回失败，第二次调用时返回成功。"
+      },
+      {
+        "step": 3,
+        "description": "触发publishJD Action，输入job_posting_id和target_channels。"
+      },
+      {
+        "step": 4,
+        "description": "验证系统日志中记录了首次API调用失败及自动重试的信息。"
+      },
+      {
+        "step": 5,
+        "description": "验证Job_Posting记录（JP_001）的publish_status字段最终更新为“已发布”，并记录publish_time。"
+      },
+      {
+        "step": 6,
+        "description": "验证是否触发了CHANNEL_PUBLISHED事件，且事件Payload中包含正确的发布结果。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051826+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051830+00:00"
+  },
+  {
+    "caseId": "LIB-86F2179E",
+    "title": "简历处理核心信息缺失并告警",
+    "description": "验证`processResume` Action在简历解析后，若发现核心字段（如教育经历）缺失，能够暂停后续流程并触发信息缺失告警。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "data_integrity",
+      "processResume",
+      "RESUME_INFO_MISSING"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "resume_file_path": "/path/to/incomplete_resume.pdf",
+      "job_requisition_id": "JR_006",
+      "recruiter_id": "REC_001",
+      "parsed_data_missing_education_end_date": {
+        "name": "王小明",
+        "mobile": "13800001111",
+        "education_experience": [
+          {
+            "school": "某大学",
+            "major": "计算机科学",
+            "start_date": "2010-09"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "简历处理状态为“信息缺失”，系统暂停后续流程，触发RESUME_INFO_MISSING事件，通知招聘专员补全信息。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟RESUME_DOWNLOADED事件已送达，简历文件可读取，但其解析出的教育经历缺少“毕业年月”字段。"
+      },
+      {
+        "step": 2,
+        "description": "触发processResume Action，输入resume_file_path、job_requisition_id和recruiter_id。"
+      },
+      {
+        "step": 3,
+        "description": "验证系统日志中记录了简历信息缺失的错误信息，且未生成完整的Candidate和Application记录。"
+      },
+      {
+        "step": 4,
+        "description": "验证是否触发了RESUME_INFO_MISSING事件，且告警信息明确指出缺失的字段（如“教育经历-毕业年月”）。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051856+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051859+00:00"
+  },
+  {
+    "caseId": "LIB-C20E8D8F",
+    "title": "简历匹配命中诚信红线并终止流程",
+    "description": "验证`matchResume` Action在候选人简历命中诚信红线规则（如身份信息异常）时，能够立即终止匹配流程并触发告警。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "risk_control",
+      "matchResume",
+      "MATCH_FAILED"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate_id": "CAND_001",
+      "resume_id": "RES_001",
+      "job_requisition_ids": [
+        "JR_007"
+      ],
+      "candidate_birth_date_id": "1990-01-01",
+      "candidate_birth_date_resume": "1995-01-01"
+    },
+    "expectedOutcome": "匹配流程立即终止，Application记录状态更新为“已淘汰”，Candidate被标记为“诚信红线-疑似造假”，并触发MATCH_FAILED事件，通知HSM。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟RESUME_PROCESSED事件已送达，Candidate记录（CAND_001）和Resume记录（RES_001）存在。"
+      },
+      {
+        "step": 2,
+        "description": "配置Candidate的身份证出生日期为1990-01-01，而Resume中解析出的出生日期为1995-01-01，存在严重不符。"
+      },
+      {
+        "step": 3,
+        "description": "触发matchResume Action，输入candidate_id、resume_id和job_requisition_ids。"
+      },
+      {
+        "step": 4,
+        "description": "验证Application记录的status更新为“已淘汰”，stage更新为“初筛淘汰”，且matching_score为0。"
+      },
+      {
+        "step": 5,
+        "description": "验证Candidate记录的state或blacklist_status字段被标记为“诚信红线-疑似造假”。"
+      },
+      {
+        "step": 6,
+        "description": "验证是否触发了MATCH_FAILED事件，且告警信息明确指出“诚信红线-疑似造假”原因。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051881+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051885+00:00"
+  },
+  {
+    "caseId": "LIB-D2DDF75D",
+    "title": "腾讯IEG岗位推荐包工作年限特殊计算",
+    "description": "验证`generateRecommendationPackage` Action在为腾讯IEG事业群岗位生成推荐包时，能够按照特殊规则计算候选人总工作年限，包含自媒体/创业等经历。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "client_specific_rule",
+      "generateRecommendationPackage",
+      "PACKAGE_GENERATED"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "candidate_id": "CAND_002",
+      "resume_id": "RES_002",
+      "job_requisition_id": "JR_IEG_001",
+      "application_id": "APP_002",
+      "job_requisition_client_department": "IEG",
+      "candidate_work_experience": [
+        {
+          "company": "某公司",
+          "start_date": "2015-07",
+          "end_date": "2018-06"
+        },
+        {
+          "company": "自媒体创业",
+          "start_date": "2018-07",
+          "end_date": "2020-12"
+        },
+        {
+          "company": "另一公司",
+          "start_date": "2021-01",
+          "end_date": "current"
+        }
+      ]
+    },
+    "expectedOutcome": "成功生成推荐包，推荐包中候选人总工作年限的计算包含其自媒体创业经历时长，并触发PACKAGE_GENERATED事件。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟RESUME_OPTIMIZED事件已送达，Candidate记录（CAND_002）和Resume记录（RES_002）存在且已优化。"
+      },
+      {
+        "step": 2,
+        "description": "确保Job_Requisition记录（JR_IEG_001）关联的客户事业群为“IEG”，且候选人简历中包含一段“自媒体创业”的特殊工作经历。"
+      },
+      {
+        "step": 3,
+        "description": "触发generateRecommendationPackage Action，输入candidate_id、resume_id、job_requisition_id和application_id。"
+      },
+      {
+        "step": 4,
+        "description": "验证生成的Recommendation_Material中，候选人的总工作年限计算结果正确包含了自媒体创业经历的时长。"
+      },
+      {
+        "step": 5,
+        "description": "验证是否触发了PACKAGE_GENERATED事件，且事件Payload中包含正确的推荐包信息。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051899+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051902+00:00"
+  },
+  {
+    "caseId": "LIB-5DAE82F5",
+    "title": "腾讯IEG客户提交简历限额触发失败",
+    "description": "验证`submitToClientPortal` Action在向腾讯IEG客户系统提交简历时，若当前需求下待筛选/待面试简历数量已达4份上限，则系统会锁定上传通道并提交失败。",
+    "category": "actions_events",
+    "tags": [
+      "actions_events",
+      "boundary_condition",
+      "submitToClientPortal",
+      "SUBMISSION_FAILED"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "recommendation_material_id": "RM_001",
+      "job_requisition_id": "JR_IEG_002",
+      "candidate_id": "CAND_003",
+      "client_department": "IEG",
+      "current_pending_applications_count": 4
+    },
+    "expectedOutcome": "提交操作失败，系统锁定该IEG需求的上传通道，Application记录状态未更新为“已推送”，并触发SUBMISSION_FAILED事件，通知招聘专员“IEG推荐限额已满”。",
+    "steps": [
+      {
+        "step": 1,
+        "description": "模拟PACKAGE_APPROVED事件已送达，Recommendation_Material记录（RM_001）已审核通过。"
+      },
+      {
+        "step": 2,
+        "description": "确保Job_Requisition记录（JR_IEG_002）关联的客户事业群为“IEG”。"
+      },
+      {
+        "step": 3,
+        "description": "模拟客户系统中，该Job_Requisition下已有4份简历处于“待筛选”或“待面试”状态。"
+      },
+      {
+        "step": 4,
+        "description": "触发submitToClientPortal Action，输入recommendation_material_id、job_requisition_id和candidate_id。"
+      },
+      {
+        "step": 5,
+        "description": "验证Application记录的status未更新为“已推送”，stage未更新为“客户筛选”。"
+      },
+      {
+        "step": 6,
+        "description": "验证是否触发了SUBMISSION_FAILED事件，且告警信息明确指出“IEG推荐限额已满”或类似原因。"
+      }
+    ],
+    "createdAt": "2026-03-06T04:59:05.051921+00:00",
+    "updatedAt": "2026-03-06T04:59:05.051925+00:00"
+  }
+]

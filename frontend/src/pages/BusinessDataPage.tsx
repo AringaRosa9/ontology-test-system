@@ -313,7 +313,9 @@ export default function BusinessDataPage() {
                 snapshotId, businessDataIds: data.map(d => d.itemId),
             });
             setGeneratedCases(resp.data.generated || []);
-            message.success(`生成了 ${resp.data.generated?.length || 0} 条业务集成测试用例`);
+            const count = resp.data.generated?.length || 0;
+            message.success(`生成了 ${count} 条业务集成测试用例`);
+            message.info('📚 已同步存入「测试用例库 → 业务数据模拟测试」，可前往查看', 4);
         } catch (e: any) { message.error(e?.response?.data?.detail || '生成测试用例失败，请检查API Key配置'); }
         setGenerating(false);
     };

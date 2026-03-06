@@ -5,10 +5,6 @@ import type { MenuProps } from 'antd';
 import {
     DashboardOutlined,
     DatabaseOutlined,
-    AppstoreOutlined,
-    ThunderboltOutlined,
-    SafetyOutlined,
-    LinkOutlined,
     ExperimentOutlined,
     PlayCircleOutlined,
     HistoryOutlined,
@@ -35,23 +31,12 @@ const menuItems: MenuItem[] = [
     },
     { key: '/business-data', icon: <FolderOpenOutlined />, label: '业务数据管理' },
     { key: '/test-case-library', icon: <BookOutlined />, label: '测试用例库' },
-    {
-        key: 'component-test-group',
-        icon: <AppstoreOutlined />,
-        label: '分部测试',
-        children: [
-            { key: '/component-test/dataobjects', icon: <DatabaseOutlined />, label: 'DataObjects' },
-            { key: '/component-test/actions_events', icon: <ThunderboltOutlined />, label: 'Actions&Events' },
-            { key: '/component-test/rules', icon: <SafetyOutlined />, label: 'Rules' },
-            { key: '/component-test/links', icon: <LinkOutlined />, label: 'Links' },
-        ],
-    },
+
     {
         key: 'unified-test-group',
         icon: <ExperimentOutlined />,
         label: '统一测试',
         children: [
-            { key: '/unified-test', icon: <ExperimentOutlined />, label: '用例生成' },
             { key: '/execution', icon: <PlayCircleOutlined />, label: '执行测试' },
             { key: '/history', icon: <HistoryOutlined />, label: '历史记录' },
         ],
@@ -70,7 +55,6 @@ export default function AppLayout() {
     const defaultOpenKeys = (() => {
         const p = location.pathname;
         if (p === '/ontology') return ['ontology-group'];
-        if (p.startsWith('/component-test')) return ['component-test-group'];
         if (['/unified-test', '/execution', '/history'].includes(p)) return ['unified-test-group'];
         return [];
     })();

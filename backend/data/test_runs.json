@@ -1,5 +1,2131 @@
 [
   {
+    "runId": "run_af67da4d",
+    "snapshotId": "snap_1772764984_471ba402",
+    "executionMode": "library:dataobjects, actions_events, rules, links, ontology, business_integration",
+    "totalCases": 62,
+    "passedCases": 62,
+    "failedCases": 0,
+    "warningCases": 0,
+    "coverageRate": 1.0,
+    "records": [
+      {
+        "caseId": "LIB-3D178B56",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "输入变量符合Job_Requisition_Specification的数据对象模式和类型定义，且假设外键引用有效。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Requisition_Specification record created successfully",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "All property values match input",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Record status is '进行中'",
+            "expected": "进行中",
+            "actual": "进行中",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 234,
+        "priority": "P1",
+        "recordId": "rec_63fe2bae",
+        "executedAt": "2026-03-06T05:14:38.333082+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "创建有效的外包招聘需求"
+      },
+      {
+        "caseId": "LIB-710BD16E",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "尝试使用不存在的client_id创建记录，系统应正确拒绝并返回外键完整性错误。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects creation",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates invalid or non-existent client_id",
+            "expected": "Error: client_id invalid/non-existent",
+            "actual": "Error: client_id invalid/non-existent",
+            "passed": true
+          },
+          {
+            "assertion": "No Job_Requisition_Specification record created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 187,
+        "priority": "P1",
+        "recordId": "rec_e914f9a6",
+        "executedAt": "2026-03-06T05:14:38.333110+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "创建外包招聘需求时关联无效客户ID"
+      },
+      {
+        "caseId": "LIB-B98D2DBE",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "将截止日期更新为早于开始日期违反了基本的时间逻辑约束，系统应拒绝此操作。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects update",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates illegal date logic",
+            "expected": "Error: deadline cannot be before start_date",
+            "actual": "Error: deadline cannot be before start_date",
+            "passed": true
+          },
+          {
+            "assertion": "deadline field not modified in database",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 312,
+        "priority": "P1",
+        "recordId": "rec_7291ffc9",
+        "executedAt": "2026-03-06T05:14:38.333123+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "更新外包招聘需求截止日期早于开始日期"
+      },
+      {
+        "caseId": "LIB-BBB0269D",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "输入变量符合Job_Requisition的数据对象模式和类型定义，且假设外键引用有效。",
+        "assertionResults": [
+          {
+            "assertion": "System successfully creates Job_Requisition record",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "All property values match input",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Correctly associated with Job_Requisition_Specification",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 278,
+        "priority": "P1",
+        "recordId": "rec_94855697",
+        "executedAt": "2026-03-06T05:14:38.333135+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "创建有效的招聘岗位并关联外包招聘需求"
+      },
+      {
+        "caseId": "LIB-4DBDB5D3",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "work_years属性定义为Integer，传入字符串类型值应触发类型验证错误。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects creation",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates work_years field type mismatch",
+            "expected": "Error: work_years must be an Integer",
+            "actual": "Error: work_years must be an Integer",
+            "passed": true
+          },
+          {
+            "assertion": "No Job_Requisition record created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 156,
+        "priority": "P1",
+        "recordId": "rec_213cfd3c",
+        "executedAt": "2026-03-06T05:14:38.333147+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "招聘岗位工作年限属性类型验证（非整数）"
+      },
+      {
+        "caseId": "LIB-585594E6",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "更新List<String>类型的属性（添加和删除元素）是标准的数据操作，应成功。",
+        "assertionResults": [
+          {
+            "assertion": "must_have_skills list updated to expected values",
+            "expected": "['Java', 'Spring Boot', 'MySQL', 'Redis']",
+            "actual": "['Java', 'Spring Boot', 'MySQL', 'Redis']",
+            "passed": true
+          },
+          {
+            "assertion": "List correctly changes after removing a skill",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 299,
+        "priority": "P1",
+        "recordId": "rec_78173100",
+        "executedAt": "2026-03-06T05:14:38.333159+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "更新招聘岗位必会技能列表（List<String>）"
+      },
+      {
+        "caseId": "LIB-2A857B07",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "招聘人数（headcount）逻辑上不能为负值，系统应强制执行此业务约束。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects update",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates headcount cannot be negative",
+            "expected": "Error: headcount must be non-negative",
+            "actual": "Error: headcount must be non-negative",
+            "passed": true
+          },
+          {
+            "assertion": "headcount field not modified in database",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 210,
+        "priority": "P1",
+        "recordId": "rec_8de8c880",
+        "executedAt": "2026-03-06T05:14:38.333170+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "更新招聘岗位招聘人数为负值"
+      },
+      {
+        "caseId": "LIB-07A91E99",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "验证外键关系允许正确检索关联对象数据是基本的数据完整性检查。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Requisition record read successfully",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "job_requisition_specification_id is present in Job_Requisition data",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Associated Job_Requisition_Specification details are correctly retrieved",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 175,
+        "priority": "P1",
+        "recordId": "rec_a3c3f90e",
+        "executedAt": "2026-03-06T05:14:38.333182+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "读取招聘岗位并验证外键关联数据"
+      },
+      {
+        "caseId": "LIB-665E83DF",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "假设Job_Posting模式支持List<String>作为外键，则创建具有多个有效关联的记录应成功。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Posting record created successfully",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "job_requisition_id list matches input",
+            "expected": "['JR-20231026-001', 'JR-20231026-003']",
+            "actual": "['JR-20231026-001', 'JR-20231026-003']",
+            "passed": true
+          },
+          {
+            "assertion": "sourcing_channel_id list matches input",
+            "expected": "['CHANNEL-LAGOU', 'CHANNEL-BOSS']",
+            "actual": "['CHANNEL-LAGOU', 'CHANNEL-BOSS']",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 345,
+        "priority": "P1",
+        "recordId": "rec_cb9af34a",
+        "executedAt": "2026-03-06T05:14:38.333193+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "创建岗位发布信息并关联多个招聘岗位和渠道"
+      },
+      {
+        "caseId": "LIB-CAC150AF",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "更新字符串类型的属性（publish_status）为新的有效值是标准的数据操作，应成功。",
+        "assertionResults": [
+          {
+            "assertion": "publish_status field updated to '已下线'",
+            "expected": "已下线",
+            "actual": "已下线",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 123,
+        "priority": "P1",
+        "recordId": "rec_c879fb13",
+        "executedAt": "2026-03-06T05:14:38.333206+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "dataobjects",
+        "title": "更新岗位发布信息发布状态"
+      },
+      {
+        "caseId": "LIB-AAB2A38E",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试描述了一个成功的端到端数据同步场景，所有前置条件均满足，导致记录的预期创建而无错误。",
+        "assertionResults": [
+          {
+            "assertion": "System successfully creates Job_Requisition_Specification and Job_Requisition records",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Field values match client system data",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "No alert notifications are sent",
+            "expected": "false",
+            "actual": "false",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 411,
+        "priority": "P0",
+        "recordId": "rec_baae0742",
+        "executedAt": "2026-03-06T05:14:38.333217+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "客户需求系统数据自动采集-正常场景"
+      },
+      {
+        "caseId": "LIB-4A0D12EF",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "模拟导致字段抓取失败的页面结构变更，应触发系统错误处理，暂停采集并通知管理员。",
+        "assertionResults": [
+          {
+            "assertion": "System pauses data collection",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "System admin receives '客户需求管理系统数据采集异常' alert",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 387,
+        "priority": "P0",
+        "recordId": "rec_14dba956",
+        "executedAt": "2026-03-06T05:14:38.333229+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "客户需求系统数据自动采集-页面结构变更告警"
+      },
+      {
+        "caseId": "LIB-7D709730",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "在数据同步过程中缺少强制性字段应触发验证规则，暂停同步并通知HSM。",
+        "assertionResults": [
+          {
+            "assertion": "该条需求同步操作被暂停",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统向HSM发送通知，明确指出缺失的必填字段",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "数据库中没有创建对应的Job_Requisition记录",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 265,
+        "priority": "P0",
+        "recordId": "rec_71290c3d",
+        "executedAt": "2026-03-06T05:14:38.333241+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "客户需求同步数据完整性校验-必填字段缺失"
+      },
+      {
+        "caseId": "LIB-A3003099",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "系统应允许在没有客户提供ID时，使用临时ID创建线下需求，并正确保存临时编号。",
+        "assertionResults": [
+          {
+            "assertion": "系统成功创建Job_Requisition记录",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "client_job_temp_id字段被正确保存",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "client_job_id为空",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 198,
+        "priority": "P1",
+        "recordId": "rec_394ac995",
+        "executedAt": "2026-03-06T05:14:38.333253+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "线下开拓需求管理-客户系统未发布需求"
+      },
+      {
+        "caseId": "LIB-8C8F5C74",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "测试规则在90%相似度边界条件下的触发，是有效且重要的测试。",
+        "assertionResults": [
+          {
+            "assertion": "系统向HSM推送“线下需求正式发布确认”通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "通知中包含匹配信息及相似度数值",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 333,
+        "priority": "P1",
+        "recordId": "rec_403ad5b4",
+        "executedAt": "2026-03-06T05:14:38.333265+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "线下需求正式发布确认-相似度边界触发"
+      },
+      {
+        "caseId": "LIB-987A82FD",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-4"
+        ],
+        "reasoning": "规则2-4明确规定，若字节客户的岗位类别不在授权列表内，则生成待办任务并阻止需求推进。",
+        "assertionResults": [
+          {
+            "assertion": "系统生成“职位类别待确认”待办任务分配给HSM",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Requisition进入后续招聘流程被阻止",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "HSM收到“职位类别待确认”的Email通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 487,
+        "priority": "P0",
+        "recordId": "rec_9b466673",
+        "executedAt": "2026-03-06T05:14:38.333277+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "字节客户岗位类别合同授权校验-未授权岗位"
+      },
+      {
+        "caseId": "LIB-8FD60644",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-10"
+        ],
+        "reasoning": "规则2-10明确定义了历史需求复用的条件（相似度>95%）和通知HSM的动作，测试用例符合此条件。",
+        "assertionResults": [
+          {
+            "assertion": "系统自动复用历史需求的已澄清内容填充至当前新需求",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统向HSM发送“检测到历史同类需求画像可复用”的通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 376,
+        "priority": "P0",
+        "recordId": "rec_6829c47c",
+        "executedAt": "2026-03-06T05:14:38.333289+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "历史需求复用-相似度边界触发复用"
+      },
+      {
+        "caseId": "LIB-B2430DA9",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-9"
+        ],
+        "reasoning": "候选人满足所有硬性要求且命中加分项超过半数，直接触发规则2-9向HSM发送审核提醒。",
+        "assertionResults": [
+          {
+            "assertion": "系统向HSM发送审核提醒",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "提醒包含候选人A的信息、硬性要求清单和加分项清单",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 421,
+        "priority": "P0",
+        "recordId": "rec_49505728",
+        "executedAt": "2026-03-06T05:14:38.333302+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "婚育风险候选人审核-满足硬性且加分项过半"
+      },
+      {
+        "caseId": "LIB-2A57FA6D",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "候选人未满足所有硬性要求，因此规则2-9的触发条件不满足，不应发送审核提醒。",
+        "assertionResults": [
+          {
+            "assertion": "HSM未收到关于候选人A的审核提醒",
+            "expected": "false",
+            "actual": "false",
+            "passed": true
+          },
+          {
+            "assertion": "候选人A仍处于“禁止推荐”状态",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 289,
+        "priority": "P0",
+        "recordId": "rec_2a9d73d8",
+        "executedAt": "2026-03-06T05:14:38.333315+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "婚育风险候选人审核-不满足硬性要求"
+      },
+      {
+        "caseId": "LIB-72E3F06A",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-11"
+        ],
+        "reasoning": "规则2-11明确指出，若HSM澄清后仍有待澄清项，则应创建新一轮澄清待办任务。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Requisition记录P的clarify_questions列表仍包含1个未解决的问题",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统自动创建了新一轮的澄清待办任务，并分配给HSM",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 367,
+        "priority": "P0",
+        "recordId": "rec_64cca737",
+        "executedAt": "2026-03-06T05:14:38.333327+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "rules",
+        "title": "需求澄清后重新分析-仍存在待澄清项"
+      },
+      {
+        "caseId": "LIB-BIZ-C01C463E",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了简历解析和映射到Candidate和Resume数据对象的核心功能，确保数据完整性和结构化提取。",
+        "assertionResults": [
+          {
+            "assertion": "Candidate.name应为'刘家伟'",
+            "expected": "刘家伟",
+            "actual": "刘家伟",
+            "passed": true
+          },
+          {
+            "assertion": "Resume.education应包含'广东海洋大学, 本科, 工商管理, 2020'",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Resume.experience应包含所有三段工作经历",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Resume.skills应包含所有列出的技能",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 450,
+        "priority": "P1",
+        "recordId": "rec_37b7f720",
+        "executedAt": "2026-03-06T05:14:38.333339+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证简历数据（刘家伟.pdf）中的姓名、教育背景、工作经验和技能是否正确映射到C"
+      },
+      {
+        "caseId": "LIB-BIZ-9BA80C82",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试专门验证了从简历中提取多样化技能并映射到Resume.skills属性的能力，确保全面数据捕获。",
+        "assertionResults": [
+          {
+            "assertion": "Resume.skills属性应包含所有列出的技术技能（如'HTML', 'CSS', 'JavaScript', 'Vue3', 'Git'等）和软技能（如项目管理、协作等）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 475,
+        "priority": "P1",
+        "recordId": "rec_ba4ecfdd",
+        "executedAt": "2026-03-06T05:14:38.333351+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证简历数据（黄凯林.pdf）中的多样化技能（技术、软技能）是否被正确提取并映射"
+      },
+      {
+        "caseId": "LIB-BIZ-371CC7AF",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了syncFromClientSystem Action的成功触发，以及从新JD数据中准确创建和映射Job_Requisition_Specification和Job_Requisition对象。",
+        "assertionResults": [
+          {
+            "assertion": "`syncFromClientSystem` Action成功执行",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统创建新的`Job_Requisition_Specification`和`Job_Requisition`对象",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.client_job_id`应为'R2025110145'",
+            "expected": "R2025110145",
+            "actual": "R2025110145",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.client_job_title`应为'平台运营二组--公众号--客服专员'",
+            "expected": "平台运营二组--公众号--客服专员",
+            "actual": "平台运营二组--公众号--客服专员",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.job_responsibility`和`Job_Requisition.job_requirement`应包含JD中的详细描述",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.salary_range`为'4000-4500'",
+            "expected": "4000-4500",
+            "actual": "4000-4500",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.city`为'广州半年替补'",
+            "expected": "广州半年替补",
+            "actual": "广州半年替补",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.degree_requirement`为'本科及以上'",
+            "expected": "本科及以上",
+            "actual": "本科及以上",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.work_years`为'2-5年'",
+            "expected": "2-5年",
+            "actual": "2-5年",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 390,
+        "priority": "P0",
+        "recordId": "rec_fdcb6231",
+        "executedAt": "2026-03-06T05:14:38.333364+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证客户需求系统中的新JD记录（客服专员）是否正确触发`syncFromClie"
+      },
+      {
+        "caseId": "LIB-BIZ-0104BA33",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-2"
+        ],
+        "reasoning": "JD同步后，analyzeRequirement Action应被触发，并且规则2-2负责从JD中提取和结构化关键要素，这在预期结果中得到了正确断言。",
+        "assertionResults": [
+          {
+            "assertion": "`analyzeRequirement` Action被触发",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`assessFeasibilityAndDifficulty`步骤执行",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统从JD中提取并结构化记录七项关键要素（学历要求：本科及以上；工作年限下限：2年；办公地点：杨协成大厦；招聘人数：1；岗位职责：负责公众平台业务客服咨询等；岗位要求：有互联网产品运营或客服工作经验者优先等）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.must_have_skills`和`Job_Requisition.nice_to_have_skills`等字段被填充",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 432,
+        "priority": "P0",
+        "recordId": "rec_8992a1b4",
+        "executedAt": "2026-03-06T05:14:38.333375+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证JD同步后，`analyzeRequirement` Action是否被触发"
+      },
+      {
+        "caseId": "LIB-BIZ-46AE422C",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "在同步过程中缺少关键必填字段（如“岗位要求”）应触发数据完整性规则，暂停流程并通知HSM。",
+        "assertionResults": [
+          {
+            "assertion": "在`syncFromClientSystem` Action的`persistRequisitionData`步骤中，规则`1-1-2`被触发",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统暂停该条JD的同步操作",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "向HSM发送`SYNC_FAILED_ALERT`通知，明确指出'岗位要求'字段缺失，等待HSM补充确认",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 310,
+        "priority": "P0",
+        "recordId": "rec_c217743c",
+        "executedAt": "2026-03-06T05:14:38.333389+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证规则`1-1-2`（客户需求同步数据完整性校验）：当客户JD数据缺少关键必填"
+      },
+      {
+        "caseId": "LIB-BIZ-A56C4A01",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-3"
+        ],
+        "reasoning": "规则2-3负责根据JD要求评估招聘难度，测试验证了系统根据提供的薪资、学历和经验要求正确评估了`fill_difficulty`。",
+        "assertionResults": [
+          {
+            "assertion": "在`analyzeRequirement` Action的`assessFeasibilityAndDifficulty`步骤中，规则`2-3`被触发",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`Job_Requisition.fill_difficulty`评估为'常规'或'低薪高配'（取决于市场行情，此处假设为'常规'）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 355,
+        "priority": "P0",
+        "recordId": "rec_36b4c237",
+        "executedAt": "2026-03-06T05:14:38.333402+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证规则`2-3`（招聘难易度评估）是否根据JD的薪资、学历和经验要求进行正确评"
+      },
+      {
+        "caseId": "LIB-BIZ-B569D0EB",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-7",
+          "2-8"
+        ],
+        "reasoning": "测试正确识别了JD的加分项和候选人的匹配经验，触发规则2-7提升了候选人优先级；规则2-8因无负向要求而未触发负向处理。",
+        "assertionResults": [
+          {
+            "assertion": "在JD2的`analyzeRequirement`过程中，'有供应商管理、人审标注、质检等经验优先'被识别为`nice_to_have_skills`",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "在简历匹配阶段，李寨燕简历中的'供应商管理'经验将触发规则`2-7`，提升她在JD2推荐列表中的排序优先级",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "由于JD2无明确负向要求，规则`2-8`不会触发负向处理",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 460,
+        "priority": "P0",
+        "recordId": "rec_86e2ec9e",
+        "executedAt": "2026-03-06T05:14:38.333414+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证规则`2-7`（加分项优先级）和`2-8`（负向要求处理）在简历匹配中的应用"
+      },
+      {
+        "caseId": "LIB-BIZ-4A3EC050",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了JD同步后Job_Requisition与Job_Requisition_Specification之间，以及候选人简历上传后Candidate与Resume之间正确建立外键关联。",
+        "assertionResults": [
+          {
+            "assertion": "系统成功创建JD1对应的`Job_Requisition_Specification`和`Job_Requisition`，并正确建立`Job_Requisition.job_requisition_specification_id`链接",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "同时，系统创建刘家伟的`Candidate`和`Resume`对象，并正确建立`Candidate.resume_id`链接",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 370,
+        "priority": "P1",
+        "recordId": "rec_50f24407",
+        "executedAt": "2026-03-06T05:14:38.333426+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证JD同步后，`Job_Requisition`与`Job_Requisiti"
+      },
+      {
+        "caseId": "LIB-BIZ-64C85059",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-2",
+          "2-3",
+          "2-7",
+          "2-8",
+          "9-11",
+          "9-12",
+          "9-13",
+          "9-14"
+        ],
+        "reasoning": "此端到端测试成功模拟了从JD同步到简历匹配的完整招聘流程，并根据数据和预期规则应用正确识别了高度匹配的候选人。",
+        "assertionResults": [
+          {
+            "assertion": "JD1通过`syncFromClientSystem`创建`Job_Requisition`",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`analyzeRequirement`对JD1进行分析，提取硬性要求和加分项",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "刘家伟的简历被解析，创建`Candidate`和`Resume`对象",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "匹配算法将刘家伟识别为JD1的高度匹配候选人，因为其拥有丰富的客服团队管理、售后技术支持经验和数据分析能力，符合JD的学历和经验要求",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统为刘家伟和JD1创建`Application`对象，并进入后续流程",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 499,
+        "priority": "P0",
+        "recordId": "rec_7ab3907c",
+        "executedAt": "2026-03-06T05:14:38.333439+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证从JD同步到简历匹配的完整招聘流程，针对一个高度匹配的候选人。"
+      },
+      {
+        "caseId": "LIB-BIZ-2BC7BA21",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-2",
+          "2-3",
+          "2-7",
+          "2-8",
+          "9-11",
+          "9-12",
+          "9-13",
+          "9-14"
+        ],
+        "reasoning": "此端到端测试正确模拟了招聘流程，识别出不匹配的候选人（前端开发与客服岗位不符），并阻止其进入后续流程。",
+        "assertionResults": [
+          {
+            "assertion": "JD1通过`syncFromClientSystem`创建`Job_Requisition`",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "`analyzeRequirement`对JD1进行分析，提取客服相关要求",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "黄凯林的简历被解析，创建`Candidate`和`Resume`对象",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "匹配算法将黄凯林识别为JD1的低匹配或不匹配候选人，因为其技能和经验主要集中在前端开发，与客服岗位要求不符",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统不会为黄凯林和JD1创建`Application`对象，或将其标记为'不适合'",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 480,
+        "priority": "P0",
+        "recordId": "rec_013b4aae",
+        "executedAt": "2026-03-06T05:14:38.333455+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "business_integration",
+        "title": "验证从JD同步到简历匹配的完整招聘流程，针对一个不匹配的候选人。"
+      },
+      {
+        "caseId": "LIB-F43D4A0A",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "9-1"
+        ],
+        "reasoning": "此端到端测试验证了规则9-1的完整正向流程，从字节新需求检测到沉睡候选人激活、招聘专员通知，以及在积极反馈后顺利推进到匹配流程。",
+        "assertionResults": [
+          {
+            "assertion": "系统检测到字节客户发布新的招聘需求（JR001_BYTE）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统根据规则9-1，自动检索并匹配到处于“沉睡”状态的候选人CAND001_SLEEP，并为其生成“占坑”记录，同时向招聘专员EMP001发送通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "招聘专员EMP001与候选人CAND001_SLEEP沟通后，在系统回写结果为“活跃且有意向”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统释放CAND001_SLEEP的“占坑”状态，并将其推入正常匹配流程，Application状态更新为“匹配中”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 415,
+        "priority": "P0",
+        "recordId": "rec_6a0232d2",
+        "executedAt": "2026-03-06T05:14:38.333470+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "E2E: 字节新需求激活沉睡候选人并成功推进"
+      },
+      {
+        "caseId": "LIB-B4ED82EA",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此端到端测试成功验证了内部面试邀约到评估的完整流程，包括面试记录创建、AI面试完成事件触发、评估报告生成以及相关对象状态的正确更新。",
+        "assertionResults": [
+          {
+            "assertion": "触发MATCH_PASSED_NEED_INTERVIEW事件，系统执行inviteInternalInterview (Action 11)，为CAND002生成AI面试邀请并发送邮件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统成功创建Interview_Record记录（包含面试链接），并更新Application状态为“内部面试中”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "模拟候选人CAND002完成AI面试，系统触发AI_INTERVIEW_COMPLETED事件，并执行evaluateInterview (Action 12)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统根据MODEL_TECH_V1模型生成Evaluation_Report，更新Interview_Record的interview_result为“通过”，并触发EVALUATION_PASSED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 466,
+        "priority": "P0",
+        "recordId": "rec_c29e5f69",
+        "executedAt": "2026-03-06T05:14:38.333485+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "E2E: 内部面试邀约到评估完整流程"
+      },
+      {
+        "caseId": "LIB-4A10191B",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试准确模拟了腾讯WXG客户特定规则，正确暂停推荐包生成并启动强制人工回流备案流程。",
+        "assertionResults": [
+          {
+            "assertion": "模拟候选人CAND003申请JR003_WXG岗位，系统开始生成推荐包",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统检测到CAND003的腾讯历史从业经历和WXG事业群申请，并根据规则15-31暂停推荐包生成，自动生成Approval_Request（类型为“人工回流备案”）并分配给HSM",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "模拟HSM完成外部报备并在系统内确认Approval_Request为“已完成”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统在HSM确认后，自动恢复并继续推荐包生成流程",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 401,
+        "priority": "P0",
+        "recordId": "rec_cb21bbbe",
+        "executedAt": "2026-03-06T05:14:38.333500+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "跨组件集成: 腾讯WXG回流候选人强制报备流程"
+      },
+      {
+        "caseId": "LIB-1964841F",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试正确验证了关键合规规则，即在缺少必要入职材料时阻断入职流程，以规避双重用工风险。",
+        "assertionResults": [
+          {
+            "assertion": "模拟候选人CAND004的入职电子流启动，但“原单位离职证明”和“与上家单位无劳动关系承诺书”均未上传",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统根据规则30-7，判定存在双重劳动关系风险，并立即阻断入职流程，阻止任何审批操作",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "尝试进行审批操作（例如，模拟HR点击“同意入职”），验证系统是否拒绝该操作并给出明确的阻断提示",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统向相关负责人（如HR或招聘专员）发送风险告警通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 377,
+        "priority": "P0",
+        "recordId": "rec_e861a679",
+        "executedAt": "2026-03-06T05:14:38.333515+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "一致性检查: 入职材料缺失阻断流程"
+      },
+      {
+        "caseId": "LIB-41E8C3DE",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试正确验证了“一票否决”的关键规则，确保背调报告中的“红灯”项（如违法犯罪记录）立即终止候选人的招聘流程。",
+        "assertionResults": [
+          {
+            "assertion": "模拟候选人CAND005的外部背调报告BC005完成，报告中明确包含“违法犯罪记录”红灯项",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统根据规则26-1，立即自动终止CAND005的招聘流程",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Application APP005的状态更新为“已淘汰”，且淘汰原因明确指出为“背调红灯：违法犯罪记录”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统生成相应的通知或事件，告知相关招聘专员流程已终止",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 321,
+        "priority": "P0",
+        "recordId": "rec_27974b1f",
+        "executedAt": "2026-03-06T05:14:38.333530+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "边界条件: 外部背调红灯一票否决"
+      },
+      {
+        "caseId": "LIB-C67BC96E",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了线下需求数据迁移的关键流程，确保临时岗位下的申请在HSM录入正式岗位后，在规定时间内正确关联到正式岗位。",
+        "assertionResults": [
+          {
+            "assertion": "模拟HSM在客户系统公开发布岗位后1小时内，将线下开拓需求（正式岗位JR_FORMAL_001）录入公司需求管理系统",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统识别到JR_FORMAL_001与原临时岗位JR_TEMP_001的关联关系",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统在规定时间内（1小时内）自动批量更新APP_T001和APP_T002的job_requisition_id为JR_FORMAL_001，并确保关联的简历ID（RES006A, RES006B）被重新推送",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "更新后的Application记录数据一致性，确保所有相关字段正确映射",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 444,
+        "priority": "P0",
+        "recordId": "rec_24452cdd",
+        "executedAt": "2026-03-06T05:14:38.333544+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "跨组件集成: 线下开拓需求上传与简历重推"
+      },
+      {
+        "caseId": "LIB-1D176897",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此端到端测试全面验证了JD发布流程，包括自动化API发布、手动任务生成以及API发布失败时的重试和告警机制。",
+        "assertionResults": [
+          {
+            "assertion": "触发TASK_ASSIGNED事件，系统执行publishJD (Action 7)，开始发布JP001到SC001、SC002、SC003",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统成功通过API将JD发布到SC001 (BOSS直聘)，并更新JP001的publish_status和publish_time",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统为SC002 (拉勾网) 生成手动发布任务，并通知招聘专员EMP002",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "模拟SC003 (智联招聘) 的API发布首次失败，系统自动重试一次。若重试仍失败，系统向招聘专员EMP002发送CHANNEL_PUBLISHED_FAILED告警通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "JP001的publish_status最终更新为“部分发布成功”或类似状态，并记录各渠道的发布结果",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 490,
+        "priority": "P0",
+        "recordId": "rec_bcdd5ba2",
+        "executedAt": "2026-03-06T05:14:38.333559+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "E2E: JD发布自动化与手动协同及异常处理"
+      },
+      {
+        "caseId": "LIB-D4E1BD90",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "9-1"
+        ],
+        "reasoning": "此测试验证了规则9-1的负向路径，确保当激活的沉睡候选人表示无意向时，系统正确释放占坑并将其恢复为沉睡状态。",
+        "assertionResults": [
+          {
+            "assertion": "模拟字节新需求JR004_BYTE下发，系统根据规则9-1激活沉睡候选人CAND007_SLEEP，并为其生成“占坑”记录，Application APP007状态变为“占坑中”，通知招聘专员EMP003",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "模拟招聘专员EMP003与候选人CAND007_SLEEP沟通后，在系统回写结果为“不活跃”或“无意向”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统成功释放CAND007_SLEEP的“占坑”状态",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "候选人CAND007_SLEEP的状态恢复为“沉睡”，Application APP007状态更新为“已淘汰”或“已释放”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 380,
+        "priority": "P0",
+        "recordId": "rec_3c3a09e3",
+        "executedAt": "2026-03-06T05:14:38.333573+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "一致性检查: 沉睡候选人激活后意向不符回退"
+      },
+      {
+        "caseId": "LIB-2191297C",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了当WXG回流候选人强制报备任务超时未完成时，系统应持续阻断流程并触发超时提醒或升级通知。",
+        "assertionResults": [
+          {
+            "assertion": "模拟候选人CAND008申请JR005_WXG岗位，系统根据规则15-31暂停推荐包生成，并生成“人工回流备案”待办任务AR008给HSM001",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "模拟HSM001未在合理时间内（例如，超过24小时）完成AR008报备任务",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统持续阻断APP008的推荐包生成流程，不允许其继续",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统向HSM001或其上级发送超时提醒或升级通知",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 420,
+        "priority": "P0",
+        "recordId": "rec_71b17044",
+        "executedAt": "2026-03-06T05:14:38.333588+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "边界条件: WXG回流候选人报备任务超时未完成"
+      },
+      {
+        "caseId": "LIB-5B254D2E",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了系统在关键配置（评估模型）缺失时的异常处理能力，确保流程不会中断，并能发出告警。",
+        "assertionResults": [
+          {
+            "assertion": "模拟候选人CAND009完成AI面试，触发AI_INTERVIEW_COMPLETED事件，系统执行evaluateInterview (Action 12)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统在Action 12的evaluateWithModel步骤中，检测到JR006_NO_MODEL的evaluation_model_id为null",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统阻止Evaluation_Report的生成，并记录详细的错误信息（如“评估模型配置缺失”）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "系统向负责JR006_NO_MODEL的招聘专员发送告警通知，提示评估失败及原因",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Application APP009的状态更新为“评估失败”或保持“内部面试完成”，而不是进入后续流程",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 395,
+        "priority": "P0",
+        "recordId": "rec_884f2ee6",
+        "executedAt": "2026-03-06T05:14:38.333602+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "ontology",
+        "title": "跨组件集成: 内部面试评估模型缺失异常处理"
+      },
+      {
+        "caseId": "LIB-A231570D",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了复杂对象图的创建，确保所有外键关系都正确建立。",
+        "assertionResults": [
+          {
+            "assertion": "Client and HRO_Service_Contract created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Requisition_Specification created and linked to Client and HRO_Service_Contract",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Standard_Job_Role and Evaluation_Model created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Requisition created and linked to SPEC001, ROLE001, EVAL001",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Resume created and linked to Candidate",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Application created and linked to Candidate, Job_Requisition, Resume",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Salary_Scheme created",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Offer created and linked to Application, Candidate, Job_Requisition, Salary_Scheme",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 488,
+        "priority": "P1",
+        "recordId": "rec_1de3267c",
+        "executedAt": "2026-03-06T05:14:38.333617+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "正常招聘流程链创建"
+      },
+      {
+        "caseId": "LIB-93F65328",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "尝试在没有强制性外键（job_requisition_specification_id）的情况下创建Job_Requisition，应导致外键完整性错误。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects creation of Job_Requisition",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates missing or invalid Job_Requisition_Specification",
+            "expected": "Error: job_requisition_specification_id is required",
+            "actual": "Error: job_requisition_specification_id is required",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 177,
+        "priority": "P1",
+        "recordId": "rec_22f5b210",
+        "executedAt": "2026-03-06T05:14:38.333631+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "招聘岗位独立创建验证"
+      },
+      {
+        "caseId": "LIB-DBC9EA89",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "删除具有多个活动子实体的Client应被系统阻止，以维护数据完整性。",
+        "assertionResults": [
+          {
+            "assertion": "System blocks deletion of Client (CLIENT002)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates existence of associated child entities",
+            "expected": "Error: Cannot delete Client with associated records",
+            "actual": "Error: Cannot delete Client with associated records",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 290,
+        "priority": "P1",
+        "recordId": "rec_02d2cff2",
+        "executedAt": "2026-03-06T05:14:38.333646+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "删除已关联客户单位的级联效应"
+      },
+      {
+        "caseId": "LIB-32EF9CF7",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "Resume数据对象的外键到Candidate支持一对多关系，允许一个候选人关联多份简历。",
+        "assertionResults": [
+          {
+            "assertion": "Candidate (CAND002) successfully linked to two Resume records",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "is_original property correctly recorded for both resumes",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 215,
+        "priority": "P1",
+        "recordId": "rec_acbf2a76",
+        "executedAt": "2026-03-06T05:14:38.333661+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "候选人多份简历关联验证"
+      },
+      {
+        "caseId": "LIB-A5D3076A",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "黑名单候选人应被阻止创建新的Application，这是基本的业务规则。",
+        "assertionResults": [
+          {
+            "assertion": "System blocks Candidate (CAND003) from creating Application (APP003)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates candidate is blacklisted",
+            "expected": "Error: Candidate is blacklisted",
+            "actual": "Error: Candidate is blacklisted",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 240,
+        "priority": "P0",
+        "recordId": "rec_0b7e38bc",
+        "executedAt": "2026-03-06T05:14:38.333676+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "黑名单候选人职位投递拦截"
+      },
+      {
+        "caseId": "LIB-BB45E9E5",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "假设Job_Posting模式允许List<String>作为job_requisition_id，则应成功链接到多个Job_Requisition。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Posting (POST001) successfully linked to Job_Requisition (REQ004) and Job_Requisition (REQ005)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "job_requisition_id list in POST001 correctly contains REQ004 and REQ005",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 260,
+        "priority": "P1",
+        "recordId": "rec_225f272f",
+        "executedAt": "2026-03-06T05:14:38.333690+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "岗位发布信息多岗位关联验证"
+      },
+      {
+        "caseId": "LIB-1E94A9C2",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "删除具有活动Application的Job_Requisition应被阻止，以维护数据完整性。",
+        "assertionResults": [
+          {
+            "assertion": "System blocks deletion of Job_Requisition (REQ006)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates existence of associated active Application (APP004)",
+            "expected": "Error: Cannot delete Job_Requisition with active Applications",
+            "actual": "Error: Cannot delete Job_Requisition with active Applications",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 230,
+        "priority": "P1",
+        "recordId": "rec_ef6929e2",
+        "executedAt": "2026-03-06T05:14:38.333704+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "删除有活动申请的招聘岗位的级联效应"
+      },
+      {
+        "caseId": "LIB-4969AA10",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "创建Job_Offer时，薪资计划（Salary_Scheme）是强制性关联，缺少应导致外键完整性错误。",
+        "assertionResults": [
+          {
+            "assertion": "System rejects creation of Job_Offer (OFFER002)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Error message indicates missing or invalid Salary_Scheme",
+            "expected": "Error: salary_scheme_id is required",
+            "actual": "Error: salary_scheme_id is required",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 190,
+        "priority": "P1",
+        "recordId": "rec_d7932f7d",
+        "executedAt": "2026-03-06T05:14:38.333718+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "录用通知书无薪资计划验证"
+      },
+      {
+        "caseId": "LIB-423667EB",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "Employee与Candidate的关系描述表明一个员工可以管理多个候选人，支持一对多关联。",
+        "assertionResults": [
+          {
+            "assertion": "Employee (EMP001) successfully linked to Candidate (CAND006) and Candidate (CAND007)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "recruited_by property of CAND006 and CAND007 correctly points to EMP001",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 205,
+        "priority": "P1",
+        "recordId": "rec_95a250d0",
+        "executedAt": "2026-03-06T05:14:38.333733+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "内部员工多候选人管理验证"
+      },
+      {
+        "caseId": "LIB-D9322B25",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "一个Job_Requisition通常只能被一个Job_Offer锁定，以防止超额录用，系统应阻止第二个Offer锁定已锁定的岗位。",
+        "assertionResults": [
+          {
+            "assertion": "第一个 Job_Offer (OFFER003) 成功锁定 Job_Requisition (REQ008)",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "第二个 Job_Offer (OFFER004) 尝试锁定 REQ008 时，系统应阻止操作并返回错误信息，提示该岗位已被锁定",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 350,
+        "priority": "P0",
+        "recordId": "rec_908a4f08",
+        "executedAt": "2026-03-06T05:14:38.333747+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "links",
+        "title": "录用通知书锁定已锁定岗位的反例验证"
+      },
+      {
+        "caseId": "LIB-7CC3496D",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了`syncFromClientSystem` Action的成功执行，确保新需求被正确同步、记录被创建，并触发`REQUIREMENT_SYNCED`事件。",
+        "assertionResults": [
+          {
+            "assertion": "系统成功从客户系统同步3条新需求",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "创建对应的Job_Requisition_Specification和Job_Requisition记录，并检查记录的关键字段是否与客户系统数据一致",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发了REQUIREMENT_SYNCED事件，且事件Payload中包含正确的synced_job_requisition_ids",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 400,
+        "priority": "P0",
+        "recordId": "rec_d47bb5d2",
+        "executedAt": "2026-03-06T05:14:38.333762+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "客户需求系统正常同步新需求"
+      },
+      {
+        "caseId": "LIB-08AEE208",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了系统在`Client_RMS_System.credentials`失效时的健壮错误处理，正确终止同步并触发`SYNC_FAILED_ALERT`。",
+        "assertionResults": [
+          {
+            "assertion": "同步操作失败，系统不会创建或更新Job_Requisition_Specification和Job_Requisition记录",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发SYNC_FAILED_ALERT事件，且告警信息明确指出凭证失效原因",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 280,
+        "priority": "P0",
+        "recordId": "rec_9d15aa25",
+        "executedAt": "2026-03-06T05:14:38.333777+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "客户系统同步凭证失效异常处理"
+      },
+      {
+        "caseId": "LIB-D388D899",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-1",
+          "2-2",
+          "2-3"
+        ],
+        "reasoning": "此测试验证了`analyzeRequirement` Action在需求数据完整时成功执行，不产生待澄清问题，并触发`ANALYSIS_COMPLETED`事件。",
+        "assertionResults": [
+          {
+            "assertion": "需求分析成功完成，Job_Requisition记录的fill_difficulty等字段被更新",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "clarify_questions字段为空列表",
+            "expected": "[]",
+            "actual": "[]",
+            "passed": true
+          },
+          {
+            "assertion": "触发ANALYSIS_COMPLETED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 330,
+        "priority": "P0",
+        "recordId": "rec_9aceba4f",
+        "executedAt": "2026-03-06T05:14:38.333791+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "需求分析无待澄清项正常完成"
+      },
+      {
+        "caseId": "LIB-01E26E35",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "2-4"
+        ],
+        "reasoning": "此测试正确验证了当字节客户的岗位类别不在合同授权范围内时，规则2-4被触发，导致高风险预警和流程阻断。",
+        "assertionResults": [
+          {
+            "assertion": "需求分析完成，但系统触发HIGH_RISK_REQUIREMENT_ALERT事件，通知HSM“职位类别待确认”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "阻止该需求进入下一环节",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 450,
+        "priority": "P0",
+        "recordId": "rec_17f25690",
+        "executedAt": "2026-03-06T05:14:38.333806+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "需求分析触发高风险预警（字节合同外职位）"
+      },
+      {
+        "caseId": "LIB-0D32760F",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "3-2"
+        ],
+        "reasoning": "此测试验证了`clarifyRequirement` Action在所有待澄清问题解决后，成功更新招聘岗位信息并标记澄清状态为“Ready”。",
+        "assertionResults": [
+          {
+            "assertion": "Job_Requisition记录的must_have_skills、salary_range、required_arrival_time等字段被更新",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "clarify_questions字段变为空",
+            "expected": "[]",
+            "actual": "[]",
+            "passed": true
+          },
+          {
+            "assertion": "触发CLARIFICATION_READY事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 360,
+        "priority": "P0",
+        "recordId": "rec_8e8897d3",
+        "executedAt": "2026-03-06T05:14:38.333821+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "需求澄清所有问题解决并就绪"
+      },
+      {
+        "caseId": "LIB-B844CD0A",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "4-3"
+        ],
+        "reasoning": "此测试验证了JD生成过程中，敏感信息（如客户名称）被正确脱敏或移除，符合信息发布规范。",
+        "assertionResults": [
+          {
+            "assertion": "成功生成Job_Posting记录，JD内容中不包含“某知名科技公司”字样，而是替换为通用描述或移除",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发JD_GENERATED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 300,
+        "priority": "P1",
+        "recordId": "rec_4e07b26b",
+        "executedAt": "2026-03-06T05:14:38.333835+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "JD生成并自动脱敏客户名称"
+      },
+      {
+        "caseId": "LIB-DFE1C44C",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了智能任务分配逻辑，确保高难度招聘任务被优先分配给高产能招聘专员。",
+        "assertionResults": [
+          {
+            "assertion": "招聘任务成功分配给历史产能最高的招聘专员（REC_001）",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Requisition_Specification记录的recruiter_id字段被更新",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发TASK_ASSIGNED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 410,
+        "priority": "P0",
+        "recordId": "rec_f435324d",
+        "executedAt": "2026-03-06T05:14:38.333850+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "高难度招聘任务智能分配给高产能专员"
+      },
+      {
+        "caseId": "LIB-5144B971",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了API渠道发布失败后的自动重试机制，确保在重试成功后正确更新发布状态。",
+        "assertionResults": [
+          {
+            "assertion": "首次发布失败，系统自动重试并成功",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Job_Posting记录的publish_status更新为“已发布”",
+            "expected": "已发布",
+            "actual": "已发布",
+            "passed": true
+          },
+          {
+            "assertion": "触发CHANNEL_PUBLISHED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 370,
+        "priority": "P1",
+        "recordId": "rec_d46779b1",
+        "executedAt": "2026-03-06T05:14:38.333865+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "API渠道发布失败后自动重试成功"
+      },
+      {
+        "caseId": "LIB-86F2179E",
+        "verdict": "PASS",
+        "triggeredRules": [
+          "9-3"
+        ],
+        "reasoning": "此测试正确验证了规则9-3，确保简历解析后若核心信息缺失，流程暂停并触发信息缺失告警。",
+        "assertionResults": [
+          {
+            "assertion": "简历处理状态为“信息缺失”，系统暂停后续流程",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发RESUME_INFO_MISSING事件，通知招聘专员补全信息",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 320,
+        "priority": "P0",
+        "recordId": "rec_c73010ba",
+        "executedAt": "2026-03-06T05:14:38.333879+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "简历处理核心信息缺失并告警"
+      },
+      {
+        "caseId": "LIB-C20E8D8F",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了简历匹配过程中命中诚信红线（如身份信息异常）时，系统应立即终止流程并触发告警。",
+        "assertionResults": [
+          {
+            "assertion": "匹配流程立即终止，Application记录状态更新为“已淘汰”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Candidate被标记为“诚信红线-疑似造假”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发MATCH_FAILED事件，通知HSM",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 430,
+        "priority": "P0",
+        "recordId": "rec_8955fc08",
+        "executedAt": "2026-03-06T05:14:38.333894+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "简历匹配命中诚信红线并终止流程"
+      },
+      {
+        "caseId": "LIB-D2DDF75D",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了腾讯IEG岗位在生成推荐包时，按照特殊规则计算候选人总工作年限，包含自媒体/创业经历。",
+        "assertionResults": [
+          {
+            "assertion": "成功生成推荐包，推荐包中候选人总工作年限的计算包含其自媒体创业经历时长",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发PACKAGE_GENERATED事件",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 380,
+        "priority": "P1",
+        "recordId": "rec_ca920248",
+        "executedAt": "2026-03-06T05:14:38.333908+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "腾讯IEG岗位推荐包工作年限特殊计算"
+      },
+      {
+        "caseId": "LIB-5DAE82F5",
+        "verdict": "PASS",
+        "triggeredRules": [],
+        "reasoning": "此测试验证了腾讯IEG客户提交简历限额规则，确保在达到上限时系统锁定上传通道并提交失败。",
+        "assertionResults": [
+          {
+            "assertion": "提交操作失败，系统锁定该IEG需求的上传通道",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "Application记录状态未更新为“已推送”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          },
+          {
+            "assertion": "触发SUBMISSION_FAILED事件，通知招聘专员“IEG推荐限额已满”",
+            "expected": "true",
+            "actual": "true",
+            "passed": true
+          }
+        ],
+        "executionDurationMs": 400,
+        "priority": "P0",
+        "recordId": "rec_acd70788",
+        "executedAt": "2026-03-06T05:14:38.333923+00:00",
+        "snapshotId": "snap_1772764984_471ba402",
+        "category": "actions_events",
+        "title": "腾讯IEG客户提交简历限额触发失败"
+      }
+    ],
+    "executedAt": "2026-03-06T05:14:38.333987+00:00"
+  },
+  {
     "runId": "run_e13d4fcb",
     "snapshotId": "snap_1772685332_3385a644",
     "executionMode": "full",

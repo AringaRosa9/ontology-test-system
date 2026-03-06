@@ -109,6 +109,11 @@ export interface LibraryCase {
     steps: string[];
     createdAt: string;
     updatedAt: string;
+    // Negative test case fields
+    isNegative?: boolean;
+    negativeType?: string | null;
+    expectedVerdict?: 'PASS' | 'FAIL' | null;
+    strategy?: string;
 }
 
 export interface ApiResponse<T> {

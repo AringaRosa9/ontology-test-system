@@ -1,14 +1,14 @@
 [
   {
-    "keyId": "key_239470b5",
+    "keyId": "key_31ceade5",
     "provider": "custom",
-    "label": "test key",
-    "key": "sk-FiW7fRkzgtnAaW20HLwj7PCjRlCyrS8NjxYOZuj5kFmpuOEA",
+    "label": "测试key（一次测太多会不稳定）",
+    "key": "sk-KcHo6q6R944tsSLv4mf6i2wf9wIxQSWJqM5muBzY2kj3wOqD",
     "model": "gemini-3-pro-preview",
     "baseUrl": "https://twob.pp.ua/v1",
     "isActive": true,
-    "status": "valid",
-    "addedAt": "2026-03-05T07:19:02.974662+00:00",
-    "lastTestedAt": "2026-03-05T07:19:11.322633+00:00"
+    "status": "invalid",
+    "addedAt": "2026-03-06T05:22:02.737290+00:00",
+    "lastTestedAt": "2026-03-06T05:22:29.109948+00:00"
   }
 ]

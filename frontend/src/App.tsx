@@ -4,8 +4,8 @@ import AppLayout from './AppLayout';
 import DashboardPage from './pages/DashboardPage';
 import OntologyPage from './pages/OntologyPage';
 import BusinessDataPage from './pages/BusinessDataPage';
-import ComponentTestPage from './pages/ComponentTestPage';
-import UnifiedTestPage from './pages/UnifiedTestPage';
+
+
 import ExecutionPage from './pages/ExecutionPage';
 import HistoryPage from './pages/HistoryPage';
 import ReportPage from './pages/ReportPage';
@@ -64,8 +64,7 @@ function App() {
             <Route path="/ontology" element={<OntologyPage />} />
             <Route path="/business-data" element={<BusinessDataPage />} />
             <Route path="/test-case-library" element={<TestCaseLibraryPage />} />
-            <Route path="/component-test/:tab?" element={<ComponentTestPage />} />
-            <Route path="/unified-test" element={<UnifiedTestPage />} />
+
             <Route path="/execution" element={<ExecutionPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/reports" element={<ReportPage />} />

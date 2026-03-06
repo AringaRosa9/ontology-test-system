@@ -6,12 +6,12 @@ import {
 import {
     PlusOutlined, DeleteOutlined, EditOutlined, ExportOutlined,
     RobotOutlined, DatabaseOutlined, ThunderboltOutlined,
-    SafetyOutlined, LinkOutlined, AppstoreOutlined,
+    SafetyOutlined, LinkOutlined, AppstoreOutlined, ExperimentOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, OntologySnapshot, LibraryCase } from '../types';
 
-type CategoryKey = 'dataobjects' | 'actions_events' | 'rules' | 'links' | 'ontology';
+type CategoryKey = 'dataobjects' | 'actions_events' | 'rules' | 'links' | 'ontology' | 'business_integration';
 
 const CATEGORIES: Record<CategoryKey, { title: string; icon: React.ReactNode; color: string }> = {
     dataobjects: { title: 'DataObjects', icon: <DatabaseOutlined />, color: 'blue' },
@@ -19,6 +19,7 @@ const CATEGORIES: Record<CategoryKey, { title: string; icon: React.ReactNode; co
     rules: { title: 'Rules', icon: <SafetyOutlined />, color: 'gold' },
     links: { title: 'Links', icon: <LinkOutlined />, color: 'cyan' },
     ontology: { title: 'Ontology', icon: <AppstoreOutlined />, color: 'green' },
+    business_integration: { title: '业务数据模拟测试', icon: <ExperimentOutlined />, color: 'magenta' },
 };
 
 export default function TestCaseLibraryPage() {
@@ -31,7 +32,6 @@ export default function TestCaseLibraryPage() {
     const [form] = Form.useForm();
 
     // AI generation state
-    const [genModalOpen, setGenModalOpen] = useState(false);
     const [snapshots, setSnapshots] = useState<OntologySnapshot[]>([]);
     const [genSnapshotId, setGenSnapshotId] = useState('');
     const [genCount, setGenCount] = useState(10);
@@ -58,7 +58,7 @@ export default function TestCaseLibraryPage() {
         fetchStats();
         api.get<ApiResponse<OntologySnapshot[]>>('/ontology/snapshots')
             .then(r => setSnapshots(r.data.data || []))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const filteredCases = cases.filter(c => c.category === activeTab);
@@ -117,7 +117,6 @@ export default function TestCaseLibraryPage() {
                 { category: activeTab, snapshotId: genSnapshotId, count: genCount },
             );
             message.success(`AI 已生成 ${data.data.totalCount} 条 ${CATEGORIES[activeTab].title} 用例`);
-            setGenModalOpen(false);
             fetchCases();
             fetchStats();
         } catch (e: any) {
@@ -150,13 +149,23 @@ export default function TestCaseLibraryPage() {
 
     const columns = [
         {
-            title: '标题', dataIndex: 'title', width: 220,
+            title: '标题', dataIndex: 'title', width: 200,
             render: (t: string) => <Typography.Text strong style={{ color: '#e6ecff' }}>{t}</Typography.Text>,
+        },
+        {
+            title: '类型', width: 120,
+            render: (_: any, r: LibraryCase) => r.isNegative
+                ? <><Tag color="red">❌ 负向</Tag>{r.negativeType && <Tag color="volcano" style={{ fontSize: 11 }}>{r.negativeType}</Tag>}</>
+                : <Tag color="green">✅ 正向</Tag>,
         },
         { title: '描述', dataIndex: 'description', ellipsis: true },
         {
+            title: '策略', dataIndex: 'strategy', width: 150,
+            render: (s: string) => s ? <Tag color="geekblue">{s}</Tag> : null,
+        },
+        {
             title: '标签', dataIndex: 'tags', width: 180,
-            render: (tags: string[]) => tags?.map(t => (
+            render: (tags: string[]) => tags?.filter(t => t !== activeTab).map(t => (
                 <Tag key={t} color={CATEGORIES[activeTab].color}>{t}</Tag>
             )),
         },
@@ -183,6 +192,8 @@ export default function TestCaseLibraryPage() {
         },
     ];
 
+
+
     return (
         <div>
             <Typography.Title level={3} className="page-title">测试用例库</Typography.Title>
@@ -190,8 +201,8 @@ export default function TestCaseLibraryPage() {
                 按类别管理和维护测试用例，支持 AI 智能生成与手动编辑
             </Typography.Paragraph>
 
-            {/* AI Generation Card */}
-            <Card style={{ marginBottom: 16 }}>
+            {/* AI Generation Card — hidden for business_integration tab */}
+            {activeTab !== 'business_integration' && <Card style={{ marginBottom: 16 }}>
                 <Space style={{ width: '100%', justifyContent: 'space-between' }} align="center">
                     <Space size="large">
                         <Space>
@@ -209,12 +220,12 @@ export default function TestCaseLibraryPage() {
                         <Space>
                             <Typography.Text strong>选择本体</Typography.Text>
                             <Select
-                                style={{ width: 300 }}
-                                placeholder="选择本体快照"
+                                style={{ width: 380 }}
+                                placeholder="选择本体快照（整体快照，按分区生成）"
                                 value={genSnapshotId || undefined}
                                 onChange={setGenSnapshotId}
                                 options={snapshots.map(s => ({
-                                    label: `${s.sourceFiles?.[0] || s.snapshotId.slice(0, 20)}...`,
+                                    label: `[快照] Rules:${s.rulesCount ?? 0} | DataObj:${s.dataObjectsCount ?? 0} | Actions:${s.actionsCount ?? 0} | Events:${s.eventsCount ?? 0} | Links:${s.linksCount ?? 0}`,
                                     value: s.snapshotId,
                                 }))}
                             />
@@ -238,7 +249,7 @@ export default function TestCaseLibraryPage() {
                         AI 生成
                     </Button>
                 </Space>
-            </Card>
+            </Card>}
 
             {/* Category Tabs */}
             <Tabs
@@ -274,22 +285,30 @@ export default function TestCaseLibraryPage() {
                         columns={columns}
                         expandable={{
                             expandedRowRender: (r: LibraryCase) => (
-                                <Descriptions size="small" column={1} bordered>
-                                    <Descriptions.Item label="完整描述">{r.description}</Descriptions.Item>
-                                    {r.steps?.length > 0 && (
-                                        <Descriptions.Item label="测试步骤">
-                                            <ol style={{ margin: 0, paddingLeft: 20 }}>
-                                                {r.steps.map((s, i) => <li key={i}>{s}</li>)}
-                                            </ol>
+                                <div style={{ padding: '4px 8px' }}>
+                                    <Descriptions size="small" column={1} bordered>
+                                        <Descriptions.Item label="完整描述">{r.description || '-'}</Descriptions.Item>
+                                        <Descriptions.Item label="输入变量">
+                                            <pre style={{ margin: 0, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                                                {r.inputVariables && Object.keys(r.inputVariables).length > 0
+                                                    ? JSON.stringify(r.inputVariables, null, 2)
+                                                    : '-'}
+                                            </pre>
                                         </Descriptions.Item>
+                                        <Descriptions.Item label="预期结果">{r.expectedOutcome || '-'}</Descriptions.Item>
+                                    </Descriptions>
+                                    {Array.isArray(r.steps) && r.steps.length > 0 && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <Typography.Text strong style={{ fontSize: 12, color: '#9ba6c7' }}>测试步骤：</Typography.Text>
+                                            <ol style={{ margin: '4px 0 0 0', paddingLeft: 20 }}>
+                                                {r.steps.map((s: any, i) => {
+                                                    const text = typeof s === 'string' ? s : (s?.description || s?.step || JSON.stringify(s));
+                                                    return <li key={i} style={{ fontSize: 13 }}>{text}</li>;
+                                                })}
+                                            </ol>
+                                        </div>
                                     )}
-                                    <Descriptions.Item label="输入变量">
-                                        <pre style={{ margin: 0, fontSize: 12 }}>
-                                            {JSON.stringify(r.inputVariables, null, 2)}
-                                        </pre>
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="预期结果">{r.expectedOutcome || '-'}</Descriptions.Item>
-                                </Descriptions>
+                                </div>
                             ),
                         }}
                     />

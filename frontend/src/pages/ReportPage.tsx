@@ -7,20 +7,20 @@ import type { ApiResponse, TestRun, TestReport } from '../types';
 export default function ReportPage() {
     const [runs, setRuns] = useState<TestRun[]>([]);
     const [report, setReport] = useState<TestReport | null>(null);
-    const [generating, setGenerating] = useState(false);
+    const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         api.get<ApiResponse<TestRun[]>>('/reports').then(r => setRuns(r.data.data || [])).catch(() => { });
     }, []);
 
     const handleGenerate = async (runId: string) => {
-        setGenerating(true);
+        setGeneratingIds(prev => new Set(prev).add(runId));
         try {
             const { data } = await api.post<ApiResponse<TestReport>>('/reports/generate', { runId });
             setReport(data.data);
             message.success('报告生成成功');
         } catch { message.error('报告生成失败'); }
-        setGenerating(false);
+        setGeneratingIds(prev => { const s = new Set(prev); s.delete(runId); return s; });
     };
 
     return (
@@ -45,7 +45,7 @@ export default function ReportPage() {
                             {
                                 title: '操作', width: 120,
                                 render: (_: any, row: TestRun) => (
-                                    <Button type="primary" size="small" icon={<FileTextOutlined />} loading={generating} onClick={() => handleGenerate(row.runId)}>
+                                    <Button type="primary" size="small" icon={<FileTextOutlined />} loading={generatingIds.has(row.runId)} onClick={() => handleGenerate(row.runId)}>
                                         生成报告
                                     </Button>
                                 ),
