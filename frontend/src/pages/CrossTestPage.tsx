@@ -13,45 +13,67 @@ import api from '../api';
 import type { ApiResponse, OntologySnapshot, BusinessDataItem, CrossTestResult, FailedNode, MatchTraceStep } from '../types';
 
 function FailedNodePanel({ node, reasoning }: { node: FailedNode; reasoning?: string }) {
+    const ruleColumns = [
+        { title: '规则ID', dataIndex: 'id', key: 'id', width: 100 },
+        { title: '场景阶段', dataIndex: 'specificScenarioStage', key: 'specificScenarioStage', width: 140 },
+        { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
+        { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
+        { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule', ellipsis: true },
+        {
+            title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
+            render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
+        },
+    ];
+
+    const ruleData = [{
+        key: 'rule-0',
+        id: node.id || '—',
+        specificScenarioStage: node.specificScenarioStage || '—',
+        businessLogicRuleName: node.businessLogicRuleName || node.ruleName || '—',
+        applicableClient: node.applicableClient || '—',
+        applicableDepartment: node.applicableDepartment || '—',
+        standardizedLogicRule: node.standardizedLogicRule || node.ruleDescription || '—',
+        relatedEntities: node.relatedEntities || '',
+    }];
+
     return (
         <Card size="small" style={{ background: 'rgba(251, 113, 133, 0.08)', border: '1px solid rgba(251, 113, 133, 0.3)' }}>
-            <Descriptions size="small" column={2} bordered>
-                <Descriptions.Item label={<span style={{ color: '#fb7185' }}>失败规则</span>}>
-                    <Tag color="red">{node.ruleName}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="失败类型">
-                    <Tag color="volcano">{node.failureType || '规则不匹配'}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="规则描述" span={2}>
-                    <Typography.Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                        {node.ruleDescription}
-                    </Typography.Paragraph>
-                </Descriptions.Item>
+            <Space direction="vertical" style={{ width: '100%' }} size="small">
+                <Row gutter={16}>
+                    <Col>
+                        <Typography.Text type="secondary">漏斗阶段：</Typography.Text>
+                        <Tag color="purple">{node.funnelStage || '—'}</Tag>
+                    </Col>
+                    <Col>
+                        <Typography.Text type="secondary">失败类型：</Typography.Text>
+                        <Tag color="volcano">{node.failureType || '规则不匹配'}</Tag>
+                    </Col>
+                    {node.brokenLink && (
+                        <Col>
+                            <Typography.Text type="secondary">断裂链接：</Typography.Text>
+                            <Tag color="orange">{node.brokenLink}</Tag>
+                        </Col>
+                    )}
+                </Row>
                 {reasoning && (
-                    <Descriptions.Item label={<span style={{ color: '#6366f1' }}>推理说明</span>} span={2}>
-                        <Typography.Paragraph style={{ margin: 0 }}>
-                            {reasoning}
-                        </Typography.Paragraph>
-                    </Descriptions.Item>
+                    <div>
+                        <Typography.Text type="secondary" style={{ color: '#6366f1' }}>推理说明：</Typography.Text>
+                        <Typography.Paragraph style={{ margin: 0 }}>{reasoning}</Typography.Paragraph>
+                    </div>
                 )}
-                {node.brokenLink && (
-                    <Descriptions.Item label={<span style={{ color: '#fbbf24' }}>断裂链接</span>} span={2}>
-                        <Tag color="orange">{node.brokenLink}</Tag>
-                    </Descriptions.Item>
-                )}
-                {node.funnelStage && (
-                    <Descriptions.Item label="漏斗阶段" span={2}>
-                        <Tag color="purple">{node.funnelStage}</Tag>
-                    </Descriptions.Item>
-                )}
-                {node.contextSnapshot && Object.keys(node.contextSnapshot).length > 0 && (
-                    <Descriptions.Item label="上下文快照" span={2}>
-                        <pre style={{ margin: 0, fontSize: 11, maxHeight: 120, overflow: 'auto' }}>
-                            {JSON.stringify(node.contextSnapshot, null, 2)}
-                        </pre>
-                    </Descriptions.Item>
-                )}
-            </Descriptions>
+                <div>
+                    <Typography.Text type="secondary" strong>失败规则：</Typography.Text>
+                    <Table
+                        size="small"
+                        pagination={false}
+                        columns={ruleColumns}
+                        dataSource={ruleData}
+                        style={{ marginTop: 4 }}
+                        scroll={{ x: 900 }}
+                    />
+                </div>
+            </Space>
         </Card>
     );
 }

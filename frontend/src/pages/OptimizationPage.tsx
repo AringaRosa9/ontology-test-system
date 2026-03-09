@@ -1,15 +1,52 @@
 import { useEffect, useState } from 'react';
 import {
     Typography, Card, Select, Button, Table, Tag, Space, message,
-    Tabs, Row, Col, Empty, Descriptions, Collapse, Alert, Progress, Spin, Statistic,
+    Tabs, Row, Col, Empty, Descriptions, Alert, Progress, Statistic, Modal, Tooltip,
 } from 'antd';
 import type { TabsProps } from 'antd';
 import {
-    BulbOutlined, SearchOutlined, FileTextOutlined,
-    WarningOutlined, CheckCircleOutlined,
+    BulbOutlined, SearchOutlined,
+    WarningOutlined, CheckCircleOutlined, InfoCircleOutlined,
 } from '@ant-design/icons';
 import api from '../api';
-import type { ApiResponse, TestRun, GapAnalysisItem, OptimizationSuggestion } from '../types';
+import type { ApiResponse, TestRun, GapAnalysisItem, OptimizationSuggestion, RuleDetailFields } from '../types';
+
+/* ── Rule Detail Modal Component ─────────────────────────────────────────── */
+
+function RuleDetailModal({ rule, open, onClose }: { rule: RuleDetailFields | null; open: boolean; onClose: () => void }) {
+    if (!rule) return null;
+    return (
+        <Modal
+            title={<span><InfoCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />规则详情 - {rule.id || '未知'}</span>}
+            open={open}
+            onCancel={onClose}
+            footer={null}
+            width={720}
+        >
+            <Descriptions bordered column={2} size="small" style={{ marginTop: 12 }}>
+                <Descriptions.Item label="规则ID">{rule.id || '-'}</Descriptions.Item>
+                <Descriptions.Item label="场景阶段">{rule.specificScenarioStage || '-'}</Descriptions.Item>
+                <Descriptions.Item label="规则名称" span={2}>{rule.businessLogicRuleName || '-'}</Descriptions.Item>
+                <Descriptions.Item label="适用客户">{rule.applicableClient || '-'}</Descriptions.Item>
+                <Descriptions.Item label="适用部门">{rule.applicableDepartment || '-'}</Descriptions.Item>
+                <Descriptions.Item label="规则详情" span={2}>
+                    <div style={{ maxHeight: 300, overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+                        {rule.standardizedLogicRule || '-'}
+                    </div>
+                </Descriptions.Item>
+                <Descriptions.Item label="关联实体" span={2}>
+                    {rule.relatedEntities
+                        ? rule.relatedEntities.split('\n').filter(Boolean).map((e, i) => (
+                            <Tag key={i} color="blue" style={{ marginBottom: 4 }}>{e.trim()}</Tag>
+                        ))
+                        : '-'}
+                </Descriptions.Item>
+            </Descriptions>
+        </Modal>
+    );
+}
+
+/* ── Main Page ───────────────────────────────────────────────────────────── */
 
 export default function OptimizationPage() {
     const [runs, setRuns] = useState<TestRun[]>([]);
@@ -23,6 +60,15 @@ export default function OptimizationPage() {
     // Optimization Suggestions state
     const [sugLoading, setSugLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<OptimizationSuggestion[]>([]);
+
+    // Rule detail modal state
+    const [detailRule, setDetailRule] = useState<RuleDetailFields | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+
+    const showRuleDetail = (rule: RuleDetailFields) => {
+        setDetailRule(rule);
+        setDetailOpen(true);
+    };
 
     useEffect(() => {
         api.get<ApiResponse<TestRun[]>>('/executor/runs')
@@ -68,6 +114,40 @@ export default function OptimizationPage() {
 
     const selectedRun = runs.find(r => r.runId === selectedRunId);
 
+    /* ── Expanded row columns for gap analysis failed rules ─── */
+    const gapExpandedColumns = [
+        { title: '规则ID', dataIndex: 'id', width: 100,
+            render: (id: string, record: any) => id
+                ? <a onClick={() => showRuleDetail(record)} style={{ color: '#1890ff' }}>{id}</a>
+                : '-',
+        },
+        { title: '场景阶段', dataIndex: 'specificScenarioStage', width: 140,
+            render: (v: string) => v || '-',
+        },
+        { title: '规则名称', dataIndex: 'businessLogicRuleName', width: 160,
+            render: (v: string) => v || '-',
+        },
+        { title: '适用客户', dataIndex: 'applicableClient', width: 120,
+            render: (v: string) => v || '-',
+        },
+        { title: '适用部门', dataIndex: 'applicableDepartment', width: 120,
+            render: (v: string) => v || '-',
+        },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', ellipsis: true,
+            render: (v: string) => v || '-',
+        },
+        { title: '关联实体', dataIndex: 'relatedEntities', width: 180,
+            render: (v: string) => v
+                ? v.split('\n').filter(Boolean).map((e, i) => (
+                    <Tag key={i} color="blue" style={{ marginBottom: 2 }}>{e.trim()}</Tag>
+                ))
+                : '-',
+        },
+        { title: '严重程度', dataIndex: 'severity', width: 80,
+            render: (s: string) => <Tag color={s === 'P0' ? 'red' : s === 'P1' ? 'orange' : 'blue'}>{s}</Tag>,
+        },
+    ];
+
     const tabItems: TabsProps['items'] = [
         {
             key: 'gap',
@@ -105,9 +185,15 @@ export default function OptimizationPage() {
                                 {
                                     title: '失败规则', dataIndex: 'failedRules', width: 250,
                                     render: (rules: any[]) => rules?.slice(0, 3).map((r, i) => (
-                                        <Tag key={i} color={r.severity === 'P0' ? 'red' : r.severity === 'P1' ? 'orange' : 'blue'}>
-                                            {r.ruleName}
-                                        </Tag>
+                                        <Tooltip key={i} title={r.businessLogicRuleName || r.ruleName}>
+                                            <Tag
+                                                color={r.severity === 'P0' ? 'red' : r.severity === 'P1' ? 'orange' : 'blue'}
+                                                style={{ cursor: r.id ? 'pointer' : 'default' }}
+                                                onClick={() => r.id && showRuleDetail(r)}
+                                            >
+                                                {r.id || r.ruleName}
+                                            </Tag>
+                                        </Tooltip>
                                     )) || '-',
                                 },
                                 {
@@ -125,14 +211,8 @@ export default function OptimizationPage() {
                                             size="small"
                                             pagination={false}
                                             dataSource={row.failedRules}
-                                            columns={[
-                                                { title: '规则', dataIndex: 'ruleName', width: 200 },
-                                                { title: '描述', dataIndex: 'ruleDescription' },
-                                                {
-                                                    title: '严重程度', dataIndex: 'severity', width: 80,
-                                                    render: (s: string) => <Tag color={s === 'P0' ? 'red' : s === 'P1' ? 'orange' : 'blue'}>{s}</Tag>,
-                                                },
-                                            ]}
+                                            columns={gapExpandedColumns}
+                                            scroll={{ x: 1100 }}
                                         />
                                     </Card>
                                 ),
@@ -180,12 +260,17 @@ export default function OptimizationPage() {
                                         dataSource={sug.suggestions}
                                         columns={[
                                             {
-                                                title: '违反规则', dataIndex: 'ruleName', width: 150,
-                                                render: (r: string) => r ? <Tag color="red">{r}</Tag> : '-',
+                                                title: '违反规则', dataIndex: 'id', width: 120,
+                                                render: (id: string, record: any) => id
+                                                    ? <Tooltip title={record.businessLogicRuleName || record.ruleName}>
+                                                        <Tag color="red" style={{ cursor: 'pointer' }} onClick={() => showRuleDetail(record)}>{id}</Tag>
+                                                      </Tooltip>
+                                                    : <Tag color="red">{record.ruleName || '-'}</Tag>,
                                             },
                                             {
-                                                title: '规则说明', dataIndex: 'ruleDescription', width: 220,
+                                                title: '规则说明', dataIndex: 'standardizedLogicRule', width: 220,
                                                 ellipsis: true,
+                                                render: (v: string, record: any) => v || record.ruleDescription || '-',
                                             },
                                             {
                                                 title: '领域', dataIndex: 'area', width: 100,
@@ -259,6 +344,9 @@ export default function OptimizationPage() {
             <Card>
                 <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
             </Card>
+
+            {/* Rule Detail Modal */}
+            <RuleDetailModal rule={detailRule} open={detailOpen} onClose={() => setDetailOpen(false)} />
         </div>
     );
 }

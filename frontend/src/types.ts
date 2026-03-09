@@ -65,6 +65,14 @@ export interface FailedNode {
     funnelStage?: string;
     failureType?: string;
     contextSnapshot?: Record<string, any>;
+    // 规则详情字段（从本体快照注入）
+    id?: string;
+    specificScenarioStage?: string;
+    businessLogicRuleName?: string;
+    applicableClient?: string;
+    applicableDepartment?: string;
+    standardizedLogicRule?: string;
+    relatedEntities?: string;
 }
 
 export interface TestExecutionRecord {
@@ -156,17 +164,27 @@ export interface LibraryCase {
     strategy?: string;
 }
 
+export interface RuleDetailFields {
+    id?: string;
+    specificScenarioStage?: string;
+    businessLogicRuleName?: string;
+    applicableClient?: string;
+    applicableDepartment?: string;
+    standardizedLogicRule?: string;
+    relatedEntities?: string;
+}
+
 export interface GapAnalysisItem {
     candidateName: string;
     jdTitle: string;
-    failedRules: { ruleName: string; ruleDescription: string; severity: string }[];
+    failedRules: (RuleDetailFields & { ruleName: string; ruleDescription: string; severity: string })[];
     missingSkills: string[];
     gapScore: number;
 }
 
 export interface OptimizationSuggestion {
     candidateName: string;
-    suggestions: { ruleName: string; ruleDescription: string; area: string; currentState: string; recommendation: string; priority: string }[];
+    suggestions: (RuleDetailFields & { ruleName: string; ruleDescription: string; area: string; currentState: string; recommendation: string; priority: string })[];
     overallAdvice: string;
 }
 

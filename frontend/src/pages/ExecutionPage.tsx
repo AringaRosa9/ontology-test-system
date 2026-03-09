@@ -12,47 +12,64 @@ import api from '../api';
 import type { ApiResponse, OntologySnapshot, LibraryCase, TestRun, FailedNode } from '../types';
 
 function FailedNodePanel({ node }: { node: FailedNode }) {
+    const ruleColumns = [
+        { title: '规则ID', dataIndex: 'id', key: 'id', width: 100 },
+        { title: '场景阶段', dataIndex: 'specificScenarioStage', key: 'specificScenarioStage', width: 140 },
+        { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
+        { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
+        { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule', ellipsis: true },
+        {
+            title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
+            render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
+        },
+    ];
+
+    const ruleData = [{
+        key: 'rule-0',
+        id: node.id || '—',
+        specificScenarioStage: node.specificScenarioStage || '—',
+        businessLogicRuleName: node.businessLogicRuleName || node.ruleName || '—',
+        applicableClient: node.applicableClient || '—',
+        applicableDepartment: node.applicableDepartment || '—',
+        standardizedLogicRule: node.standardizedLogicRule || node.ruleDescription || '—',
+        relatedEntities: node.relatedEntities || '',
+    }];
+
     return (
         <Card size="small" style={{ background: 'rgba(251, 113, 133, 0.08)', border: '1px solid rgba(251, 113, 133, 0.3)', marginTop: 8 }}>
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <Space>
                     <BugOutlined style={{ color: '#fb7185' }} />
-                    <Typography.Text strong style={{ color: '#fb7185' }}>Failed Node Trace</Typography.Text>
+                    <Typography.Text strong style={{ color: '#fb7185' }}>失败节点追踪</Typography.Text>
                 </Space>
                 <Row gutter={16}>
-                    <Col span={12}>
-                        <Typography.Text type="secondary">Failed Rule: </Typography.Text>
-                        <Tag color="red">{node.ruleName}</Tag>
+                    <Col>
+                        <Typography.Text type="secondary">漏斗阶段：</Typography.Text>
+                        <Tag color="purple">{node.funnelStage || '—'}</Tag>
                     </Col>
-                    <Col span={12}>
-                        <Typography.Text type="secondary">Failure Type: </Typography.Text>
-                        <Tag color="volcano">{node.failureType || 'Rule Mismatch'}</Tag>
+                    <Col>
+                        <Typography.Text type="secondary">失败类型：</Typography.Text>
+                        <Tag color="volcano">{node.failureType || '规则不匹配'}</Tag>
                     </Col>
+                    {node.brokenLink && (
+                        <Col>
+                            <Typography.Text type="secondary">断裂链接：</Typography.Text>
+                            <Tag color="orange">{node.brokenLink}</Tag>
+                        </Col>
+                    )}
                 </Row>
                 <div>
-                    <Typography.Text type="secondary">Rule Description: </Typography.Text>
-                    <Typography.Text>{node.ruleDescription}</Typography.Text>
+                    <Typography.Text type="secondary" strong>失败规则：</Typography.Text>
+                    <Table
+                        size="small"
+                        pagination={false}
+                        columns={ruleColumns}
+                        dataSource={ruleData}
+                        style={{ marginTop: 4 }}
+                        scroll={{ x: 900 }}
+                    />
                 </div>
-                {node.brokenLink && (
-                    <div>
-                        <Typography.Text type="secondary">Broken Link: </Typography.Text>
-                        <Tag color="orange">{node.brokenLink}</Tag>
-                    </div>
-                )}
-                {node.funnelStage && (
-                    <div>
-                        <Typography.Text type="secondary">Funnel Stage: </Typography.Text>
-                        <Tag color="purple">{node.funnelStage}</Tag>
-                    </div>
-                )}
-                {node.contextSnapshot && Object.keys(node.contextSnapshot).length > 0 && (
-                    <div>
-                        <Typography.Text type="secondary">Context: </Typography.Text>
-                        <pre style={{ margin: 0, fontSize: 11, maxHeight: 100, overflow: 'auto', background: '#0a1226', padding: 8, borderRadius: 6 }}>
-                            {JSON.stringify(node.contextSnapshot, null, 2)}
-                        </pre>
-                    </div>
-                )}
             </Space>
         </Card>
     );
@@ -310,9 +327,9 @@ export default function ExecutionPage() {
                             { title: '推理', dataIndex: 'reasoning', ellipsis: true },
                             { title: '耗时(ms)', dataIndex: 'executionDurationMs', width: 90 },
                             {
-                                title: 'Debug', width: 70,
+                                title: '调试信息', width: 90,
                                 render: (_: any, row: any) => row.failedNode ? (
-                                    <Tag color="red" icon={<BugOutlined />}>Trace</Tag>
+                                    <Tag color="red" icon={<BugOutlined />}>追踪</Tag>
                                 ) : null,
                             },
                         ]}

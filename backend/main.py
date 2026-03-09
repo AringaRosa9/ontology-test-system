@@ -698,6 +698,24 @@ async def list_generated_cases(snapshotId: Optional[str] = None):
     return {"status": "ok", "data": filtered}
 
 
+# ─── Enrich failedNode with ontology rule details ────────────────────────────
+
+def _enrich_failed_node(fn: dict, rules_list: list):
+    """Given a failedNode dict and the ontology rules list, inject rule detail fields."""
+    if not fn or not isinstance(fn, dict):
+        return
+    rn = fn.get("ruleName", "")
+    for rule in rules_list:
+        rule_name = rule.get("name", rule.get("ruleName", rule.get("businessLogicRuleName", "")))
+        if rule_name and rule_name == rn:
+            for field in ("id", "specificScenarioStage", "businessLogicRuleName",
+                          "applicableClient", "applicableDepartment",
+                          "standardizedLogicRule", "relatedEntities"):
+                if field in rule and field not in fn:
+                    fn[field] = rule[field]
+            break
+
+
 # ─── Test Execution ──────────────────────────────────────────────────────────
 
 @app.post("/executor/run")
@@ -760,10 +778,12 @@ Return a JSON array where each object has:
 
     if result:
         raw_records = result if isinstance(result, list) else result.get("results", result.get("records", []))
+        rules_list = snap.get("rules", []) if snap else []
         for r in raw_records:
             r["recordId"] = f"rec_{uuid.uuid4().hex[:8]}"
             r["executedAt"] = datetime.now(timezone.utc).isoformat()
             r["snapshotId"] = request.snapshotId
+            _enrich_failed_node(r.get("failedNode"), rules_list)
             records.append(r)
     else:
         for c in cases:
@@ -903,6 +923,7 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
         raw_records = result if isinstance(result, list) else result.get("results", result.get("records", []))
         # Build a quick lookup of input cases
         case_map = {c["caseId"]: c for c in cases}
+        rules_list = snap.get("rules", [])
         for r in raw_records:
             r["recordId"] = f"rec_{uuid.uuid4().hex[:8]}"
             r["executedAt"] = datetime.now(timezone.utc).isoformat()
@@ -911,6 +932,7 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
             orig = case_map.get(r.get("caseId"), {})
             r["category"] = orig.get("category", "")
             r["title"] = orig.get("title", "")
+            _enrich_failed_node(r.get("failedNode"), rules_list)
             records.append(r)
     else:
         for c in cases:
@@ -3046,6 +3068,7 @@ Return a JSON array."""
                 rn = fn.get("ruleName", "")
                 if rn in rule_doc_map:
                     fn["ruleDescription"] = rule_doc_map[rn]
+            _enrich_failed_node(entry.get("failedNode"), rules_list)
             results.append(entry)
     else:
         error_msg = gemini.last_error or "LLM 服务不可用，请检查 API Key 配置"
@@ -3293,7 +3316,8 @@ Generate 3-8 gap analysis entries based on the failure patterns. Use Chinese for
 
     analysis = result if isinstance(result, list) else result.get("analysis", [])
 
-    # Post-process: replace ruleDescription with original rule document text
+    # Post-process: replace ruleDescription and enrich with rule detail fields
+    rules_list = snap.get("rules", []) if snap else []
     for item in analysis:
         if not isinstance(item, dict):
             continue
@@ -3305,6 +3329,8 @@ Generate 3-8 gap analysis entries based on the failure patterns. Use Chinese for
                 fr["ruleDescription"] = rule_doc_map[rn]
             elif rn:
                 fr["ruleDescription"] = f"[未匹配规则原文] {fr.get('ruleDescription', '')}"
+            # Enrich with full rule detail fields from snapshot
+            _enrich_failed_node(fr, rules_list)
 
     return {"status": "ok", "data": {"analysis": analysis}}
 
@@ -3397,7 +3423,8 @@ Use Chinese for all text fields."""
 
     suggestions = result if isinstance(result, list) else result.get("suggestions", [])
 
-    # Post-process: fill in full rule doc text for ruleDescription
+    # Post-process: fill in full rule doc text for ruleDescription and enrich with rule detail fields
+    rules_list = snap.get("rules", []) if snap else []
     for sug in suggestions:
         if not isinstance(sug, dict):
             continue
@@ -3407,6 +3434,8 @@ Use Chinese for all text fields."""
             rn = s.get("ruleName", "")
             if rn in rule_doc_map:
                 s["ruleDescription"] = rule_doc_map[rn]
+            # Enrich with full rule detail fields from snapshot
+            _enrich_failed_node(s, rules_list)
 
     return {"status": "ok", "data": {"suggestions": suggestions}}
 
