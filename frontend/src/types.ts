@@ -1,3 +1,23 @@
+export interface ValidationErrorItem {
+    code: string;
+    severity: 'P0' | 'P1' | 'P2';
+    entityType: string;
+    entityId: string;
+    message: string;
+    evidence?: string;
+}
+
+export interface ValidationReport {
+    isDeterministicallyValid: boolean;
+    blockers: ValidationErrorItem[];
+    summary: { total: number; P0: number; P1: number; P2: number };
+    errorsByType: Record<string, ValidationErrorItem[]>;
+    allErrors: ValidationErrorItem[];
+    runnable: boolean | null;
+    runnableBlockers: ValidationErrorItem[];
+    checksum: string;
+}
+
 export interface OntologySnapshot {
     snapshotId: string;
     sourceFiles: string[];
@@ -8,6 +28,7 @@ export interface OntologySnapshot {
     eventsCount: number;
     linksCount: number;
     createdAt: string;
+    validationReport?: ValidationReport;
 }
 
 export interface OntologySnapshotDetail extends OntologySnapshot {
@@ -31,6 +52,21 @@ export interface GeneratedTestCase {
     generatedAt: string;
 }
 
+export interface MatchTraceStep {
+    step: string;
+    status: 'pass' | 'fail' | 'skip';
+    detail: string;
+}
+
+export interface FailedNode {
+    ruleName: string;
+    ruleDescription: string;
+    brokenLink?: string;
+    funnelStage?: string;
+    failureType?: string;
+    contextSnapshot?: Record<string, any>;
+}
+
 export interface TestExecutionRecord {
     recordId: string;
     caseId: string;
@@ -41,6 +77,9 @@ export interface TestExecutionRecord {
     executionDurationMs: number;
     executedAt: string;
     snapshotId: string;
+    category?: string;
+    title?: string;
+    failedNode?: FailedNode;
 }
 
 export interface TestRun {
@@ -54,6 +93,7 @@ export interface TestRun {
     coverageRate: number;
     records?: TestExecutionRecord[];
     executedAt: string;
+    validationReport?: ValidationReport;
 }
 
 export interface TestReport {
@@ -114,6 +154,46 @@ export interface LibraryCase {
     negativeType?: string | null;
     expectedVerdict?: 'PASS' | 'FAIL' | null;
     strategy?: string;
+}
+
+export interface GapAnalysisItem {
+    candidateName: string;
+    jdTitle: string;
+    failedRules: { ruleName: string; ruleDescription: string; severity: string }[];
+    missingSkills: string[];
+    gapScore: number;
+}
+
+export interface OptimizationSuggestion {
+    candidateName: string;
+    suggestions: { ruleName: string; ruleDescription: string; area: string; currentState: string; recommendation: string; priority: string }[];
+    overallAdvice: string;
+}
+
+export interface CrossTestResult {
+    testId: string;
+    mode: 'by_resume' | 'by_jd' | 'cross_validate';
+    resumeNames: string[];
+    jdTitles: string[];
+    results: {
+        resumeName: string;
+        jdTitle: string;
+        verdict: string;
+        triggeredRules: string[];
+        reasoning: string;
+        failedNode?: FailedNode;
+        matchTrace?: MatchTraceStep[];
+    }[];
+    executedAt: string;
+}
+
+export interface SimulatedDataItem {
+    itemId: string;
+    type: 'resume' | 'jd';
+    subType: string;
+    filename: string;
+    generatedData: Record<string, any>;
+    generatedAt: string;
 }
 
 export interface ApiResponse<T> {

@@ -3,8 +3,11 @@ import { ConfigProvider, theme as antTheme } from 'antd';
 import AppLayout from './AppLayout';
 import DashboardPage from './pages/DashboardPage';
 import OntologyPage from './pages/OntologyPage';
+import ValidationPage from './pages/ValidationPage';
 import BusinessDataPage from './pages/BusinessDataPage';
-
+import SimulatedDataPage from './pages/SimulatedDataPage';
+import CrossTestPage from './pages/CrossTestPage';
+import OptimizationPage from './pages/OptimizationPage';
 
 import ExecutionPage from './pages/ExecutionPage';
 import HistoryPage from './pages/HistoryPage';
@@ -62,12 +65,16 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/ontology" element={<OntologyPage />} />
-            <Route path="/business-data" element={<BusinessDataPage />} />
+            <Route path="/validation" element={<ValidationPage />} />
+            <Route path="/business-data/real" element={<BusinessDataPage />} />
+            <Route path="/business-data/simulated" element={<SimulatedDataPage />} />
             <Route path="/test-case-library" element={<TestCaseLibraryPage />} />
 
             <Route path="/execution" element={<ExecutionPage />} />
+            <Route path="/cross-test" element={<CrossTestPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/reports" element={<ReportPage />} />
+            <Route path="/optimization" element={<OptimizationPage />} />
             <Route path="/api-keys" element={<ApiKeyPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

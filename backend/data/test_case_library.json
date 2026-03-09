@@ -3006,5 +3006,399 @@
     ],
     "createdAt": "2026-03-06T04:59:05.051921+00:00",
     "updatedAt": "2026-03-06T04:59:05.051925+00:00"
+  },
+  {
+    "caseId": "LIB-BIZ-4A591A86",
+    "title": "验证系统是否能正确解析刘家伟的简历，并将其姓名、技能、教育背景和工作经验映射到对",
+    "description": "验证系统是否能正确解析刘家伟的简历，并将其姓名、技能、教育背景和工作经验映射到对应的DataObject属性中，包括Candidate、Education_Record和Work_Experience。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "resume_mapping"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "resume_filename": "刘家伟.pdf",
+      "resume_data": {
+        "name": "刘家伟",
+        "skills": [
+          "计算机四级证书",
+          "Office办公软件 (Word, Excel)",
+          "计算机初级网页制作",
+          "3C数码产品技术",
+          "吉客云订单异常信息处理",
+          "客服团队管理",
+          "沟通协调",
+          "数据分析工具 (Excel, SQL)"
+        ],
+        "education": [
+          {
+            "school": "广东海洋大学",
+            "degree": "本科",
+            "major": "工商管理",
+            "graduationYear": "2020"
+          }
+        ],
+        "experience": [
+          {
+            "company": "广州研趣信息科技有限公司",
+            "title": "储备客服组长",
+            "startDate": "2023.10",
+            "endDate": "2025.9",
+            "description": "负责客服团队管理与建设，包括招聘、培训、绩效考核及日常管理，确保团队具备专业3C产品知识和服务技能。监督处理复杂客户咨询与投诉，提供3C数码产品售后技术支持。制定并优化客服工作流程，分析客户反馈和服务数据，提升服务质量。组织团队学习3C产品技术细节，建立更新客服知识库。与研发、销售、技术支持等部门协作，解决产品问题并推动优化，协调处理重大客户投诉。收集分析客服数据，生成报告，发现服务瓶颈并提出优化方案。定期组织团队培训，培养核心骨干。通过优化客服流程和技术培训，客户满意度从85%提升至92%，成功处理多起复杂投诉，建立标准化售后支持流程，提高团队效率。熟悉3C数码产品技术特点及吉客云订单异常处理，具备客服团队管理经验和沟通协调能力，掌握数据分析工具（Excel、SQL）。"
+          },
+          {
+            "company": "贝朗(中国)卫浴有限公司",
+            "title": "售后技术支持",
+            "startDate": "2018.06",
+            "endDate": "2023.08",
+            "description": "负责各系统平台（如ERP、金蝶）异常数据监控与处理，分析BUG并反馈研发团队，协调解决系统技术难题。负责ERP、金蝶等系统的日常测试与维护，确保功能正常运行和系统稳定性。提供售后技术支持，包括电话接听及现场服务，平均每天处理10+个客户咨询或故障报修，提供快速解决方案。管理并优化技术支持知识库，记录整理客户问题及解决方法。维护客户关系，与客户良好沟通，解释技术问题，安抚情绪，提升满意度。收集客户需求与反馈，协助改进售后服务流程。协助编写并更新售后技术支持手册和文档，整理常见问题解决方案，并通过知识分享与培训提升团队技术水平。"
+          },
+          {
+            "company": "广州市梦洁宝贝蓝门数字营销有限公司",
+            "title": "客服组长",
+            "startDate": "2016.11",
+            "endDate": "2018.06",
+            "description": "负责客服团队日常运营管理，制定工作计划和目标，监督评估客服人员表现。组织业务培训，提升客服人员业务知识、话术技巧和服务流程，开发更新培训材料。通过团队建设和激励提升团队凝聚力，建立沟通机制。规范完善客服话术系统，持续优化话术内容，提高服务效率和客户满意度。分析并优化客户服务流程，确保符合公司政策和服务标准。监督维护天猫、京东、抖音等电商平台店铺形象，检查店铺评分和客户评价。制定服务标准和规范，通过抽查和数据分析监控服务质量。负责多平台售后接待工作，建立快速响应机制，处理客户咨询和投诉。协助处理复杂售后问题，与仓储、物流、销售等部门协作。收集整理售后数据，分析投诉原因，提出预防措施，优化售后服务流程和策略。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "系统成功创建或更新Candidate DataObject，其name属性为“刘家伟”，skills属性包含所有提取的技能。同时，系统创建或更新一个Education_Record DataObject，记录“广东海洋大学”的本科工商管理学历信息。系统还创建或更新三个Work_Experience DataObject，分别记录“广州研趣信息科技有限公司”、“贝朗(中国)卫浴有限公司”和“广州市梦洁宝贝蓝门数字营销有限公司”的工作经历，并准确填充公司、职位、起止日期和描述等属性。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119605+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119615+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-001",
+    "strategy": "resume_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-68A3EFC6",
+    "title": "验证当客户系统检测到新的“平台运营二组--公众号--客服专员”岗位需求时，系统是",
+    "description": "验证当客户系统检测到新的“平台运营二组--公众号--客服专员”岗位需求时，系统是否能正确触发`syncFromClientSystem` Action，并创建`Job_Requisition_Specification`和`Job_Requisition` DataObject。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "jd_mapping"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jd_record": {
+        "城市": "广州半年替补",
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "需求类型": "新增",
+        "HC数": "1",
+        "岗位职责": "1. 负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询\n2. 相关咨询问题的跟进解决，并总结沉淀标准文档，知识库的维护和更新\n3. 针对问题的部门内或跨部门沟通等\n4. 业务数据的分析，以输出周报、月报等",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "面试方式": "现场"
+      }
+    },
+    "expectedOutcome": "系统成功触发`syncFromClientSystem` Action (ID 1-1)。系统创建一个新的`Job_Requisition_Specification` DataObject，并将其状态设置为“进行中”。同时，系统创建一个新的`Job_Requisition` DataObject，并将其与`Job_Requisition_Specification`关联。`Job_Requisition`的`client_job_id`为“R2025110145”，`client_job_title`为“平台运营二组--公众号--客服专员”，`client_job_type`为“客服专员”，`city`为“广州”，`salary_range`为“4000-4500”，`degree_requirement`为“本科及以上”，`work_years`为“2-5年”，`job_responsibility`和`job_requirement`字段被正确映射。最后，系统触发`REQUIREMENT_SYNCED`事件。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119631+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119634+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-002",
+    "strategy": "jd_mapping"
+  },
+  {
+    "caseId": "LIB-BIZ-89DAA82F",
+    "title": "模拟客户系统同步“小程序运营助理”JD时，`薪资范围`字段缺失或格式异常，验证系",
+    "description": "模拟客户系统同步“小程序运营助理”JD时，`薪资范围`字段缺失或格式异常，验证系统是否能触发Rule 1-1-2（客户需求同步数据完整性校验）并发送告警。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "jd_record_with_missing_salary": {
+        "城市": "广州",
+        "需求编码": "R2025120043",
+        "需求名称": "小程序运营助理",
+        "级别": "初级2等",
+        "岗位类型": "信息审核",
+        "办公地点": "杨协成大厦",
+        "薪资范围": null,
+        "需求类型": "新增",
+        "HC数": "1",
+        "岗位职责": "...",
+        "岗位要求": "...",
+        "面试方式": "现场"
+      }
+    },
+    "expectedOutcome": "系统在`syncFromClientSystem` Action的`persistRequisitionData`步骤中，触发Rule 1-1-2。系统检测到`salary_range`（薪资范围）字段缺失，暂停该JD的同步操作。系统向HSM发送一封电子邮件通知，内容为“客户需求同步数据完整性校验未通过。以下需求的必填字段存在缺失或异常:[薪资范围]。请补充确认后重新触发同步。”，并触发`SYNC_FAILED_ALERT`事件。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119645+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119647+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-003",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-1525B07E",
+    "title": "验证系统在分析“平台运营二组--公众号--客服专员”JD时，是否能正确执行Rul",
+    "description": "验证系统在分析“平台运营二组--公众号--客服专员”JD时，是否能正确执行Rule 2-2（岗位需求关键要素结构化提取）和Rule 2-1（岗位需求加分项与负向要求识别），提取关键要素和技能要求。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "jd_record": {
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "级别": "初级2等",
+        "岗位类型": "客服专员",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "HC数": "1",
+        "岗位要求": "1.本科及以上学历，特别优秀的可以考虑专科学历；\n2.积极主动，有高度服务意识，有耐心，有礼貌；\n3.独立思考，工作责任心强；\n4.善于总结梳理，有一定数据分析能力，抗压能力较强；\n5.较好的逻辑思维能力，沟通协调能力，团队协作能力；\n6.有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年\n7.短期半年替补",
+        "面试方式": "现场"
+      }
+    },
+    "expectedOutcome": "系统在接收到`REQUIREMENT_SYNCED`事件后，触发`analyzeRequirement` Action (ID 2)。`Job_Requisition` DataObject的属性被更新：`degree_requirement`设置为“本科及以上”，`work_years`设置为“2-5年”，`city`设置为“广州”，`interview_mode`设置为“现场”，`headcount`设置为1。`must_have_skills`包含“积极主动”、“服务意识”、“耐心”、“礼貌”、“独立思考”、“工作责任心强”、“善于总结梳理”、“数据分析能力”、“抗压能力较强”、“逻辑思维能力”、“沟通协调能力”、“团队协作能力”。`nice_to_have_skills`包含“互联网产品运营经验”、“客服工作经验”。`negative_requirement`可能包含“短期半年替补”。最后，系统触发`ANALYSIS_COMPLETED`事件。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119657+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119659+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-004",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-DCC3C557",
+    "title": "验证当候选人刘家伟的简历与“平台运营二组--公众号--客服专员”JD进行匹配时，",
+    "description": "验证当候选人刘家伟的简历与“平台运营二组--公众号--客服专员”JD进行匹配时，系统是否能正确识别加分项，并根据Rule 2-7（加分项提升排序优先级）提升其匹配优先级。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "candidate_data": {
+        "name": "刘家伟",
+        "skills": [
+          "客服团队管理",
+          "沟通协调",
+          "数据分析工具 (Excel, SQL)"
+        ],
+        "experience": [
+          {
+            "company": "广州研趣信息科技有限公司",
+            "title": "储备客服组长",
+            "description": "负责客服团队管理与建设..."
+          },
+          {
+            "company": "广州市梦洁宝贝蓝门数字营销有限公司",
+            "title": "客服组长",
+            "description": "负责客服团队日常运营管理..."
+          }
+        ]
+      },
+      "jd_requirements": {
+        "需求编码": "R2025110145",
+        "岗位要求": "有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年；较好的逻辑思维能力，沟通协调能力，团队协作能力；有一定数据分析能力；客服团队管理"
+      }
+    },
+    "expectedOutcome": "系统在简历匹配过程中，识别到刘家伟的简历中包含“客服团队管理”、“沟通协调”、“数据分析工具 (Excel, SQL)”等技能和“客服组长”的工作经验，这些与JD的`must_have_skills`和`nice_to_have_skills`高度匹配。根据Rule 2-7，刘家伟在该JD的推荐列表中排序优先级被显著提升。系统生成或更新一个`Job_Requisition`到`Candidate`的关联，并附带高匹配度评分。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119669+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119671+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-005",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-5AB24597",
+    "title": "验证当候选人李寨燕的简历与一个假定的“前端开发”JD进行匹配时，系统是否能识别出",
+    "description": "验证当候选人李寨燕的简历与一个假定的“前端开发”JD进行匹配时，系统是否能识别出技能不匹配，并根据Rule 2-8（负向要求降低匹配优先级）降低其匹配优先级或直接排除。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "candidate_data": {
+        "name": "李寨燕",
+        "skills": [
+          "药学知识",
+          "GMP准则",
+          "药品生产质量控制",
+          "食品质量与安全知识",
+          "QA工作流程"
+        ]
+      },
+      "hypothetical_jd_requirements": {
+        "岗位名称": "前端开发工程师",
+        "岗位要求": "熟练掌握HTML, CSS, JavaScript, Vue, React等前端技术，熟悉Git版本控制，有Webpack/Vite项目经验。"
+      }
+    },
+    "expectedOutcome": "系统在简历匹配过程中，识别到李寨燕的简历中不包含任何“前端开发”相关的技能和经验，与假定JD的硬性要求完全不符。根据Rule 2-8的逻辑，系统将李寨燕在该“前端开发”JD的匹配优先级显著降低，或直接将其标记为“不匹配”并从推荐列表中排除。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119680+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119682+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-006",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-061C1AA9",
+    "title": "验证当“平台运营二组--公众号--客服专员”JD被处理且刘家伟被确定为匹配候选人",
+    "description": "验证当“平台运营二组--公众号--客服专员”JD被处理且刘家伟被确定为匹配候选人后，`Job_Requisition` DataObject是否正确关联了刘家伟的`Candidate` DataObject。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "link_verification"
+    ],
+    "priority": "P0",
+    "inputVariables": {
+      "job_requisition_id": "R2025110145",
+      "candidate_id": "candidate_liu_jia_wei_id"
+    },
+    "expectedOutcome": "系统成功更新`Job_Requisition` DataObject (job_requisition_id=\"R2025110145\")的`candidate_id`属性列表，使其包含刘家伟的`candidate_id` (\"candidate_liu_jia_wei_id\")。这表明`Job_Requisition`与`Candidate`之间建立了正确的关联关系。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119692+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119694+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-007",
+    "strategy": "link_verification"
+  },
+  {
+    "caseId": "LIB-BIZ-96481532",
+    "title": "验证从“时效性项目-服务号关注区运营”JD同步、分析到候选人林雅春匹配的端到端流",
+    "description": "验证从“时效性项目-服务号关注区运营”JD同步、分析到候选人林雅春匹配的端到端流程。包括`syncFromClientSystem`、`analyzeRequirement`以及初步的匹配评估。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "full_pipeline"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "jd_record": {
+        "城市": "广州",
+        "需求编码": "R2025120044",
+        "需求名称": "时效性项目-服务号关注区运营",
+        "级别": "初级2等",
+        "岗位类型": "信息审核",
+        "办公地点": "杨协成大厦",
+        "薪资范围": "4000-4500",
+        "HC数": "1",
+        "岗位职责": "1、协助落地执行推荐内容审核规则，监测规则效果，主动发现并反馈执行偏差，推动优化迭代；\n2、负责对接供应商，做好审核培训、答疑等运营工作；\n3、高效执行日常审核质检工作，并对各类问题做好跟进与闭环处理。",
+        "岗位要求": "1、踏实认真，执行力强，责任心强，工作细致，愿意深入业务；\n2、稳定性强，愿意长期耕耘，与团队共同成长；\n3、具备一定的excel等数据分析和处理能力，有供应商管理、人审标注、质检等经验优先。",
+        "交付澄清": "内容审核、内容质检、内容安全、审核运营、质量运营、人审标注、标注管理"
+      },
+      "candidate_data": {
+        "name": "林雅春",
+        "skills": [
+          "WPS",
+          "Office",
+          "时间管理",
+          "多任务处理",
+          "高效组织性"
+        ],
+        "experience": [
+          {
+            "company": "广州一建建设集团有限公司",
+            "title": "文秘岗",
+            "description": "负责公司各类商务合同、办公服务合同的前期草拟、条款核对，以及合同签订流程的跟进与归档，并做好合同台账的更新与管理；协助领导处理日常事务，对接各部门工作进度，接待来访客户及重要合作伙伴，处理日常文件和邮件，及时有效地传递、跟进、反馈上下级各类信息，做好信息安全与保密；具备较强的公文写作功底和能力，负责公司文字综合材料，撰写公司及部门年月度工作总结、会议纪要、调研报告、讲话稿、通讯稿等，年撰写公文 100 余份；负责招聘渠道维护及网络招聘信息的发布与更新，筛选简历并跟进面试；建立维护人事档案、员工花名册，统计考勤数据；办理员工入职、转正、晋升等人事手续；统筹安排公司会议和商务接待，组织各类文体、宣传活动，跟进节假日员工福利发放；负责办公环境维护，办公用品采购管理及固定资产管理，保障公司食堂与公务用车安全；统筹公司档案管理，规范登记借用流程，保障投标档案调取效率，零差错完成年度30余次投标档案支持。"
+          }
+        ]
+      }
+    },
+    "expectedOutcome": "1. `syncFromClientSystem` Action (ID 1-1)被触发，为JD R2025120044创建`Job_Requisition_Specification`和`Job_Requisition` DataObject。2. `REQUIREMENT_SYNCED`事件触发`analyzeRequirement` Action (ID 2)。3. `Job_Requisition`的`must_have_skills`被更新为“踏实认真”、“执行力强”、“责任心强”、“工作细致”、“稳定性强”、“excel等数据分析和处理能力”，`nice_to_have_skills`被更新为“供应商管理”、“人审标注”、“质检经验”。4. 系统对林雅春进行匹配，识别到其简历中的“高效组织性”、“时间管理”、“多任务处理”等与JD的部分通用要求匹配，但缺乏直接的“内容审核”、“质检”或“供应商管理”经验。5. 系统评估林雅春的匹配度为中等，并创建或更新`Job_Requisition`到`Candidate`的关联，附带相应匹配分数。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119703+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119705+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-008",
+    "strategy": "full_pipeline"
+  },
+  {
+    "caseId": "LIB-BIZ-9EE38D97",
+    "title": "验证系统在分析一个假定的“前端开发”JD时，是否能正确评估招聘难易度（Rule ",
+    "description": "验证系统在分析一个假定的“前端开发”JD时，是否能正确评估招聘难易度（Rule 2-3），并在匹配高永贵（软件测试背景）时，识别出其与岗位要求的高度不符。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P2",
+    "inputVariables": {
+      "hypothetical_jd_requirements": {
+        "岗位名称": "前端开发工程师",
+        "岗位要求": "本科及以上学历，3年以上前端开发经验，精通Vue/React框架，熟悉Node.js，具备良好的代码规范和团队协作能力。",
+        "薪资范围": "15000-25000"
+      },
+      "candidate_data": {
+        "name": "高永贵",
+        "skills": [
+          "熟练掌握软件测试全流程",
+          "Postman+Fiddler 进行接口测试",
+          "Jmeter+Badboy 进行性能测试",
+          "Linux 系统基本命令",
+          "TestRunner+ Git+Jenkins 自动化测试框架"
+        ],
+        "education": [],
+        "experience": []
+      }
+    },
+    "expectedOutcome": "1. `analyzeRequirement` Action被触发，系统根据假定JD的要求和模拟的市场数据，评估该“前端开发”岗位的`fill_difficulty`为“常规”。2. 在匹配高永贵时，系统识别到其技能（软件测试）与JD要求（前端开发）完全不符。3. 高永贵的匹配分数极低，系统将其标记为“不匹配”或优先级最低，不会将其推荐给该岗位。",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119714+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119716+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-009",
+    "strategy": "rule_validation"
+  },
+  {
+    "caseId": "LIB-BIZ-35F97F28",
+    "title": "验证当系统检测到新的“客服专员”JD与该客户的历史已澄清JD高度相似时，是否能触",
+    "description": "验证当系统检测到新的“客服专员”JD与该客户的历史已澄清JD高度相似时，是否能触发Rule 2-10（历史需求复用机制），自动复用历史澄清内容并通知HSM。",
+    "category": "business_integration",
+    "tags": [
+      "business_integration",
+      "rule_validation"
+    ],
+    "priority": "P1",
+    "inputVariables": {
+      "new_jd_record": {
+        "需求编码": "R2025110145",
+        "需求名称": "平台运营二组--公众号--客服专员",
+        "岗位职责": "负责公众平台（公众号、小程序）业务&open平台业务，解答用户的客服咨询...",
+        "岗位要求": "本科及以上学历...有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年..."
+      },
+      "simulated_historical_jd": {
+        "client_id": "client_id_A",
+        "job_requisition_id": "HISTORICAL_JR_001",
+        "client_job_title": "公众号客服专员",
+        "job_responsibility": "负责公众平台（公众号、小程序）业务，解答用户的客服咨询...",
+        "job_requirement": "本科及以上学历...有从事互联网产品运营或客服工作经验者优先，客服工作经验2-5年...",
+        "clarified_content": {
+          "must_have_skills": [
+            "沟通协调",
+            "数据分析"
+          ],
+          "nice_to_have_skills": [
+            "互联网产品运营经验"
+          ],
+          "clarify_questions": []
+        }
+      }
+    },
+    "expectedOutcome": "1. `analyzeRequirement` Action被触发。2. 在`loadContextData`步骤中，Rule 2-10被激活。系统将新JD的`需求名称`、`岗位职责`、`岗位要求`与模拟的历史JD进行文本相似度计算，发现三项相似度均高于95%。3. 系统自动复用历史JD的已澄清内容（如`must_have_skills`、`nice_to_have_skills`）填充到新的`Job_Requisition` DataObject中。4. 系统向HSM发送一条应用内通知：“检测到历史同类需求画像可复用。已将历史已澄清内容填充至当前需求。请确认复用内容是否适用于本次需求。”",
+    "steps": [],
+    "createdAt": "2026-03-09T03:44:44.119726+00:00",
+    "updatedAt": "2026-03-09T03:44:44.119728+00:00",
+    "sourceSnapshotId": "snap_1772764984_471ba402",
+    "sourceCaseId": "TC-BIZ-010",
+    "strategy": "rule_validation"
   }
 ]

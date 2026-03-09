@@ -14,6 +14,11 @@ import {
     FolderOpenOutlined,
     KeyOutlined,
     BookOutlined,
+    SafetyCertificateOutlined,
+    RobotOutlined,
+    SwapOutlined,
+    BulbOutlined,
+    FileSearchOutlined,
 } from '@ant-design/icons';
 
 const { Sider, Content } = Layout;
@@ -27,21 +32,38 @@ const menuItems: MenuItem[] = [
         label: '本体管理',
         children: [
             { key: '/ontology', icon: <DatabaseOutlined />, label: '上传与拉取' },
+            { key: '/validation', icon: <SafetyCertificateOutlined />, label: '有效性检验' },
         ],
     },
-    { key: '/business-data', icon: <FolderOpenOutlined />, label: '业务数据管理' },
+    {
+        key: 'business-data-group',
+        icon: <FolderOpenOutlined />,
+        label: '业务数据管理',
+        children: [
+            { key: '/business-data/real', icon: <FolderOpenOutlined />, label: '真实业务数据' },
+            { key: '/business-data/simulated', icon: <RobotOutlined />, label: '模拟业务数据' },
+        ],
+    },
     { key: '/test-case-library', icon: <BookOutlined />, label: '测试用例库' },
-
     {
         key: 'unified-test-group',
         icon: <ExperimentOutlined />,
         label: '统一测试',
         children: [
             { key: '/execution', icon: <PlayCircleOutlined />, label: '执行测试' },
+            { key: '/cross-test', icon: <SwapOutlined />, label: '交叉测试' },
             { key: '/history', icon: <HistoryOutlined />, label: '历史记录' },
         ],
     },
-    { key: '/reports', icon: <BarChartOutlined />, label: '测试报告' },
+    {
+        key: 'results-group',
+        icon: <FileSearchOutlined />,
+        label: '测试结果',
+        children: [
+            { key: '/reports', icon: <BarChartOutlined />, label: '测试报告' },
+            { key: '/optimization', icon: <BulbOutlined />, label: '优化建议' },
+        ],
+    },
     { key: '/api-keys', icon: <KeyOutlined />, label: 'API Key 管理' },
 ];
 
@@ -54,8 +76,10 @@ export default function AppLayout() {
     const selectedKeys = [location.pathname];
     const defaultOpenKeys = (() => {
         const p = location.pathname;
-        if (p === '/ontology') return ['ontology-group'];
-        if (['/unified-test', '/execution', '/history'].includes(p)) return ['unified-test-group'];
+        if (p === '/ontology' || p === '/validation') return ['ontology-group'];
+        if (p.startsWith('/business-data')) return ['business-data-group'];
+        if (['/execution', '/cross-test', '/history'].includes(p)) return ['unified-test-group'];
+        if (['/reports', '/optimization'].includes(p)) return ['results-group'];
         return [];
     })();
 

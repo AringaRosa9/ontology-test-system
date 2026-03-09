@@ -2,7 +2,7 @@
 RAAS Ontology Testing Platform — FastAPI Backend
 
 Full-stack backend for ontology upload, LLM-based test case generation,
-test execution, and report generation.
+test execution, report generation, and deterministic ontology validation.
 """
 from dotenv import load_dotenv
 load_dotenv()
@@ -20,9 +20,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Dict, Union, Any
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+from ontology_validator import validate_snapshot as _validate_snapshot
 
 # ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -423,6 +425,12 @@ async def upload_ontology(
 
         _persist_snapshots()
 
+    # Run deterministic validation on upload
+    validation_report = _validate_snapshot(snapshot)
+    snapshot["validationReport"] = validation_report
+    with _lock:
+        _persist_snapshots()
+
     return {"status": "ok", "data": {
         "snapshotId": snapshot["snapshotId"],
         "sourceFiles": snapshot["sourceFiles"],
@@ -432,6 +440,7 @@ async def upload_ontology(
         "eventsCount": snapshot["eventsCount"],
         "linksCount": snapshot["linksCount"],
         "createdAt": snapshot["createdAt"],
+        "validationReport": validation_report,
     }}
 
 
@@ -743,6 +752,7 @@ Return a JSON array where each object has:
 - reasoning: string (brief explanation)
 - assertionResults: array of {{assertion: string, expected: string, actual: string, passed: boolean}}
 - executionDurationMs: number (simulated)
+- failedNode: (only when verdict is FAIL) object with {{ruleName: string, ruleDescription: string, brokenLink: string or null, funnelStage: string, failureType: string, contextSnapshot: object}}
 """
 
     result = await gemini.generate_json(SYSTEM_PROMPT, exec_prompt, temp=0.3)
@@ -823,16 +833,13 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
     if not cases:
         raise HTTPException(400, "没有可执行的测试用例，请先在测试用例库中生成用例")
 
-    # ── Build LLM evaluation prompt ───────────────────────────────────────────
-    import random
-    def _sample(lst, n): return random.sample(lst, min(n, len(lst)))
-
+    # ── Build LLM evaluation prompt (full structural data, no random sampling) ─
     ontology_context = (
-        f"Rules ({len(snap.get('rules', []))}):\n{json.dumps(_sample(snap.get('rules', []), 5), ensure_ascii=False, indent=1)}\n\n"
-        f"DataObjects ({len(snap.get('dataobjects', []))}):\n{json.dumps(_sample(snap.get('dataobjects', []), 5), ensure_ascii=False, indent=1)}\n\n"
-        f"Actions ({len(snap.get('actions', []))}):\n{json.dumps(_sample(snap.get('actions', []), 3), ensure_ascii=False, indent=1)}\n\n"
-        f"Events ({len(snap.get('events', []))}):\n{json.dumps(_sample(snap.get('events', []), 3), ensure_ascii=False, indent=1)}\n\n"
-        f"Links ({len(snap.get('links', []))}):\n{json.dumps(_sample(snap.get('links', []), 5), ensure_ascii=False, indent=1)}"
+        f"Rules ({len(snap.get('rules', []))}):\n{json.dumps(snap.get('rules', [])[:20], ensure_ascii=False, indent=1)}\n\n"
+        f"DataObjects ({len(snap.get('dataobjects', []))}):\n{json.dumps(snap.get('dataobjects', [])[:15], ensure_ascii=False, indent=1)}\n\n"
+        f"Actions ({len(snap.get('actions', []))}):\n{json.dumps(snap.get('actions', [])[:10], ensure_ascii=False, indent=1)}\n\n"
+        f"Events ({len(snap.get('events', []))}):\n{json.dumps(snap.get('events', [])[:10], ensure_ascii=False, indent=1)}\n\n"
+        f"Links ({len(snap.get('links', []))}):\n{json.dumps(snap.get('links', [])[:15], ensure_ascii=False, indent=1)}"
     )
 
     cases_summary = json.dumps([{
@@ -847,7 +854,7 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
 
     exec_prompt = f"""你是 Palantir Ontology 对抗性测试评估专家（TDD 方法），负责**严格**评估测试用例在本体定义下是否真正通过。
 
-## 本体上下文（随机样本）
+## 本体上下文（结构化数据）
 {ontology_context}
 
 ## 待评估的测试用例（共 {len(cases)} 条）
@@ -855,16 +862,12 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
 
 ## 评估规则（严格执行，不得妥协）
 
-### 约束 1 — 强制失败比例
-你必须将其中至少 25% 的用例评为 FAIL 或 WARNING。
-如果你倾向于把所有用例都评为 PASS，说明你没有严格执行，必须重新审视。
-
-### 约束 2 — 对抗性视角（先找失败条件）
+### 约束 1 — 对抗性视角（先找失败条件）
 对每条用例，先假设系统存在缺陷，问自己：
 "在什么具体条件下这个用例会失败？inputVariables 中是否存在这种条件？"
 只有在确认没有任何失败条件时，才可评为 PASS。
 
-### 约束 3 — 负向用例（isNegative=true 的用例）
+### 约束 2 — 负向用例（isNegative=true 的用例）
 这些用例被设计目的是触发失败。你必须：
 - 评为 FAIL（正确识别失败）
 - 或评为 PASS 并在 reasoning 中明确说明"为什么这个故意设计为失败的用例反而通过了"
@@ -888,7 +891,8 @@ async def execute_library_tests(request: ExecuteLibraryRequest):
   "failureReason": "<如果 FAIL/WARNING，简要说明哪个验证维度失败，为什么>",
   "reasoning": "<中文，2-3句，综合评判依据>",
   "assertionResults": [{{"assertion": "...", "expected": "...", "actual": "...", "passed": bool}}],
-  "executionDurationMs": <50-500>
+  "executionDurationMs": <50-500>,
+  "failedNode": <仅 FAIL/WARNING 时提供> {{"ruleName": "<失败的规则名>", "ruleDescription": "<规则描述>", "brokenLink": "<断裂的Link或null>", "funnelStage": "<漏斗阶段如初筛/面试/录用>", "failureType": "<失败类型如RULE_MISMATCH/PRECONDITION_FAIL/BROKEN_LINK>", "contextSnapshot": {{}}}}
 }}
 """
 
@@ -1329,22 +1333,45 @@ async def upload_jd(file: UploadFile = File(...)):
     if not records:
         raise HTTPException(400, "CSV文件中没有有效数据")
 
-    item_id = f"bd_{uuid.uuid4().hex[:8]}"
-    item = {
-        "itemId": item_id,
-        "type": "jd",
-        "filename": filename,
-        "columns": [h for h in headers if h],
-        "records": records,
-        "recordCount": len(records),
-        "uploadedAt": datetime.now(timezone.utc).isoformat(),
-    }
+    clean_columns = [h for h in headers if h]
+    now = datetime.now(timezone.utc).isoformat()
+    created_items = []
+
+    # Detect title column: prefer columns containing '职位', '岗位', 'title', or use first column
+    title_col = clean_columns[0] if clean_columns else ""
+    for col in clean_columns:
+        if any(kw in col.lower() for kw in ("职位", "岗位", "title", "名称")):
+            title_col = col
+            break
+
+    for idx, rec in enumerate(records):
+        item_id = f"bd_{uuid.uuid4().hex[:8]}"
+        rec_title = rec.get(title_col, "") or f"第{idx + 1}条"
+        item = {
+            "itemId": item_id,
+            "type": "jd",
+            "filename": f"{rec_title}",
+            "columns": clean_columns,
+            "records": [rec],
+            "recordCount": 1,
+            "title": rec_title,
+            "sourceFile": filename,
+            "uploadedAt": now,
+        }
+        created_items.append(item)
 
     with _lock:
-        _business_data.insert(0, item)
+        for item in reversed(created_items):
+            _business_data.insert(0, item)
         _persist_business_data()
 
-    return {"status": "ok", "data": {k: v for k, v in item.items() if k != "records"}}
+    return {
+        "status": "ok",
+        "data": {
+            "totalRecords": len(created_items),
+            "items": [{k: v for k, v in it.items() if k != "records"} for it in created_items],
+        },
+    }
 
 
 @app.get("/business-data/list")
@@ -1369,6 +1396,8 @@ async def list_business_data():
                 "columns": item.get("columns", []),
                 "recordCount": item.get("recordCount", len(recs)),
                 "sampleRecord": recs[0] if recs else {},
+                "title": item.get("title", ""),
+                "sourceFile": item.get("sourceFile", ""),
             }
         summaries.append(summary)
     return {"status": "ok", "data": summaries}
@@ -2212,6 +2241,10 @@ async def neo4j_pull(req: Neo4jPullRequest):
         "createdAt": datetime.now(timezone.utc).isoformat(),
     }
 
+    # Run deterministic validation
+    validation_report = _validate_snapshot(snapshot)
+    snapshot["validationReport"] = validation_report
+
     with _lock:
         _snapshots.insert(0, snapshot)
         _persist_snapshots()
@@ -2225,6 +2258,7 @@ async def neo4j_pull(req: Neo4jPullRequest):
         "eventsCount": snapshot["eventsCount"],
         "linksCount": snapshot["linksCount"],
         "createdAt": snapshot["createdAt"],
+        "validationReport": validation_report,
     }}
 
 
@@ -2489,12 +2523,892 @@ async def minio_pull(req: MinIOPullRequest):
             "linksCount": len(ontology_sections["links"]),
             "createdAt": datetime.now(timezone.utc).isoformat(),
         }
+        # Run deterministic validation
+        validation_report = _validate_snapshot(snapshot)
+        snapshot["validationReport"] = validation_report
         with _lock:
             _snapshots.insert(0, snapshot)
             _persist_snapshots()
         results["snapshotId"] = snapshot_id
+        results["validationReport"] = validation_report
 
     return {"status": "ok", "data": results}
+
+
+# ─── Deterministic Validation & Execution ────────────────────────────────────
+
+@app.get("/ontology/snapshots/{snapshot_id}/validate")
+async def validate_snapshot_endpoint(
+    snapshot_id: str,
+    strict: bool = Query(False, description="If true, returns error when P0 blockers exist"),
+):
+    """Run deterministic validation on a snapshot (no LLM)."""
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snapshot_id:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "快照不存在")
+
+    try:
+        report = _validate_snapshot(snap, strict=strict)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+    # Persist the report on the snapshot
+    with _lock:
+        snap["validationReport"] = report
+        _persist_snapshots()
+
+    return {"status": "ok", "data": report}
+
+
+class DeterministicExecuteRequest(BaseModel):
+    snapshotId: str
+    strict: bool = False
+    criticalPaths: Optional[List[List[str]]] = None
+
+
+@app.post("/executor/run-deterministic")
+async def execute_deterministic(request: DeterministicExecuteRequest):
+    """Deterministic execution: validator + rule graph only, no LLM, no sampling."""
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == request.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "快照不存在")
+
+    try:
+        report = _validate_snapshot(
+            snap,
+            strict=request.strict,
+            critical_paths=request.criticalPaths,
+        )
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+    # Build a run record from validation results
+    run_id = f"run_{uuid.uuid4().hex[:8]}"
+    p0 = report["summary"]["P0"]
+    p1 = report["summary"]["P1"]
+    p2 = report["summary"]["P2"]
+    total = report["summary"]["total"]
+
+    # Map validation errors to execution records
+    records = []
+    for err in report["allErrors"]:
+        records.append({
+            "recordId": f"rec_{uuid.uuid4().hex[:8]}",
+            "caseId": f"VAL-{err['code']}-{err['entityId'][:20]}",
+            "category": err["entityType"],
+            "verdict": "FAIL" if err["severity"] == "P0" else ("WARNING" if err["severity"] == "P1" else "PASS"),
+            "reasoning": err["message"],
+            "triggeredRules": [],
+            "assertionResults": [{
+                "assertion": err["code"],
+                "expected": "valid",
+                "actual": err["message"][:100],
+                "passed": False,
+            }],
+            "executionDurationMs": 0,
+            "executedAt": datetime.now(timezone.utc).isoformat(),
+            "snapshotId": request.snapshotId,
+            "evidence": err.get("evidence", ""),
+        })
+
+    passed = sum(1 for r in records if r["verdict"] == "PASS")
+    failed = sum(1 for r in records if r["verdict"] == "FAIL")
+    warnings = sum(1 for r in records if r["verdict"] == "WARNING")
+
+    run = {
+        "runId": run_id,
+        "snapshotId": request.snapshotId,
+        "executionMode": "deterministic",
+        "totalCases": len(records),
+        "passedCases": passed,
+        "failedCases": failed,
+        "warningCases": warnings,
+        "coverageRate": round(passed / max(len(records), 1), 2),
+        "records": records,
+        "executedAt": datetime.now(timezone.utc).isoformat(),
+        "validationReport": report,
+    }
+
+    with _lock:
+        snap["validationReport"] = report
+        _runs.insert(0, run)
+        _persist_runs()
+        _persist_snapshots()
+
+    return {"status": "ok", "data": run}
+
+
+# ─── Simulated Data Management ────────────────────────────────────────────────
+
+SIMULATED_DATA_FILE = DATA_DIR / "simulated_data.json"
+_simulated_data: List[Dict] = _load_json(SIMULATED_DATA_FILE)
+
+
+def _persist_simulated_data():
+    _save_json(SIMULATED_DATA_FILE, _simulated_data)
+
+
+class SimulatedDataRequest(BaseModel):
+    snapshotId: str
+    dataType: str = "resume"  # resume | jd
+    subTypes: List[str] = ["normal"]
+    count: int = 3
+
+
+@app.post("/simulated-data/generate")
+async def generate_simulated_data(req: SimulatedDataRequest):
+    """Use LLM to generate simulated resumes or JDs."""
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == req.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "Snapshot not found")
+
+    rules_sample = json.dumps(snap.get("rules", [])[:5], ensure_ascii=False, indent=1)
+    do_sample = json.dumps(snap.get("dataobjects", [])[:5], ensure_ascii=False, indent=1)
+
+    all_generated = []
+    for sub_type in req.subTypes:
+        if req.dataType == "resume":
+            prompt = f"""Generate {req.count} simulated resume(s) of type "{sub_type}" for HRO testing.
+
+Type descriptions:
+- normal: Standard well-qualified candidate
+- missing_education: Candidate with no or incomplete education info
+- missing_skills: Candidate missing key technical skills
+- career_gap: Candidate with significant employment gaps (2+ years)
+- strange_degree: Candidate with unusual/unrecognized degree
+- overqualified: Candidate far exceeding job requirements
+- junior_candidate: Fresh graduate with minimal experience
+
+Ontology Rules (for context):
+{rules_sample}
+
+DataObjects (for field reference):
+{do_sample}
+
+Return a JSON array of {req.count} resume objects. Each must have:
+- name: string (Chinese name)
+- phone: string
+- email: string
+- education: [{{school, degree, major, graduationYear}}]
+- experience: [{{company, title, startDate, endDate, description}}]
+- skills: [string]
+- summary: string (1-2 sentence summary)
+
+Make the data realistic and in Chinese. For abnormal types, ensure the defects are clearly present."""
+        else:
+            prompt = f"""Generate {req.count} simulated Job Description(s) of type "{sub_type}" for HRO testing.
+
+Type descriptions:
+- normal: Standard clear JD with reasonable requirements
+- vague_requirements: JD with unclear or ambiguous skill requirements
+- conflicting_criteria: JD with contradictory requirements (e.g., "5 years experience" + "fresh graduate welcome")
+- extreme_salary: JD with unreasonably high or low salary range
+- niche_role: Very specialized role that few candidates would match
+
+Ontology context:
+{rules_sample}
+
+Return a JSON array of {req.count} JD objects. Each must have:
+- title: string (job title in Chinese)
+- department: string
+- requirements: [string] (list of requirements)
+- responsibilities: [string]
+- salaryRange: string
+- location: string
+- experienceYears: string
+
+Make the data realistic and in Chinese. For abnormal types, ensure the issues are clearly present."""
+
+        system = "You are an expert HRO data simulator. Generate realistic Chinese HR data for testing purposes."
+        result = await gemini.generate_json(system, prompt, temp=0.6)
+        if result is None:
+            raise HTTPException(500, gemini.last_error or "LLM generation failed")
+
+        items_raw = result if isinstance(result, list) else [result]
+        for item_data in items_raw:
+            item = {
+                "itemId": f"sim_{uuid.uuid4().hex[:8]}",
+                "type": req.dataType,
+                "subType": sub_type,
+                "filename": f"simulated_{sub_type}_{uuid.uuid4().hex[:4]}.json",
+                "generatedData": item_data,
+                "generatedAt": datetime.now(timezone.utc).isoformat(),
+            }
+            all_generated.append(item)
+
+    with _lock:
+        _simulated_data.extend(all_generated)
+        _persist_simulated_data()
+
+    return {"status": "ok", "data": {"generated": all_generated}}
+
+
+@app.get("/simulated-data/list")
+async def list_simulated_data():
+    return {"status": "ok", "data": _simulated_data}
+
+
+@app.delete("/simulated-data/{item_id}")
+async def delete_simulated_data(item_id: str):
+    with _lock:
+        before = len(_simulated_data)
+        _simulated_data[:] = [i for i in _simulated_data if i["itemId"] != item_id]
+        if len(_simulated_data) < before:
+            _persist_simulated_data()
+            return {"status": "ok"}
+    raise HTTPException(404, "Item not found")
+
+
+@app.post("/simulated-data/{item_id}/import")
+async def import_simulated_to_real(item_id: str):
+    """Import a simulated data item into the real business data pool."""
+    target = None
+    for item in _simulated_data:
+        if item["itemId"] == item_id:
+            target = item
+            break
+    if not target:
+        raise HTTPException(404, "Item not found")
+
+    data = target["generatedData"]
+    new_id = f"bd_{uuid.uuid4().hex[:8]}"
+
+    if target["type"] == "resume":
+        bd_item = {
+            "itemId": new_id,
+            "type": "resume",
+            "filename": f"[simulated] {data.get('name', 'unknown')}.json",
+            "parsedData": data,
+            "uploadedAt": datetime.now(timezone.utc).isoformat(),
+        }
+    else:
+        bd_item = {
+            "itemId": new_id,
+            "type": "jd",
+            "filename": f"[simulated] {data.get('title', 'unknown')}.json",
+            "columns": list(data.keys()),
+            "records": [data],
+            "recordCount": 1,
+            "uploadedAt": datetime.now(timezone.utc).isoformat(),
+        }
+
+    with _lock:
+        _business_data.insert(0, bd_item)
+        _persist_business_data()
+
+    return {"status": "ok", "data": {"itemId": new_id}}
+
+
+class BatchImportRequest(BaseModel):
+    itemIds: List[str] = Field(default_factory=list)
+
+
+@app.post("/simulated-data/batch-import")
+async def batch_import_simulated(req: BatchImportRequest):
+    """Batch import simulated data items into the real business data pool."""
+    targets = []
+    if req.itemIds:
+        for item in _simulated_data:
+            if item["itemId"] in req.itemIds:
+                targets.append(item)
+    else:
+        targets = list(_simulated_data)
+
+    if not targets:
+        raise HTTPException(400, "没有可导入的模拟数据")
+
+    imported = 0
+    failed = 0
+    errors = []
+    for target in targets:
+        try:
+            data = target["generatedData"]
+            new_id = f"bd_{uuid.uuid4().hex[:8]}"
+            if target["type"] == "resume":
+                bd_item = {
+                    "itemId": new_id,
+                    "type": "resume",
+                    "filename": f"[simulated] {data.get('name', 'unknown')}.json",
+                    "parsedData": data,
+                    "uploadedAt": datetime.now(timezone.utc).isoformat(),
+                }
+            else:
+                bd_item = {
+                    "itemId": new_id,
+                    "type": "jd",
+                    "filename": f"[simulated] {data.get('title', 'unknown')}.json",
+                    "columns": list(data.keys()),
+                    "records": [data],
+                    "recordCount": 1,
+                    "uploadedAt": datetime.now(timezone.utc).isoformat(),
+                }
+            with _lock:
+                _business_data.insert(0, bd_item)
+            imported += 1
+        except Exception as e:
+            failed += 1
+            errors.append(str(e))
+
+    with _lock:
+        _persist_business_data()
+
+    return {"status": "ok", "data": {"imported": imported, "failed": failed, "errors": errors}}
+
+
+# ─── Cross-Test APIs ─────────────────────────────────────────────────────────
+
+class CrossTestByResumeRequest(BaseModel):
+    snapshotId: str
+    resumeId: str
+    jdIds: List[str]
+
+
+class CrossTestByJdRequest(BaseModel):
+    snapshotId: str
+    jdId: str
+    resumeIds: List[str]
+
+
+class CrossTestValidateRequest(BaseModel):
+    snapshotId: str
+    resumeIds: List[str] = []
+    jdIds: List[str] = []
+
+
+def _get_business_item(item_id: str):
+    for item in _business_data:
+        if item["itemId"] == item_id:
+            return item
+    return None
+
+
+def _resume_summary(item: dict) -> str:
+    pd = item.get("parsedData", item.get("generatedData", {}))
+    return json.dumps({
+        "name": pd.get("name", "unknown"),
+        "skills": pd.get("skills", []),
+        "education": pd.get("education", []),
+        "experience": pd.get("experience", []),
+        "summary": pd.get("summary", ""),
+    }, ensure_ascii=False)
+
+
+def _jd_summary(item: dict) -> str:
+    if item.get("records"):
+        rec = item["records"][0] if len(item["records"]) == 1 else item["records"][:2]
+        title = item.get("title", item.get("filename", ""))
+        return json.dumps({"title": title, "data": rec}, ensure_ascii=False)
+    gd = item.get("generatedData", {})
+    return json.dumps({
+        "title": gd.get("title", ""),
+        "requirements": gd.get("requirements", []),
+        "responsibilities": gd.get("responsibilities", []),
+    }, ensure_ascii=False)
+
+
+async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: str) -> dict:
+    """Core cross-test logic: match resumes against JDs using LLM."""
+    pairs = []
+    for r in resume_items:
+        r_name = (r.get("parsedData") or r.get("generatedData") or {}).get("name", r.get("filename", "unknown"))
+        for j in jd_items:
+            # Extract JD title: prefer title field, then first column of first record, then filename
+            j_title = j.get("title", "")
+            if not j_title and j.get("records"):
+                cols = j.get("columns", [])
+                first_rec = j["records"][0] if j["records"] else {}
+                # Try to find a title-like column
+                for col in cols:
+                    if any(kw in col.lower() for kw in ("职位", "岗位", "title", "名称")):
+                        j_title = first_rec.get(col, "")
+                        break
+                if not j_title and cols:
+                    j_title = first_rec.get(cols[0], "")
+            if not j_title and j.get("generatedData"):
+                j_title = j["generatedData"].get("title", "")
+            if not j_title:
+                j_title = j.get("filename", "unknown")
+            pairs.append({"resumeName": r_name, "jdTitle": j_title, "resumeId": r["itemId"], "jdId": j["itemId"]})
+
+    # Build context
+    resume_texts = [_resume_summary(r) for r in resume_items[:10]]
+    jd_texts = [_jd_summary(j) for j in jd_items[:10]]
+    rules_ctx = json.dumps(snap.get("rules", [])[:10], ensure_ascii=False, indent=1)
+    pairs_json = json.dumps(
+        [{"resumeName": p["resumeName"], "jdTitle": p["jdTitle"]} for p in pairs],
+        ensure_ascii=False,
+    )
+
+    prompt = f"""You are an HRO recruitment matching evaluator. Evaluate each resume-JD pair below.
+
+## Ontology Rules
+{rules_ctx}
+
+## Resumes
+{chr(10).join(resume_texts)}
+
+## Job Descriptions
+{chr(10).join(jd_texts)}
+
+## Pairs to evaluate ({len(pairs)})
+{pairs_json}
+
+For each pair, return:
+{{
+  "resumeName": "<name>",
+  "jdTitle": "<title>",
+  "verdict": "PASS" | "FAIL" | "WARNING",
+  "triggeredRules": ["<rule IDs that exactly match rule names from the Ontology Rules list above>"],
+  "reasoning": "<Chinese, 2-3 sentences explaining WHY the rules are violated or satisfied>",
+  "failedNode": <only if FAIL> {{
+    "ruleName": "<failed rule, must match a rule name from the Ontology Rules above>",
+    "ruleDescription": "<description>",
+    "brokenLink": "<broken link or null>",
+    "funnelStage": "<stage like screening/interview/offer>",
+    "failureType": "<RULE_MISMATCH|SKILL_GAP|EDUCATION_MISMATCH|EXPERIENCE_INSUFFICIENT|PRECONDITION_FAIL>",
+    "contextSnapshot": {{}}
+  }},
+  "matchTrace": [
+    {{"step": "<matching dimension name in Chinese, e.g. 技能匹配/学历要求/工作经验/规则校验>", "status": "pass"|"fail"|"skip", "detail": "<Chinese, explain what was checked and the result>"}}
+  ]
+}}
+
+IMPORTANT: matchTrace must contain 3-6 steps showing the full matching process. Each step represents a dimension checked. Mark the step where matching failed with status "fail" and explain why. Steps after a critical failure should be "skip".
+
+Return a JSON array."""
+
+    result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
+
+    # Build rule name -> full rule document mapping from snapshot
+    rules_list = snap.get("rules", [])
+    rule_doc_map = {}
+    for rule in rules_list:
+        rname = rule.get("name", rule.get("ruleName", ""))
+        if rname:
+            # Build full rule text from all available fields
+            parts = []
+            if rule.get("description"):
+                parts.append(f"描述: {rule['description']}")
+            if rule.get("conditions"):
+                cond = rule["conditions"] if isinstance(rule["conditions"], str) else json.dumps(rule["conditions"], ensure_ascii=False)
+                parts.append(f"条件: {cond}")
+            if rule.get("actions"):
+                act = rule["actions"] if isinstance(rule["actions"], str) else json.dumps(rule["actions"], ensure_ascii=False)
+                parts.append(f"动作: {act}")
+            if rule.get("priority"):
+                parts.append(f"优先级: {rule['priority']}")
+            if rule.get("category"):
+                parts.append(f"类别: {rule['category']}")
+            rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
+
+    results = []
+    if result:
+        if isinstance(result, list):
+            raw = result
+        elif isinstance(result, dict):
+            raw = result.get("results", [])
+        else:
+            raw = []
+        # Validate and fix each result entry
+        for i, entry in enumerate(raw):
+            if not isinstance(entry, dict):
+                continue
+            # Ensure required fields exist
+            if "verdict" not in entry:
+                entry["verdict"] = "WARNING"
+            if "reasoning" not in entry:
+                entry["reasoning"] = "LLM 未提供推理说明"
+            if "triggeredRules" not in entry:
+                entry["triggeredRules"] = []
+            if "matchTrace" not in entry or not isinstance(entry.get("matchTrace"), list):
+                entry["matchTrace"] = []
+            # Map pair info if missing
+            if i < len(pairs):
+                if "resumeName" not in entry:
+                    entry["resumeName"] = pairs[i]["resumeName"]
+                if "jdTitle" not in entry:
+                    entry["jdTitle"] = pairs[i]["jdTitle"]
+            # Replace failedNode.ruleDescription with original rule doc text
+            fn = entry.get("failedNode")
+            if fn and isinstance(fn, dict):
+                rn = fn.get("ruleName", "")
+                if rn in rule_doc_map:
+                    fn["ruleDescription"] = rule_doc_map[rn]
+            results.append(entry)
+    else:
+        error_msg = gemini.last_error or "LLM 服务不可用，请检查 API Key 配置"
+        logger.error(f"Cross-test LLM call failed: {error_msg}")
+        for p in pairs:
+            results.append({
+                "resumeName": p["resumeName"],
+                "jdTitle": p["jdTitle"],
+                "verdict": "ERROR",
+                "triggeredRules": [],
+                "reasoning": error_msg,
+            })
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    ct_result = {
+        "testId": f"ct_{uuid.uuid4().hex[:8]}",
+        "mode": mode,
+        "resumeNames": list(set(p["resumeName"] for p in pairs)),
+        "jdTitles": list(set(p["jdTitle"] for p in pairs)),
+        "results": results,
+        "executedAt": now_iso,
+    }
+
+    # ── Persist cross-test result as a TestRun for history & reports ──
+    ct_passed = sum(1 for r in results if r.get("verdict") == "PASS")
+    ct_failed = sum(1 for r in results if r.get("verdict") == "FAIL")
+    ct_warnings = sum(1 for r in results if r.get("verdict") == "WARNING")
+    ct_records = []
+    for idx, r in enumerate(results):
+        rec = {
+            "recordId": f"rec_{uuid.uuid4().hex[:8]}",
+            "caseId": f"{r.get('resumeName', '')} × {r.get('jdTitle', '')}",
+            "verdict": r.get("verdict", "WARNING"),
+            "reasoning": r.get("reasoning", ""),
+            "triggeredRules": r.get("triggeredRules", []),
+            "assertionResults": [],
+            "executionDurationMs": 0,
+            "executedAt": now_iso,
+            "snapshotId": snap.get("snapshotId", ""),
+            "category": "cross_test",
+            "title": f"{r.get('resumeName', '')} ↔ {r.get('jdTitle', '')}",
+            "failedNode": r.get("failedNode"),
+        }
+        ct_records.append(rec)
+
+    ct_run = {
+        "runId": f"run_{uuid.uuid4().hex[:8]}",
+        "snapshotId": snap.get("snapshotId", ""),
+        "executionMode": f"cross_test:{mode}",
+        "totalCases": len(results),
+        "passedCases": ct_passed,
+        "failedCases": ct_failed,
+        "warningCases": ct_warnings,
+        "coverageRate": round(ct_passed / max(len(results), 1), 2),
+        "records": ct_records,
+        "executedAt": now_iso,
+    }
+    with _lock:
+        _runs.insert(0, ct_run)
+        _persist_runs()
+
+    return ct_result
+
+
+@app.post("/cross-test/by-resume")
+async def cross_test_by_resume(req: CrossTestByResumeRequest):
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == req.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "Snapshot not found")
+
+    resume = _get_business_item(req.resumeId)
+    if not resume:
+        raise HTTPException(404, "Resume not found")
+
+    jd_items = [_get_business_item(jid) for jid in req.jdIds]
+    jd_items = [j for j in jd_items if j]
+    if not jd_items:
+        raise HTTPException(400, "No valid JDs found")
+
+    try:
+        result = await _run_cross_test(snap, [resume], jd_items, "by_resume")
+    except Exception as e:
+        logger.error(f"Cross-test by-resume failed: {e}")
+        raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
+    return {"status": "ok", "data": result}
+
+
+@app.post("/cross-test/by-jd")
+async def cross_test_by_jd(req: CrossTestByJdRequest):
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == req.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "Snapshot not found")
+
+    jd = _get_business_item(req.jdId)
+    if not jd:
+        raise HTTPException(404, "JD not found")
+
+    resume_items = [_get_business_item(rid) for rid in req.resumeIds]
+    resume_items = [r for r in resume_items if r]
+    if not resume_items:
+        raise HTTPException(400, "No valid resumes found")
+
+    try:
+        result = await _run_cross_test(snap, resume_items, [jd], "by_jd")
+    except Exception as e:
+        logger.error(f"Cross-test by-jd failed: {e}")
+        raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
+    return {"status": "ok", "data": result}
+
+
+@app.post("/cross-test/cross-validate")
+async def cross_test_validate(req: CrossTestValidateRequest):
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == req.snapshotId:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "Snapshot not found")
+
+    if req.resumeIds:
+        resume_items = [_get_business_item(rid) for rid in req.resumeIds]
+        resume_items = [r for r in resume_items if r]
+    else:
+        resume_items = [i for i in _business_data if i["type"] == "resume"]
+
+    if req.jdIds:
+        jd_items = [_get_business_item(jid) for jid in req.jdIds]
+        jd_items = [j for j in jd_items if j]
+    else:
+        jd_items = [i for i in _business_data if i["type"] == "jd"]
+
+    if not resume_items or not jd_items:
+        raise HTTPException(400, "Need at least 1 resume and 1 JD for cross-validation")
+
+    try:
+        result = await _run_cross_test(snap, resume_items[:10], jd_items[:10], "cross_validate")
+    except Exception as e:
+        logger.error(f"Cross-test cross-validate failed: {e}")
+        raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
+    return {"status": "ok", "data": result}
+
+
+# ─── Optimization APIs ───────────────────────────────────────────────────────
+
+class GapAnalysisRequest(BaseModel):
+    runId: str
+
+
+class SuggestionsRequest(BaseModel):
+    runId: str
+
+
+@app.post("/optimization/gap-analysis")
+async def gap_analysis(req: GapAnalysisRequest):
+    """Analyze failed test cases to identify gaps for each candidate."""
+    run = None
+    for r in _runs:
+        if r["runId"] == req.runId:
+            run = r
+            break
+    if not run:
+        raise HTTPException(404, "Run not found")
+
+    # Build rule name -> full doc mapping from the snapshot used in this run
+    snap_id = run.get("snapshotId", "")
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snap_id:
+            snap = s
+            break
+    rule_doc_map = {}
+    if snap:
+        for rule in snap.get("rules", []):
+            rname = rule.get("name", rule.get("ruleName", ""))
+            if rname:
+                parts = []
+                if rule.get("description"):
+                    parts.append(f"描述: {rule['description']}")
+                if rule.get("conditions"):
+                    cond = rule["conditions"] if isinstance(rule["conditions"], str) else json.dumps(rule["conditions"], ensure_ascii=False)
+                    parts.append(f"条件: {cond}")
+                if rule.get("actions"):
+                    act = rule["actions"] if isinstance(rule["actions"], str) else json.dumps(rule["actions"], ensure_ascii=False)
+                    parts.append(f"动作: {act}")
+                if rule.get("priority"):
+                    parts.append(f"优先级: {rule['priority']}")
+                if rule.get("category"):
+                    parts.append(f"类别: {rule['category']}")
+                rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
+
+    records = run.get("records", [])
+    failed_records = [r for r in records if r.get("verdict") in ("FAIL", "ERROR", "WARNING")]
+
+    if not failed_records:
+        return {"status": "ok", "data": {"analysis": []}}
+
+    # Include available rule names so LLM can reference them exactly
+    available_rules = list(rule_doc_map.keys()) if rule_doc_map else []
+
+    failed_summary = json.dumps([{
+        "caseId": r.get("caseId"),
+        "verdict": r.get("verdict"),
+        "reasoning": r.get("reasoning"),
+        "triggeredRules": r.get("triggeredRules", []),
+        "failedNode": r.get("failedNode"),
+        "category": r.get("category", ""),
+        "title": r.get("title", ""),
+    } for r in failed_records[:50]], ensure_ascii=False, indent=1)
+
+    prompt = f"""Analyze the following {len(failed_records)} failed/warning test results from an HRO ontology test run.
+Extract structured gap analysis information.
+
+## Available Ontology Rule Names
+{json.dumps(available_rules, ensure_ascii=False)}
+
+## Failed Records
+{failed_summary}
+
+## Task
+For each distinct candidate or scenario identified in the failures, produce a gap analysis entry.
+
+Return a JSON array where each item has:
+- candidateName: string (candidate name or test scenario name)
+- jdTitle: string (related JD or test category)
+- failedRules: [{{ruleName: string (MUST match one of the Available Ontology Rule Names above), ruleDescription: string, severity: "P0"|"P1"|"P2"}}]
+- missingSkills: [string] (skills or capabilities that are missing)
+- gapScore: number (0.0 to 1.0, where 1.0 means maximum gap)
+
+IMPORTANT: Each failedRules[].ruleName MUST exactly match a rule name from the Available Ontology Rule Names list.
+
+Generate 3-8 gap analysis entries based on the failure patterns. Use Chinese for descriptions."""
+
+    result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
+    if result is None:
+        raise HTTPException(500, gemini.last_error or "LLM analysis failed")
+
+    analysis = result if isinstance(result, list) else result.get("analysis", [])
+
+    # Post-process: replace ruleDescription with original rule document text
+    for item in analysis:
+        if not isinstance(item, dict):
+            continue
+        for fr in item.get("failedRules", []):
+            if not isinstance(fr, dict):
+                continue
+            rn = fr.get("ruleName", "")
+            if rn in rule_doc_map:
+                fr["ruleDescription"] = rule_doc_map[rn]
+            elif rn:
+                fr["ruleDescription"] = f"[未匹配规则原文] {fr.get('ruleDescription', '')}"
+
+    return {"status": "ok", "data": {"analysis": analysis}}
+
+
+@app.post("/optimization/suggestions")
+async def optimization_suggestions(req: SuggestionsRequest):
+    """Generate actionable optimization suggestions based on test failures, linked to specific violated rules."""
+    run = None
+    for r in _runs:
+        if r["runId"] == req.runId:
+            run = r
+            break
+    if not run:
+        raise HTTPException(404, "Run not found")
+
+    # Build rule doc map from snapshot
+    snap_id = run.get("snapshotId", "")
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snap_id:
+            snap = s
+            break
+    rule_doc_map = {}
+    if snap:
+        for rule in snap.get("rules", []):
+            rname = rule.get("name", rule.get("ruleName", ""))
+            if rname:
+                parts = []
+                if rule.get("description"):
+                    parts.append(f"描述: {rule['description']}")
+                if rule.get("conditions"):
+                    cond = rule["conditions"] if isinstance(rule["conditions"], str) else json.dumps(rule["conditions"], ensure_ascii=False)
+                    parts.append(f"条件: {cond}")
+                if rule.get("actions"):
+                    act = rule["actions"] if isinstance(rule["actions"], str) else json.dumps(rule["actions"], ensure_ascii=False)
+                    parts.append(f"动作: {act}")
+                rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
+
+    records = run.get("records", [])
+    failed_records = [r for r in records if r.get("verdict") in ("FAIL", "ERROR", "WARNING")]
+
+    if not failed_records:
+        return {"status": "ok", "data": {"suggestions": []}}
+
+    failed_summary = json.dumps([{
+        "caseId": r.get("caseId"),
+        "verdict": r.get("verdict"),
+        "reasoning": r.get("reasoning"),
+        "triggeredRules": r.get("triggeredRules", []),
+        "failedNode": r.get("failedNode"),
+        "title": r.get("title", ""),
+    } for r in failed_records[:50]], ensure_ascii=False, indent=1)
+
+    available_rules = list(rule_doc_map.keys()) if rule_doc_map else []
+
+    prompt = f"""Based on the following {len(failed_records)} failed test results, generate per-rule optimization suggestions for each candidate.
+
+## Available Ontology Rule Names
+{json.dumps(available_rules, ensure_ascii=False)}
+
+## Failed Records
+{failed_summary}
+
+## Task
+For each candidate, analyze EACH violated rule and generate ONE specific optimization suggestion per rule.
+
+Return a JSON array where each item has:
+- candidateName: string (candidate name or scenario)
+- overallAdvice: string (1-2 sentence overall recommendation in Chinese)
+- suggestions: [{{
+    ruleName: string (the violated rule name, MUST match one from Available Ontology Rule Names),
+    ruleDescription: string (brief description of what the rule requires),
+    area: string (improvement area like "技术技能", "学历", "工作经验", "资质认证"),
+    currentState: string (what the candidate currently lacks regarding this rule),
+    recommendation: string (specific actionable advice for the candidate to satisfy this rule, in Chinese),
+    priority: "HIGH" | "MEDIUM" | "LOW" (based on rule severity)
+  }}]
+
+IMPORTANT:
+- Generate ONE suggestion for EACH violated rule per candidate.
+- Each suggestion must be directly tied to a specific violated rule.
+- ruleName must exactly match a name from the Available Ontology Rule Names list.
+- Advice should be concrete and actionable for the candidate's resume.
+
+Use Chinese for all text fields."""
+
+    result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.4)
+    if result is None:
+        raise HTTPException(500, gemini.last_error or "LLM generation failed")
+
+    suggestions = result if isinstance(result, list) else result.get("suggestions", [])
+
+    # Post-process: fill in full rule doc text for ruleDescription
+    for sug in suggestions:
+        if not isinstance(sug, dict):
+            continue
+        for s in sug.get("suggestions", []):
+            if not isinstance(s, dict):
+                continue
+            rn = s.get("ruleName", "")
+            if rn in rule_doc_map:
+                s["ruleDescription"] = rule_doc_map[rn]
+
+    return {"status": "ok", "data": {"suggestions": suggestions}}
 
 
 if __name__ == "__main__":

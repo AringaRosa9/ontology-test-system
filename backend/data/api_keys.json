@@ -6,9 +6,33 @@
     "key": "sk-KcHo6q6R944tsSLv4mf6i2wf9wIxQSWJqM5muBzY2kj3wOqD",
     "model": "gemini-3-pro-preview",
     "baseUrl": "https://twob.pp.ua/v1",
-    "isActive": true,
+    "isActive": false,
     "status": "invalid",
     "addedAt": "2026-03-06T05:22:02.737290+00:00",
     "lastTestedAt": "2026-03-06T05:22:29.109948+00:00"
+  },
+  {
+    "keyId": "key_58733da8",
+    "provider": "gemini",
+    "label": "测试用key1",
+    "key": "AIzaSyDKJxYyguFoSltNaNbUaZB35hFkg08INz0",
+    "model": "gemini-3.0-pro",
+    "baseUrl": null,
+    "isActive": true,
+    "status": "untested",
+    "addedAt": "2026-03-09T03:43:39.323112+00:00",
+    "lastTestedAt": null
+  },
+  {
+    "keyId": "key_90f5e778",
+    "provider": "gemini",
+    "label": "测试用key2",
+    "key": "AIzaSyDP8kPN-vFoR_rovo-MTP6pHsj-lExx5Jk",
+    "model": "gemini-3.0-flash",
+    "baseUrl": null,
+    "isActive": false,
+    "status": "untested",
+    "addedAt": "2026-03-09T08:09:12.105294+00:00",
+    "lastTestedAt": null
   }
 ]

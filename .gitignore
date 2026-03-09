@@ -11,3 +11,8 @@
 
 # backend
 /backend/.env
+/backend/venv/
+/backend/package-lock.json
+
+# cache
+/frontend/.npm-cache/
