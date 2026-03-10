@@ -253,8 +253,9 @@ export interface CaseCoverageItem {
     triggeredRuleDetails: {
         ruleId: string;
         ruleName: string;
+        rulePolarity: 'positive' | 'negative' | 'neutral';
         ruleDescription: string;
-        funnelStage: string;
+        aiChainOfThought: string;
     }[];
     failedNode?: FailedNode;
 }

@@ -3153,18 +3153,35 @@ CROSS_TEST_STAGES = [
 MAX_RULES_FOR_CROSS_TEST = 50
 
 
+_DEPT_SPLIT_RE = _re.compile(r"[,，;；、/\s]+")
+
+
+def _split_departments(dept_str: str) -> set:
+    """Split an applicableDepartment string into a set of department names."""
+    if not dept_str or not dept_str.strip():
+        return set()
+    return {d.strip() for d in _DEPT_SPLIT_RE.split(dept_str.strip()) if d.strip()}
+
+
 def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
-    """Filter ontology rules by specificScenarioStage and applicableClient for cross-test."""
-    # Extract applicableClient values from JD items
+    """Filter ontology rules by specificScenarioStage, applicableClient, and applicableDepartment."""
+    # Extract applicableClient and department values from JD items
     jd_clients: set = set()
+    jd_departments: set = set()
     for j in jd_items:
         client = j.get("applicableClient", "")
         if client:
             jd_clients.add(client)
+        dept = j.get("department", "")
+        if dept:
+            jd_departments.add(dept)
         # Also check generatedData for simulated JDs
         gd = j.get("generatedData", {})
-        if gd and gd.get("applicableClient"):
-            jd_clients.add(gd["applicableClient"])
+        if gd:
+            if gd.get("applicableClient"):
+                jd_clients.add(gd["applicableClient"])
+            if gd.get("department"):
+                jd_departments.add(gd["department"])
     # Always include "通用"
     jd_clients.add("通用")
 
@@ -3175,6 +3192,7 @@ def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
     for rule in rules:
         stage = rule.get("specificScenarioStage", "")
         client = rule.get("applicableClient", "")
+        rule_dept = rule.get("applicableDepartment")
 
         # Condition A: stage must be in CROSS_TEST_STAGES
         if stage not in stage_priority:
@@ -3183,6 +3201,15 @@ def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
         # Condition B: client must match (通用, empty/null, or matching JD client)
         if client and client != "通用" and client not in jd_clients:
             continue
+
+        # Condition C: department must match
+        # - rule_dept is None/empty → applies to all departments → pass
+        # - jd_departments is empty → cannot determine, don't exclude → pass
+        # - otherwise → split rule_dept and intersect with jd_departments
+        if rule_dept and rule_dept.strip() and jd_departments:
+            rule_depts = _split_departments(rule_dept)
+            if rule_depts and not rule_depts.intersection(jd_departments):
+                continue
 
         filtered.append(rule)
 
@@ -3202,7 +3229,11 @@ def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
     # Log stage distribution
     from collections import Counter
     stage_counts = Counter(r.get("specificScenarioStage", "") for r in filtered)
-    logger.info(f"Cross-test rule filtering: {len(filtered)}/{len(rules)} rules selected, stages: {dict(stage_counts)}")
+    logger.info(
+        f"交叉测试规则筛选: {len(filtered)}/{len(rules)} 条入选, "
+        f"客户集合: {jd_clients}, 部门集合: {jd_departments}, "
+        f"阶段分布: {dict(stage_counts)}"
+    )
 
     return filtered
 
@@ -3265,6 +3296,7 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
         "ruleName": r.get("businessLogicRuleName"),
         "stage": r.get("specificScenarioStage"),
         "client": r.get("applicableClient"),
+        "department": r.get("applicableDepartment"),
         "criteria": r.get("submissionCriteria"),
         "rule": r.get("standardizedLogicRule"),
     } for r in filtered_rules], ensure_ascii=False, indent=1)
@@ -3803,6 +3835,18 @@ async def get_coverage_matrix(run_id: str):
             "relatedEntities": "",
         }
 
+    def _determine_polarity(rule_ref: str, verdict: str, score) -> str:
+        """Determine rule polarity: positive (pass=bonus), negative (fail=penalty), neutral."""
+        if verdict == "FAIL":
+            return "negative"
+        if verdict == "PASS" and score is not None and score >= 70:
+            return "positive"
+        if verdict == "PASS" and score is not None and score < 70:
+            return "neutral"
+        if verdict == "PASS":
+            return "positive"
+        return "neutral"
+
     # ── Build per-rule and per-case aggregations ──
     rule_agg: Dict[str, dict] = {}  # ruleId -> aggregation
     case_coverage = []
@@ -3831,7 +3875,9 @@ async def get_coverage_matrix(run_id: str):
         triggered_details = []
         for rref in rule_refs:
             meta = _get_rule_meta(rref)
-            meta["funnelStage"] = funnel
+            polarity = _determine_polarity(rref, verdict, score)
+            meta["rulePolarity"] = polarity
+            meta["aiChainOfThought"] = ""  # placeholder, will be filled by AI batch below
             triggered_details.append(meta)
 
             # Aggregate into rule_agg
@@ -3870,6 +3916,71 @@ async def get_coverage_matrix(run_id: str):
             "triggeredRuleDetails": triggered_details,
             "failedNode": fn,
         })
+
+    # ── Generate AI Chain-of-Thought for triggered rules in case coverage ──
+    if gemini.is_configured and case_coverage:
+        cot_items = []
+        for cc in case_coverage:
+            case_title = cc.get("title", "")
+            case_verdict = cc.get("verdict", "")
+            case_score = cc.get("score")
+            for rd in cc.get("triggeredRuleDetails", []):
+                cot_items.append({
+                    "caseTitle": case_title,
+                    "verdict": case_verdict,
+                    "score": case_score,
+                    "ruleId": rd.get("ruleId", ""),
+                    "ruleName": rd.get("ruleName", ""),
+                    "ruleDescription": rd.get("ruleDescription", ""),
+                    "rulePolarity": rd.get("rulePolarity", "neutral"),
+                })
+        if cot_items:
+            cot_batch = cot_items[:30]  # limit to 30 to avoid token overflow
+            cot_prompt = f"""你是招聘匹配系统的AI评估专家。以下是一组测试用例与其触发规则的信息。
+请对每条记录生成一段简短的"AI思维链"（50-100字），说明LLM在匹配候选人简历与JD时，是如何判断这条规则对该候选人是加分（正向）还是减分（负向）还是无影响的推理过程。
+
+## 数据
+{json.dumps(cot_batch, ensure_ascii=False, indent=1)}
+
+请返回一个JSON数组，每个元素格式：
+{{"ruleId": "<规则ID>", "caseTitle": "<用例标题>", "chainOfThought": "<AI思维链推理过程>"}}
+
+要求：
+1. 思维链要体现LLM的推理逻辑，例如"该候选人具备X技能，满足规则Y要求的Z条件，因此该规则为加分项"
+2. 如果是负向规则，说明候选人哪些方面不满足规则要求
+3. 如果是无影响规则，说明为何该规则不影响最终评分
+4. 语言简洁，每条50-100字
+
+返回JSON数组。"""
+            try:
+                cot_result = await gemini.generate_json(SYSTEM_PROMPT, cot_prompt, temp=0.3)
+                if cot_result and isinstance(cot_result, list):
+                    cot_map = {}
+                    for item in cot_result:
+                        if isinstance(item, dict):
+                            key = (item.get("ruleId", ""), item.get("caseTitle", ""))
+                            cot_map[key] = item.get("chainOfThought", "")
+                    for cc in case_coverage:
+                        case_title = cc.get("title", "")
+                        for rd in cc.get("triggeredRuleDetails", []):
+                            key = (rd.get("ruleId", ""), case_title)
+                            if key in cot_map:
+                                rd["aiChainOfThought"] = cot_map[key]
+            except Exception as e:
+                logger.warning(f"AI chain-of-thought generation failed: {str(e)[:200]}")
+
+    # If AI was not available, generate fallback chain-of-thought based on polarity
+    for cc in case_coverage:
+        for rd in cc.get("triggeredRuleDetails", []):
+            if not rd.get("aiChainOfThought"):
+                polarity = rd.get("rulePolarity", "neutral")
+                rule_name = rd.get("ruleName", "该规则")
+                if polarity == "positive":
+                    rd["aiChainOfThought"] = f"候选人满足「{rule_name}」的要求条件，该规则在匹配中为加分项，提升了整体匹配评分。"
+                elif polarity == "negative":
+                    rd["aiChainOfThought"] = f"候选人未能满足「{rule_name}」的要求条件，该规则在匹配中为减分项，降低了整体匹配评分。"
+                else:
+                    rd["aiChainOfThought"] = f"「{rule_name}」在匹配过程中被涉及，但未对候选人的最终匹配评分产生显著正向或负向影响。"
 
     # Finalize rule coverage
     rule_coverage = []

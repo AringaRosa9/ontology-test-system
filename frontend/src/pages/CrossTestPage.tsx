@@ -13,31 +13,7 @@ import api from '../api';
 import type { ApiResponse, OntologySnapshot, BusinessDataItem, CrossTestResult, FailedNode, MatchTraceStep } from '../types';
 
 function FailedNodePanel({ node, reasoning }: { node: FailedNode; reasoning?: string }) {
-    const ruleColumns = [
-        { title: '规则ID', dataIndex: 'id', key: 'id', width: 100 },
-        { title: '场景阶段', dataIndex: 'specificScenarioStage', key: 'specificScenarioStage', width: 140 },
-        { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
-        { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
-        { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
-        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule',
-            render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
-        },
-        {
-            title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
-            render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
-        },
-    ];
-
-    const ruleData = [{
-        key: 'rule-0',
-        id: node.id || '—',
-        specificScenarioStage: node.specificScenarioStage || '—',
-        businessLogicRuleName: node.businessLogicRuleName || node.ruleName || '—',
-        applicableClient: node.applicableClient || '—',
-        applicableDepartment: node.applicableDepartment || '—',
-        standardizedLogicRule: node.standardizedLogicRule || node.ruleDescription || '—',
-        relatedEntities: node.relatedEntities || '',
-    }];
+    const entities = (node.relatedEntities || '').split('\n').filter((e: string) => e.trim());
 
     return (
         <Card size="small" style={{ background: 'rgba(251, 113, 133, 0.08)', border: '1px solid rgba(251, 113, 133, 0.3)' }}>
@@ -64,17 +40,29 @@ function FailedNodePanel({ node, reasoning }: { node: FailedNode; reasoning?: st
                         <Typography.Paragraph style={{ margin: 0 }}>{reasoning}</Typography.Paragraph>
                     </div>
                 )}
-                <div>
-                    <Typography.Text type="secondary" strong>失败规则：</Typography.Text>
-                    <Table
-                        size="small"
-                        pagination={false}
-                        columns={ruleColumns}
-                        dataSource={ruleData}
-                        style={{ marginTop: 4 }}
-                        scroll={{ x: 900 }}
-                    />
-                </div>
+                <Descriptions
+                    bordered
+                    size="small"
+                    column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+                    style={{ marginTop: 4 }}
+                    title={<Typography.Text type="secondary" strong>失败规则</Typography.Text>}
+                >
+                    <Descriptions.Item label="规则ID">{node.id || '—'}</Descriptions.Item>
+                    <Descriptions.Item label="场景阶段">{node.specificScenarioStage || '—'}</Descriptions.Item>
+                    <Descriptions.Item label="规则名称">{node.businessLogicRuleName || node.ruleName || '—'}</Descriptions.Item>
+                    <Descriptions.Item label="适用客户">{node.applicableClient || '—'}</Descriptions.Item>
+                    <Descriptions.Item label="适用部门">{node.applicableDepartment || '—'}</Descriptions.Item>
+                    <Descriptions.Item label="关联实体">
+                        {entities.length > 0
+                            ? entities.map((e: string, i: number) => <Tag key={i} color="blue" style={{ marginBottom: 2 }}>{e.trim()}</Tag>)
+                            : '—'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="规则详情" span={3}>
+                        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {node.standardizedLogicRule || node.ruleDescription || '—'}
+                        </div>
+                    </Descriptions.Item>
+                </Descriptions>
             </Space>
         </Card>
     );

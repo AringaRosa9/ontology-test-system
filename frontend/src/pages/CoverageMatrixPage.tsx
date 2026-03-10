@@ -265,11 +265,33 @@ export default function CoverageMatrixPage() {
                                             title: '规则ID', dataIndex: 'ruleId', width: 100,
                                             render: (id: string, r: any) => <a onClick={() => showRuleDetail(id, r.ruleName, r.ruleDescription, '', '', '')} style={{ color: '#1890ff' }}>{id}</a>,
                                         },
+                                        {
+                                            title: '规则极性', dataIndex: 'rulePolarity', width: 90,
+                                            render: (v: string) => {
+                                                const map: Record<string, { color: string; label: string }> = {
+                                                    positive: { color: 'green', label: '正向' },
+                                                    negative: { color: 'red', label: '负向' },
+                                                    neutral: { color: 'default', label: '无影响' },
+                                                };
+                                                const item = map[v] || map.neutral;
+                                                return <Tag color={item.color}>{item.label}</Tag>;
+                                            },
+                                        },
                                         { title: '规则名称', dataIndex: 'ruleName', width: 180 },
                                         { title: '规则描述', dataIndex: 'ruleDescription',
                                             render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
                                         },
-                                        { title: '漏斗阶段', dataIndex: 'funnelStage', width: 90, render: (v: string) => v ? <Tag color="purple">{FUNNEL_LABEL[v] || v}</Tag> : '—' },
+                                        {
+                                            title: 'AI思维链', dataIndex: 'aiChainOfThought', width: 320,
+                                            render: (v: string) => (
+                                                <Typography.Paragraph
+                                                    ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+                                                    style={{ margin: 0, fontSize: 12, color: '#8b95b0' }}
+                                                >
+                                                    {v || '—'}
+                                                </Typography.Paragraph>
+                                            ),
+                                        },
                                     ]}
                                 />
                             )}
