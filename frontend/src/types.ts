@@ -87,6 +87,7 @@ export interface TestExecutionRecord {
     snapshotId: string;
     category?: string;
     title?: string;
+    score?: number;
     failedNode?: FailedNode;
 }
 
@@ -123,6 +124,8 @@ export interface BusinessDataItem {
     filename: string;
     columns?: string[];
     recordCount?: number;
+    department?: string;
+    applicableClient?: '通用' | '字节' | '腾讯';
     preview?: {
         name?: string;
         skills?: string[];
@@ -130,6 +133,7 @@ export interface BusinessDataItem {
         columns?: string[];
         recordCount?: number;
         sampleRecord?: Record<string, any>;
+        department?: string;
     };
     uploadedAt: string;
 }
@@ -139,6 +143,8 @@ export interface ApiKeyItem {
     provider: string;
     label: string;
     maskedKey: string;
+    model?: string;
+    baseUrl?: string;
     isActive: boolean;
     status: 'untested' | 'valid' | 'invalid';
     addedAt: string;
@@ -197,6 +203,7 @@ export interface CrossTestResult {
         resumeName: string;
         jdTitle: string;
         verdict: string;
+        score: number;
         triggeredRules: string[];
         reasoning: string;
         failedNode?: FailedNode;
@@ -211,7 +218,96 @@ export interface SimulatedDataItem {
     subType: string;
     filename: string;
     generatedData: Record<string, any>;
+    applicableClient?: '通用' | '字节' | '腾讯';
     generatedAt: string;
+}
+
+// ── Coverage Matrix Types ──
+
+export interface RuleCoverageItem {
+    ruleId: string;
+    ruleName: string;
+    ruleDescription: string;
+    scenarioStage: string;
+    applicableClient: string;
+    funnelStage: string;
+    relatedEntities: string;
+    triggeredByCases: {
+        caseId: string;
+        title: string;
+        verdict: string;
+        score?: number;
+    }[];
+    totalTriggered: number;
+    blockedCount: number;
+    avgScore?: number | null;
+}
+
+export interface CaseCoverageItem {
+    caseId: string;
+    title: string;
+    category: string;
+    verdict: string;
+    score?: number;
+    triggeredRuleIds: string[];
+    triggeredRuleDetails: {
+        ruleId: string;
+        ruleName: string;
+        ruleDescription: string;
+        funnelStage: string;
+    }[];
+    failedNode?: FailedNode;
+}
+
+export interface BlockingSummary {
+    totalRulesInvolved: number;
+    totalCases: number;
+    totalBlocked: number;
+    avgScoreAll?: number | null;
+    avgScoreBlocked?: number | null;
+    funnelBreakdown: Record<string, { total: number; blocked: number }>;
+    topBlockingRules: {
+        ruleId: string;
+        ruleName: string;
+        blockedCount: number;
+        avgBlockedScore?: number | null;
+        funnelStage: string;
+    }[];
+}
+
+export interface CoverageMatrixData {
+    runId: string;
+    executedAt: string;
+    executionMode: string;
+    isCrossTest: boolean;
+    ruleCoverage: RuleCoverageItem[];
+    caseCoverage: CaseCoverageItem[];
+    blockingSummary: BlockingSummary;
+}
+
+export interface FunnelPrediction {
+    currentPassRate: number;
+    predictedPassRate: number;
+    passRateChange: string;
+    currentFunnel: Record<string, number>;
+    predictedFunnel: Record<string, number>;
+    newlyPassedCandidates: {
+        name: string;
+        currentScore: number;
+        predictedScore: number;
+    }[];
+}
+
+export interface FunnelSuggestionItem {
+    ruleId: string;
+    ruleName: string;
+    currentBlockedCount: number;
+    currentRule: string;
+    relaxSuggestion: string;
+    modifiedRulePreview: string;
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    riskDescription: string;
+    prediction: FunnelPrediction;
 }
 
 export interface ApiResponse<T> {

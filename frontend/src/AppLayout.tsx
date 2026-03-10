@@ -19,6 +19,7 @@ import {
     SwapOutlined,
     BulbOutlined,
     FileSearchOutlined,
+    AppstoreOutlined,
 } from '@ant-design/icons';
 
 const { Sider, Content } = Layout;
@@ -61,7 +62,8 @@ const menuItems: MenuItem[] = [
         label: '测试结果',
         children: [
             { key: '/reports', icon: <BarChartOutlined />, label: '测试报告' },
-            { key: '/optimization', icon: <BulbOutlined />, label: '优化建议' },
+            { key: '/coverage-matrix', icon: <AppstoreOutlined />, label: '覆盖矩阵' },
+            { key: '/optimization', icon: <BulbOutlined />, label: '分析优化' },
         ],
     },
     { key: '/api-keys', icon: <KeyOutlined />, label: 'API Key 管理' },
@@ -79,7 +81,7 @@ export default function AppLayout() {
         if (p === '/ontology' || p === '/validation') return ['ontology-group'];
         if (p.startsWith('/business-data')) return ['business-data-group'];
         if (['/execution', '/cross-test', '/history'].includes(p)) return ['unified-test-group'];
-        if (['/reports', '/optimization'].includes(p)) return ['results-group'];
+        if (['/reports', '/coverage-matrix', '/optimization'].includes(p)) return ['results-group'];
         return [];
     })();
 

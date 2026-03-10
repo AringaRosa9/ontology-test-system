@@ -19,7 +19,9 @@ function FailedNodePanel({ node, reasoning }: { node: FailedNode; reasoning?: st
         { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
         { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
         { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
-        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule', ellipsis: true },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule',
+            render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
+        },
         {
             title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
             render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
@@ -272,10 +274,10 @@ export default function CrossTestPage() {
         },
         {
             key: 'cross_validate',
-            label: <span><SwapOutlined /> 交叉验证 (N × M)</span>,
+            label: <span><SwapOutlined /> 多对多测试 (N × M)</span>,
             children: (
                 <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                    <Alert type="info" showIcon message="交叉验证将测试所有选定简历与所有选定 JD 的矩阵匹配。留空则使用全部可用数据。" />
+                    <Alert type="info" showIcon message="多对多测试将测试所有选定简历与所有选定 JD 的矩阵匹配。留空则使用全部可用数据。" />
                     <Row gutter={16}>
                         <Col span={12}>
                             <Typography.Text strong>简历（可选筛选）：</Typography.Text>
@@ -311,7 +313,7 @@ export default function CrossTestPage() {
         },
     ];
 
-    const resultRows = result?.results || [];
+    const resultRows = (result?.results || []).slice().sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     const passed = resultRows.filter(r => r.verdict === 'PASS').length;
     const failed = resultRows.filter(r => r.verdict === 'FAIL').length;
     const warnings = resultRows.filter(r => r.verdict === 'WARNING').length;
@@ -394,8 +396,18 @@ export default function CrossTestPage() {
                                 ),
                             },
                             {
+                                title: '评分', dataIndex: 'score', width: 80,
+                                sorter: (a: any, b: any) => (a.score ?? 0) - (b.score ?? 0),
+                                defaultSortOrder: 'descend' as const,
+                                render: (s: number) => (
+                                    <Typography.Text strong style={{ color: s >= 80 ? '#4ade80' : s >= 60 ? '#fbbf24' : '#fb7185' }}>
+                                        {s ?? '-'}
+                                    </Typography.Text>
+                                ),
+                            },
+                            {
                                 title: '触发规则', dataIndex: 'triggeredRules', width: 200,
-                                render: (rules: string[]) => rules?.slice(0, 3).map(r => <Tag key={r} color="volcano" style={{ marginBottom: 2 }}>{r}</Tag>) || '-',
+                                render: (rules: string[]) => rules?.map(r => <Tag key={r} color="volcano" style={{ marginBottom: 2 }}>{r}</Tag>) || '-',
                             },
                             { title: '推理说明', dataIndex: 'reasoning', ellipsis: true },
                             {

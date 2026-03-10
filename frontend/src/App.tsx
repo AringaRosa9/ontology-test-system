@@ -8,6 +8,7 @@ import BusinessDataPage from './pages/BusinessDataPage';
 import SimulatedDataPage from './pages/SimulatedDataPage';
 import CrossTestPage from './pages/CrossTestPage';
 import OptimizationPage from './pages/OptimizationPage';
+import CoverageMatrixPage from './pages/CoverageMatrixPage';
 
 import ExecutionPage from './pages/ExecutionPage';
 import HistoryPage from './pages/HistoryPage';
@@ -74,6 +75,7 @@ function App() {
             <Route path="/cross-test" element={<CrossTestPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/reports" element={<ReportPage />} />
+            <Route path="/coverage-matrix" element={<CoverageMatrixPage />} />
             <Route path="/optimization" element={<OptimizationPage />} />
             <Route path="/api-keys" element={<ApiKeyPage />} />
           </Route>

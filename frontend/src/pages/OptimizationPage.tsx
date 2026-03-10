@@ -133,8 +133,8 @@ export default function OptimizationPage() {
         { title: '适用部门', dataIndex: 'applicableDepartment', width: 120,
             render: (v: string) => v || '-',
         },
-        { title: '规则详情', dataIndex: 'standardizedLogicRule', ellipsis: true,
-            render: (v: string) => v || '-',
+        { title: '规则详情', dataIndex: 'standardizedLogicRule',
+            render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '-'}</div>,
         },
         { title: '关联实体', dataIndex: 'relatedEntities', width: 180,
             render: (v: string) => v
@@ -184,11 +184,11 @@ export default function OptimizationPage() {
                                 },
                                 {
                                     title: '失败规则', dataIndex: 'failedRules', width: 250,
-                                    render: (rules: any[]) => rules?.slice(0, 3).map((r, i) => (
+                                    render: (rules: any[]) => rules?.map((r, i) => (
                                         <Tooltip key={i} title={r.businessLogicRuleName || r.ruleName}>
                                             <Tag
                                                 color={r.severity === 'P0' ? 'red' : r.severity === 'P1' ? 'orange' : 'blue'}
-                                                style={{ cursor: r.id ? 'pointer' : 'default' }}
+                                                style={{ cursor: r.id ? 'pointer' : 'default', marginBottom: 2 }}
                                                 onClick={() => r.id && showRuleDetail(r)}
                                             >
                                                 {r.id || r.ruleName}
@@ -269,8 +269,7 @@ export default function OptimizationPage() {
                                             },
                                             {
                                                 title: '规则说明', dataIndex: 'standardizedLogicRule', width: 220,
-                                                ellipsis: true,
-                                                render: (v: string, record: any) => v || record.ruleDescription || '-',
+                                                render: (v: string, record: any) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || record.ruleDescription || '-'}</div>,
                                             },
                                             {
                                                 title: '领域', dataIndex: 'area', width: 100,
@@ -297,7 +296,7 @@ export default function OptimizationPage() {
 
     return (
         <div>
-            <Typography.Title level={3} className="page-title">优化建议</Typography.Title>
+            <Typography.Title level={3} className="page-title">分析优化</Typography.Title>
             <Typography.Paragraph style={{ color: '#9ba6c7' }}>
                 分析测试失败用例，识别差距，为候选人生成可操作的改进建议
             </Typography.Paragraph>

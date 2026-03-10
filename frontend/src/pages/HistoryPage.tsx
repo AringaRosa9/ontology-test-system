@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Typography, Card, Table, Tag, Space, Button, Row, Col, message, Descriptions } from 'antd';
-import { ReloadOutlined, EyeOutlined, BugOutlined } from '@ant-design/icons';
+import { Typography, Card, Table, Tag, Space, Button, Row, Col, message, Descriptions, Popconfirm } from 'antd';
+import { ReloadOutlined, EyeOutlined, BugOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, TestRun, FailedNode } from '../types';
 
@@ -11,7 +11,9 @@ function FailedNodePanel({ node }: { node: FailedNode }) {
         { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
         { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
         { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
-        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule', ellipsis: true },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule',
+            render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
+        },
         {
             title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
             render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
@@ -90,6 +92,15 @@ export default function HistoryPage() {
         } catch { message.error('加载详情失败'); }
     };
 
+    const handleDeleteRun = async (runId: string) => {
+        try {
+            await api.delete(`/executor/runs/${runId}`);
+            message.success('删除成功');
+            setRuns(prev => prev.filter(r => r.runId !== runId));
+            if (detail?.runId === runId) setDetail(null);
+        } catch { message.error('删除失败'); }
+    };
+
     return (
         <div>
             <Typography.Title level={3} className="page-title">历史记录</Typography.Title>
@@ -114,7 +125,7 @@ export default function HistoryPage() {
                             render: (m: string) => {
                                 if (m.startsWith('cross_test:')) {
                                     const sub = m.replace('cross_test:', '');
-                                    const labels: Record<string, string> = { by_resume: '按简历', by_jd: '按JD', cross_validate: '交叉验证' };
+                                    const labels: Record<string, string> = { by_resume: '按简历', by_jd: '按JD', cross_validate: '多对多测试' };
                                     return <Tag color="purple">{`交叉测试:${labels[sub] || sub}`}</Tag>;
                                 }
                                 return <Tag>{m}</Tag>;
@@ -125,7 +136,16 @@ export default function HistoryPage() {
                         { title: '失败', dataIndex: 'failedCases', width: 70, render: (c: number) => <Tag color={c ? 'red' : 'green'}>{c}</Tag> },
                         { title: '通过率', dataIndex: 'coverageRate', width: 90, render: (r: number) => `${(r * 100).toFixed(0)}%` },
                         { title: '时间', dataIndex: 'executedAt', width: 170, render: (t: string) => new Date(t).toLocaleString('zh-CN') },
-                        { title: '操作', width: 80, render: (_: any, row: TestRun) => <Button size="small" icon={<EyeOutlined />} onClick={() => viewDetail(row.runId)}>详情</Button> },
+                        {
+                            title: '操作', width: 140, render: (_: any, row: TestRun) => (
+                                <Space>
+                                    <Button size="small" icon={<EyeOutlined />} onClick={() => viewDetail(row.runId)}>详情</Button>
+                                    <Popconfirm title="确定删除此运行记录？此操作不可恢复。" onConfirm={() => handleDeleteRun(row.runId)} okText="删除" cancelText="取消">
+                                        <Button size="small" danger icon={<DeleteOutlined />} />
+                                    </Popconfirm>
+                                </Space>
+                            ),
+                        },
                     ]}
                 />
             </Card>
@@ -146,6 +166,12 @@ export default function HistoryPage() {
                         columns={[
                             { title: '用例 ID', dataIndex: 'caseId', width: 200, ellipsis: true },
                             { title: '裁定', dataIndex: 'verdict', width: 90, render: (v: string) => <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : 'orange'}>{v}</Tag> },
+                            ...(detail.executionMode.startsWith('cross_test') ? [{
+                                title: '评分', dataIndex: 'score', width: 80, sorter: (a: any, b: any) => (a.score ?? 0) - (b.score ?? 0),
+                                render: (s: number | undefined) => s != null ? (
+                                    <span style={{ color: s >= 80 ? '#4ade80' : s >= 60 ? '#fbbf24' : '#fb7185', fontWeight: 600 }}>{s}</span>
+                                ) : '—',
+                            }] : []),
                             { title: '推理', dataIndex: 'reasoning', ellipsis: true },
                             { title: '触发规则', dataIndex: 'triggeredRules', render: (rules: string[]) => rules?.map(r => <Tag key={r} color="volcano">{r}</Tag>) },
                             {

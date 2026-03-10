@@ -74,6 +74,25 @@ _business_data: List[Dict] = _load_json(BUSINESS_DATA_FILE)
 _api_keys: List[Dict] = _load_json(API_KEYS_FILE)
 _library: List[Dict] = _load_json(LIBRARY_FILE)
 
+# ── Backfill department for existing JD data ──
+_TENCENT_DEPTS = ["IEG", "PCG", "WXG", "CDG", "CSIG", "TEG", "S线"]
+_bd_dirty = False
+for _item in _business_data:
+    if _item.get("type") == "jd" and "department" not in _item:
+        dept = ""
+        for _rec in _item.get("records", []):
+            oa = _rec.get("oa部门", "") or ""
+            for _d in _TENCENT_DEPTS:
+                if _d in oa:
+                    dept = _d
+                    break
+            if dept:
+                break
+        _item["department"] = dept
+        _bd_dirty = True
+if _bd_dirty:
+    _save_json(BUSINESS_DATA_FILE, _business_data)
+
 
 def _persist_snapshots():
     _save_json(SNAPSHOTS_FILE, _snapshots)
@@ -126,24 +145,30 @@ class GeminiClient:
         self._idx = 0
         self.last_error: Optional[str] = None  # stores last LLM error for callers
 
+    def _get_active_custom_keys(self) -> List[Dict]:
+        """Return active custom/openai/anthropic keys that have a baseUrl."""
+        return [k for k in _api_keys if k.get("isActive") and k.get("provider") in ("custom", "openai", "anthropic") and k.get("baseUrl")]
+
     @property
     def _keys(self):
-        """Dynamically load keys: active persisted keys first, then env keys as fallback."""
+        """Dynamically load native Gemini keys: active persisted keys first, then env keys as fallback."""
         persisted = [k["key"] for k in _api_keys if k.get("isActive") and k.get("provider") == "gemini"]
         all_keys = persisted + [k for k in self._env_keys if k not in persisted]
         return all_keys if all_keys else self._env_keys
 
     @property
     def _active_key_model(self) -> Optional[str]:
-        """Return model from the first active persisted Gemini key (if set via UI)."""
+        """Return model from the first active persisted key (any provider)."""
         for k in _api_keys:
-            if k.get("isActive") and k.get("provider") == "gemini" and k.get("model"):
+            if k.get("isActive") and k.get("model"):
                 return k["model"]
         return None
 
     @property
     def is_configured(self):
-        return _GENAI_OK and len(self._keys) > 0
+        has_gemini = _GENAI_OK and len(self._keys) > 0
+        has_custom = len(self._get_active_custom_keys()) > 0
+        return has_gemini or has_custom
 
     def _models_to_try(self) -> list:
         """Return models to attempt: active-key model first (if set), then primary, then fallbacks (deduped)."""
@@ -161,78 +186,162 @@ class GeminiClient:
                 result.append(m)
         return result
 
+    async def _call_openai_compatible(self, key_info: Dict, system: str, prompt: str, temp: float, want_json: bool = True) -> Optional[str]:
+        """Call an OpenAI-compatible endpoint and return the raw response text."""
+        import httpx
+        base_url = key_info["baseUrl"].rstrip("/")
+        # Normalize endpoint URL
+        if not base_url.endswith("/chat/completions"):
+            if base_url.endswith("/v1"):
+                endpoint = base_url + "/chat/completions"
+            else:
+                endpoint = base_url + "/v1/chat/completions"
+        else:
+            endpoint = base_url
+
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        if want_json:
+            messages.append({"role": "user", "content": prompt + "\n\nIMPORTANT: Return valid JSON only, no markdown fences."})
+        else:
+            messages.append({"role": "user", "content": prompt})
+
+        payload: Dict[str, Any] = {
+            "model": key_info.get("model") or self._model,
+            "messages": messages,
+            "temperature": temp,
+        }
+        if want_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        headers = {
+            "Authorization": f"Bearer {key_info['key']}",
+            "Content-Type": "application/json",
+        }
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            resp = await client.post(endpoint, json=payload, headers=headers)
+        if resp.status_code != 200:
+            raise Exception(f"HTTP {resp.status_code}: {resp.text[:300]}")
+        body = resp.json()
+        text = (body.get("choices", [{}])[0].get("message", {}).get("content", "")).strip()
+        return text if text else None
+
     async def generate_json(self, system: str, prompt: str, temp: float = 0.7):
         if not self.is_configured:
-            self.last_error = "LLM未配置：请在API Key管理中添加有效的Gemini API Key"
+            self.last_error = "LLM未配置：请在API Key管理中添加有效的API Key"
             return None
         self.last_error = None
         errors = []
-        for model in self._models_to_try():
-            for attempt in range(len(self._keys)):
-                idx = (self._idx + attempt) % len(self._keys)
-                try:
-                    client = _genai.Client(api_key=self._keys[idx])
-                    resp = await asyncio.to_thread(
-                        client.models.generate_content,
-                        model=model,
-                        contents=prompt,
-                        config=_types.GenerateContentConfig(
-                            system_instruction=system,
-                            temperature=temp,
-                            response_mime_type="application/json",
-                        ),
-                    )
-                    raw = (getattr(resp, "text", "") or "").strip()
-                    if not raw:
-                        continue
-                    parsed = json.loads(raw)
-                    self._idx = idx
-                    if model != self._model:
-                        logger.info(f"Used fallback model {model} (primary={self._model} failed)")
-                    return parsed
-                except Exception as e:
-                    err_str = str(e)
-                    logger.warning(f"Gemini key {idx} model {model} failed: {err_str[:200]}")
-                    # If model is unavailable (404) for ALL keys, skip to next model
-                    if "404" in err_str or "NOT_FOUND" in err_str or "no longer available" in err_str:
-                        errors.append(f"模型 {model} 不可用 (404)")
-                        break  # try next model immediately
-                    elif "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
-                        errors.append(f"模型 {model} Key{idx+1} 配额已用尽 (429)")
-                        continue  # try next key
-                    else:
-                        errors.append(f"模型 {model} Key{idx+1}: {err_str[:100]}")
-                        continue
+
+        # ── Phase 1: Try custom/openai/anthropic keys via OpenAI-compatible API ──
+        custom_keys = self._get_active_custom_keys()
+        for ck in custom_keys:
+            ck_label = ck.get("label", ck.get("keyId", "?"))
+            ck_model = ck.get("model", self._model)
+            try:
+                raw = await self._call_openai_compatible(ck, system, prompt, temp, want_json=True)
+                if not raw:
+                    errors.append(f"[{ck_label}] 返回空内容")
+                    continue
+                # Strip markdown code fences if present
+                if raw.startswith("```"):
+                    raw = raw.split("\n", 1)[-1] if "\n" in raw else raw[3:]
+                    if raw.endswith("```"):
+                        raw = raw[:-3]
+                    raw = raw.strip()
+                parsed = json.loads(raw)
+                logger.info(f"LLM call succeeded via custom key [{ck_label}] model={ck_model}")
+                return parsed
+            except json.JSONDecodeError as e:
+                errors.append(f"[{ck_label}] JSON解析失败: {str(e)[:80]}")
+                logger.warning(f"Custom key {ck_label} returned invalid JSON: {str(e)[:200]}")
+            except Exception as e:
+                err_str = str(e)
+                errors.append(f"[{ck_label}] {err_str[:100]}")
+                logger.warning(f"Custom key {ck_label} model {ck_model} failed: {err_str[:200]}")
+
+        # ── Phase 2: Try native Gemini SDK keys ──
+        if _GENAI_OK and self._keys:
+            for model in self._models_to_try():
+                for attempt in range(len(self._keys)):
+                    idx = (self._idx + attempt) % len(self._keys)
+                    try:
+                        client = _genai.Client(api_key=self._keys[idx])
+                        resp = await asyncio.to_thread(
+                            client.models.generate_content,
+                            model=model,
+                            contents=prompt,
+                            config=_types.GenerateContentConfig(
+                                system_instruction=system,
+                                temperature=temp,
+                                response_mime_type="application/json",
+                            ),
+                        )
+                        raw = (getattr(resp, "text", "") or "").strip()
+                        if not raw:
+                            continue
+                        parsed = json.loads(raw)
+                        self._idx = idx
+                        if model != self._model:
+                            logger.info(f"Used fallback model {model} (primary={self._model} failed)")
+                        return parsed
+                    except Exception as e:
+                        err_str = str(e)
+                        logger.warning(f"Gemini key {idx} model {model} failed: {err_str[:200]}")
+                        if "404" in err_str or "NOT_FOUND" in err_str or "no longer available" in err_str:
+                            errors.append(f"模型 {model} 不可用 (404)")
+                            break
+                        elif "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                            errors.append(f"模型 {model} Key{idx+1} 配额已用尽 (429)")
+                            continue
+                        else:
+                            errors.append(f"模型 {model} Key{idx+1}: {err_str[:100]}")
+                            continue
+
         self.last_error = "LLM调用失败：" + "；".join(errors[-3:]) if errors else "未知错误"
-        logger.error(f"All Gemini attempts failed: {self.last_error}")
+        logger.error(f"All LLM attempts failed: {self.last_error}")
         return None
 
     async def generate_text(self, prompt: str, system: str = "", temp: float = 0.7):
         if not self.is_configured:
             return "[LLM unavailable]"
-        for model in self._models_to_try():
-            for attempt in range(len(self._keys)):
-                idx = (self._idx + attempt) % len(self._keys)
-                try:
-                    client = _genai.Client(api_key=self._keys[idx])
-                    cfg_kw = {"temperature": temp}
-                    if system:
-                        cfg_kw["system_instruction"] = system
-                    resp = await asyncio.to_thread(
-                        client.models.generate_content,
-                        model=model,
-                        contents=prompt,
-                        config=_types.GenerateContentConfig(**cfg_kw),
-                    )
-                    text = (getattr(resp, "text", "") or "").strip()
-                    if text:
-                        self._idx = idx
-                        return text
-                except Exception as e:
-                    err_str = str(e)
-                    logger.warning(f"Gemini text key {idx} model {model} failed: {err_str[:200]}")
-                    if "404" in err_str or "NOT_FOUND" in err_str:
-                        break  # model unavailable, try next model
+
+        # ── Phase 1: Try custom/openai/anthropic keys ──
+        custom_keys = self._get_active_custom_keys()
+        for ck in custom_keys:
+            try:
+                text = await self._call_openai_compatible(ck, system, prompt, temp, want_json=False)
+                if text:
+                    return text
+            except Exception as e:
+                logger.warning(f"Custom key {ck.get('label', '?')} text call failed: {str(e)[:200]}")
+
+        # ── Phase 2: Try native Gemini SDK keys ──
+        if _GENAI_OK and self._keys:
+            for model in self._models_to_try():
+                for attempt in range(len(self._keys)):
+                    idx = (self._idx + attempt) % len(self._keys)
+                    try:
+                        client = _genai.Client(api_key=self._keys[idx])
+                        cfg_kw = {"temperature": temp}
+                        if system:
+                            cfg_kw["system_instruction"] = system
+                        resp = await asyncio.to_thread(
+                            client.models.generate_content,
+                            model=model,
+                            contents=prompt,
+                            config=_types.GenerateContentConfig(**cfg_kw),
+                        )
+                        text = (getattr(resp, "text", "") or "").strip()
+                        if text:
+                            self._idx = idx
+                            return text
+                    except Exception as e:
+                        err_str = str(e)
+                        logger.warning(f"Gemini text key {idx} model {model} failed: {err_str[:200]}")
+                        if "404" in err_str or "NOT_FOUND" in err_str:
+                            break
         return "[LLM unavailable]"
 
 
@@ -991,6 +1100,18 @@ async def get_run(run_id: str):
     raise HTTPException(404, "运行记录不存在")
 
 
+@app.delete("/executor/runs/{run_id}")
+async def delete_run(run_id: str):
+    """Delete a test run record."""
+    with _lock:
+        before = len(_runs)
+        _runs[:] = [r for r in _runs if r["runId"] != run_id]
+        if len(_runs) < before:
+            _persist_runs()
+            return {"status": "ok", "deletedRunId": run_id}
+    raise HTTPException(404, "运行记录不存在")
+
+
 # ─── Report Generation ────────────────────────────────────────────────────────
 
 @app.post("/reports/generate")
@@ -1321,6 +1442,14 @@ async def upload_jd(file: UploadFile = File(...)):
     if not filename.lower().endswith(".csv"):
         raise HTTPException(400, "仅支持CSV文件")
 
+    # Auto-detect applicableClient from filename
+    if "腾讯" in filename or "tencent" in filename.lower():
+        auto_client = "腾讯"
+    elif "字节" in filename or "bytedance" in filename.lower() or "byte" in filename.lower():
+        auto_client = "字节"
+    else:
+        auto_client = "通用"
+
     content = await file.read()
     text = None
     for enc in ("utf-8-sig", "gbk", "utf-8", "latin-1"):
@@ -1366,9 +1495,20 @@ async def upload_jd(file: UploadFile = File(...)):
             title_col = col
             break
 
+    # Department extraction from oa部门 field
+    TENCENT_DEPARTMENTS = ["IEG", "PCG", "WXG", "CDG", "CSIG", "TEG", "S线"]
+
+    def _extract_department(record: dict) -> str:
+        oa = record.get("oa部门", "") or ""
+        for dept in TENCENT_DEPARTMENTS:
+            if dept in oa:
+                return dept
+        return ""
+
     for idx, rec in enumerate(records):
         item_id = f"bd_{uuid.uuid4().hex[:8]}"
         rec_title = rec.get(title_col, "") or f"第{idx + 1}条"
+        department = _extract_department(rec)
         item = {
             "itemId": item_id,
             "type": "jd",
@@ -1377,7 +1517,9 @@ async def upload_jd(file: UploadFile = File(...)):
             "records": [rec],
             "recordCount": 1,
             "title": rec_title,
+            "department": department,
             "sourceFile": filename,
+            "applicableClient": auto_client,
             "uploadedAt": now,
         }
         created_items.append(item)
@@ -1401,6 +1543,9 @@ async def list_business_data():
     summaries = []
     for item in _business_data:
         summary = {k: v for k, v in item.items() if k not in ("parsedData", "records", "pdfBase64")}
+        # Backfill applicableClient for old JD data
+        if item.get("type") == "jd" and "applicableClient" not in summary:
+            summary["applicableClient"] = "通用"
         if item["type"] == "resume":
             pd = item.get("parsedData", {})
             summary["preview"] = {
@@ -1420,6 +1565,7 @@ async def list_business_data():
                 "sampleRecord": recs[0] if recs else {},
                 "title": item.get("title", ""),
                 "sourceFile": item.get("sourceFile", ""),
+                "department": item.get("department", ""),
             }
         summaries.append(summary)
     return {"status": "ok", "data": summaries}
@@ -1464,6 +1610,27 @@ async def delete_business_data(item_id: str):
             _persist_business_data()
             return {"status": "ok"}
     raise HTTPException(404, "业务数据不存在")
+
+
+class BatchTagClientRequest(BaseModel):
+    itemIds: List[str]
+    applicableClient: str  # 通用 | 字节 | 腾讯
+
+
+@app.patch("/business-data/batch-tag-client")
+async def batch_tag_client(req: BatchTagClientRequest):
+    """Batch update applicableClient for JD items."""
+    if req.applicableClient not in ("通用", "字节", "腾讯"):
+        raise HTTPException(400, "适用客户必须是 通用/字节/腾讯 之一")
+    updated = 0
+    with _lock:
+        for item in _business_data:
+            if item["itemId"] in req.itemIds and item.get("type") == "jd":
+                item["applicableClient"] = req.applicableClient
+                updated += 1
+        if updated > 0:
+            _persist_business_data()
+    return {"status": "ok", "data": {"updated": updated}}
 
 
 @app.post("/business-data/reparse-names")
@@ -1972,6 +2139,33 @@ async def add_api_key(request: AddKeyRequest):
         "isActive": True,
         "status": "untested",
     }}
+
+
+class UpdateKeyRequest(BaseModel):
+    model: Optional[str] = None
+    label: Optional[str] = None
+    baseUrl: Optional[str] = None
+
+
+@app.put("/api-keys/{key_id}")
+async def update_api_key(key_id: str, request: UpdateKeyRequest):
+    """Update an API key's model, label, or baseUrl without changing the key itself."""
+    for k in _api_keys:
+        if k["keyId"] == key_id:
+            with _lock:
+                if request.model is not None:
+                    k["model"] = request.model.strip() or k.get("model", "gemini-3.0-flash")
+                if request.label is not None:
+                    k["label"] = request.label.strip() or k.get("label", "")
+                if request.baseUrl is not None:
+                    k["baseUrl"] = request.baseUrl.strip() or None
+                _persist_api_keys()
+            mk = {**k}
+            key_val = mk.get("key", "")
+            mk["maskedKey"] = key_val[:8] + "*" * max(0, len(key_val) - 12) + key_val[-4:] if len(key_val) > 12 else "****"
+            del mk["key"]
+            return {"status": "ok", "data": mk}
+    raise HTTPException(404, "API Key不存在")
 
 
 @app.delete("/api-keys/{key_id}")
@@ -2491,6 +2685,14 @@ async def minio_pull(req: MinIOPullRequest):
                         results["errors"].append(f"{filename}: CSV无有效数据")
                         continue
 
+                    # Auto-detect applicableClient from filename
+                    if "腾讯" in filename or "tencent" in filename.lower():
+                        minio_client_tag = "腾讯"
+                    elif "字节" in filename or "bytedance" in filename.lower() or "byte" in filename.lower():
+                        minio_client_tag = "字节"
+                    else:
+                        minio_client_tag = "通用"
+
                     item_id = f"bd_{uuid.uuid4().hex[:8]}"
                     item = {
                         "itemId": item_id,
@@ -2499,6 +2701,7 @@ async def minio_pull(req: MinIOPullRequest):
                         "columns": [h for h in headers if h],
                         "records": records,
                         "recordCount": len(records),
+                        "applicableClient": minio_client_tag,
                         "uploadedAt": datetime.now(timezone.utc).isoformat(),
                     }
                     with _lock:
@@ -2683,6 +2886,7 @@ class SimulatedDataRequest(BaseModel):
     dataType: str = "resume"  # resume | jd
     subTypes: List[str] = ["normal"]
     count: int = 3
+    targetClient: str = "通用"  # 通用 | 字节 | 腾讯
 
 
 @app.post("/simulated-data/generate")
@@ -2730,7 +2934,22 @@ Return a JSON array of {req.count} resume objects. Each must have:
 
 Make the data realistic and in Chinese. For abnormal types, ensure the defects are clearly present."""
         else:
+            client_hint = ""
+            if req.targetClient == "字节":
+                client_hint = "\nThis JD is for ByteDance (字节跳动). Reflect ByteDance's style, tech stack preferences, and corporate culture in the JD content."
+            elif req.targetClient == "腾讯":
+                client_hint = "\nThis JD is for Tencent (腾讯). Reflect Tencent's style, tech stack preferences, and corporate culture in the JD content."
+            else:
+                client_hint = "\nThis is a generic/universal JD not tied to any specific client."
+
+            dept_hint = ""
+            if req.targetClient == "腾讯":
+                dept_hint = '\n- department: string (must be one of: "IEG", "PCG", "WXG", "CDG", "CSIG", "TEG", "S线")'
+            else:
+                dept_hint = '\n- department: string (department name in Chinese, leave empty string "" if unknown)'
+
             prompt = f"""Generate {req.count} simulated Job Description(s) of type "{sub_type}" for HRO testing.
+Target client: {req.targetClient}{client_hint}
 
 Type descriptions:
 - normal: Standard clear JD with reasonable requirements
@@ -2743,8 +2962,8 @@ Ontology context:
 {rules_sample}
 
 Return a JSON array of {req.count} JD objects. Each must have:
-- title: string (job title in Chinese)
-- department: string
+- title: string (job title in Chinese){dept_hint}
+- applicableClient: string (must be exactly "{req.targetClient}")
 - requirements: [string] (list of requirements)
 - responsibilities: [string]
 - salaryRange: string
@@ -2768,6 +2987,8 @@ Make the data realistic and in Chinese. For abnormal types, ensure the issues ar
                 "generatedData": item_data,
                 "generatedAt": datetime.now(timezone.utc).isoformat(),
             }
+            if req.dataType == "jd":
+                item["applicableClient"] = req.targetClient
             all_generated.append(item)
 
     with _lock:
@@ -2779,6 +3000,9 @@ Make the data realistic and in Chinese. For abnormal types, ensure the issues ar
 
 @app.get("/simulated-data/list")
 async def list_simulated_data():
+    for item in _simulated_data:
+        if item.get("type") == "jd" and "applicableClient" not in item:
+            item["applicableClient"] = "通用"
     return {"status": "ok", "data": _simulated_data}
 
 
@@ -2916,6 +3140,73 @@ def _get_business_item(item_id: str):
     return None
 
 
+# ── Cross-test rule filtering by specificScenarioStage ────────────────────────
+
+# Scenario stages relevant to cross-test (resume × JD matching), ordered by priority
+CROSS_TEST_STAGES = [
+    "简历匹配",              # Highest: direct resume-JD matching rules
+    "简历处理",              # High: resume parsing, dedup, compliance
+    "需求分析",              # Medium: JD-side requirement structuring
+    "候选人沟通&简历下载",    # Auxiliary: candidate info collection
+]
+
+MAX_RULES_FOR_CROSS_TEST = 50
+
+
+def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
+    """Filter ontology rules by specificScenarioStage and applicableClient for cross-test."""
+    # Extract applicableClient values from JD items
+    jd_clients: set = set()
+    for j in jd_items:
+        client = j.get("applicableClient", "")
+        if client:
+            jd_clients.add(client)
+        # Also check generatedData for simulated JDs
+        gd = j.get("generatedData", {})
+        if gd and gd.get("applicableClient"):
+            jd_clients.add(gd["applicableClient"])
+    # Always include "通用"
+    jd_clients.add("通用")
+
+    # Build stage priority map for sorting
+    stage_priority = {stage: i for i, stage in enumerate(CROSS_TEST_STAGES)}
+
+    filtered = []
+    for rule in rules:
+        stage = rule.get("specificScenarioStage", "")
+        client = rule.get("applicableClient", "")
+
+        # Condition A: stage must be in CROSS_TEST_STAGES
+        if stage not in stage_priority:
+            continue
+
+        # Condition B: client must match (通用, empty/null, or matching JD client)
+        if client and client != "通用" and client not in jd_clients:
+            continue
+
+        filtered.append(rule)
+
+    # Sort by stage priority (简历匹配 first)
+    filtered.sort(key=lambda r: stage_priority.get(r.get("specificScenarioStage", ""), 999))
+
+    # Truncate to MAX_RULES_FOR_CROSS_TEST
+    if len(filtered) > MAX_RULES_FOR_CROSS_TEST:
+        logger.info(f"Cross-test rule filtering: truncating {len(filtered)} -> {MAX_RULES_FOR_CROSS_TEST}")
+        filtered = filtered[:MAX_RULES_FOR_CROSS_TEST]
+
+    # Fallback: if no rules matched, use first 15 from full list
+    if not filtered and rules:
+        logger.warning("Cross-test rule filtering: no matching stages found, falling back to first 15 rules")
+        filtered = rules[:15]
+
+    # Log stage distribution
+    from collections import Counter
+    stage_counts = Counter(r.get("specificScenarioStage", "") for r in filtered)
+    logger.info(f"Cross-test rule filtering: {len(filtered)}/{len(rules)} rules selected, stages: {dict(stage_counts)}")
+
+    return filtered
+
+
 def _resume_summary(item: dict) -> str:
     pd = item.get("parsedData", item.get("generatedData", {}))
     return json.dumps({
@@ -2967,7 +3258,16 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
     # Build context
     resume_texts = [_resume_summary(r) for r in resume_items[:10]]
     jd_texts = [_jd_summary(j) for j in jd_items[:10]]
-    rules_ctx = json.dumps(snap.get("rules", [])[:10], ensure_ascii=False, indent=1)
+    # Filter rules by specificScenarioStage relevance instead of hard-coded [:10]
+    filtered_rules = _filter_rules_for_cross_test(snap.get("rules", []), jd_items)
+    rules_ctx = json.dumps([{
+        "id": r.get("id"),
+        "ruleName": r.get("businessLogicRuleName"),
+        "stage": r.get("specificScenarioStage"),
+        "client": r.get("applicableClient"),
+        "criteria": r.get("submissionCriteria"),
+        "rule": r.get("standardizedLogicRule"),
+    } for r in filtered_rules], ensure_ascii=False, indent=1)
     pairs_json = json.dumps(
         [{"resumeName": p["resumeName"], "jdTitle": p["jdTitle"]} for p in pairs],
         ensure_ascii=False,
@@ -2992,6 +3292,7 @@ For each pair, return:
   "resumeName": "<name>",
   "jdTitle": "<title>",
   "verdict": "PASS" | "FAIL" | "WARNING",
+  "score": <integer 0-100, overall match score where 100=perfect match>,
   "triggeredRules": ["<rule IDs that exactly match rule names from the Ontology Rules list above>"],
   "reasoning": "<Chinese, 2-3 sentences explaining WHY the rules are violated or satisfied>",
   "failedNode": <only if FAIL> {{
@@ -3052,6 +3353,10 @@ Return a JSON array."""
                 entry["verdict"] = "WARNING"
             if "reasoning" not in entry:
                 entry["reasoning"] = "LLM 未提供推理说明"
+            if "score" not in entry or not isinstance(entry.get("score"), (int, float)):
+                entry["score"] = 0
+            else:
+                entry["score"] = int(entry["score"])
             if "triggeredRules" not in entry:
                 entry["triggeredRules"] = []
             if "matchTrace" not in entry or not isinstance(entry.get("matchTrace"), list):
@@ -3082,6 +3387,9 @@ Return a JSON array."""
                 "reasoning": error_msg,
             })
 
+    # Sort results by score descending
+    results.sort(key=lambda x: x.get("score", 0), reverse=True)
+
     now_iso = datetime.now(timezone.utc).isoformat()
     ct_result = {
         "testId": f"ct_{uuid.uuid4().hex[:8]}",
@@ -3110,6 +3418,7 @@ Return a JSON array."""
             "snapshotId": snap.get("snapshotId", ""),
             "category": "cross_test",
             "title": f"{r.get('resumeName', '')} ↔ {r.get('jdTitle', '')}",
+            "score": r.get("score"),
             "failedNode": r.get("failedNode"),
         }
         ct_records.append(rec)
@@ -3436,6 +3745,335 @@ Use Chinese for all text fields."""
                 s["ruleDescription"] = rule_doc_map[rn]
             # Enrich with full rule detail fields from snapshot
             _enrich_failed_node(s, rules_list)
+
+    return {"status": "ok", "data": {"suggestions": suggestions}}
+
+
+# ─── Coverage Matrix APIs ────────────────────────────────────────────────────
+
+@app.get("/coverage-matrix/{run_id}")
+async def get_coverage_matrix(run_id: str):
+    """Build coverage matrix: rule traceability + blocking statistics for a test run."""
+    run = None
+    for r in _runs:
+        if r["runId"] == run_id:
+            run = r
+            break
+    if not run:
+        raise HTTPException(404, "Run not found")
+
+    is_cross = run.get("executionMode", "").startswith("cross_test:")
+    records = run.get("records", [])
+    snap_id = run.get("snapshotId", "")
+
+    # Load ontology rules from snapshot
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snap_id:
+            snap = s
+            break
+    rules_list = snap.get("rules", []) if snap else []
+    rules_by_id = {}
+    rules_by_name = {}
+    for rule in rules_list:
+        rid = rule.get("id", "")
+        rname = rule.get("name", rule.get("ruleName", rule.get("businessLogicRuleName", "")))
+        if rid:
+            rules_by_id[rid] = rule
+        if rname:
+            rules_by_name[rname] = rule
+
+    def _get_rule_meta(rule_ref: str) -> dict:
+        rule = rules_by_id.get(rule_ref) or rules_by_name.get(rule_ref)
+        if rule:
+            return {
+                "ruleId": rule.get("id", rule_ref),
+                "ruleName": rule.get("name", rule.get("ruleName", rule.get("businessLogicRuleName", ""))),
+                "ruleDescription": rule.get("standardizedLogicRule", rule.get("description", "")),
+                "scenarioStage": rule.get("specificScenarioStage", ""),
+                "applicableClient": rule.get("applicableClient", ""),
+                "relatedEntities": rule.get("relatedEntities", ""),
+            }
+        return {
+            "ruleId": rule_ref,
+            "ruleName": rule_ref,
+            "ruleDescription": "",
+            "scenarioStage": "",
+            "applicableClient": "",
+            "relatedEntities": "",
+        }
+
+    # ── Build per-rule and per-case aggregations ──
+    rule_agg: Dict[str, dict] = {}  # ruleId -> aggregation
+    case_coverage = []
+
+    for rec in records:
+        case_id = rec.get("caseId", "")
+        title = rec.get("title", case_id)
+        verdict = rec.get("verdict", "")
+        score = rec.get("score")
+        category = rec.get("category", "")
+        triggered = rec.get("triggeredRules", [])
+        fn = rec.get("failedNode")
+        funnel = fn.get("funnelStage", "") if fn and isinstance(fn, dict) else ""
+
+        # Collect all rule refs for this case
+        rule_refs = list(set(triggered))
+        # Also include failedNode rule if present
+        if fn and isinstance(fn, dict):
+            fn_id = fn.get("id", "")
+            fn_name = fn.get("ruleName", "")
+            if fn_id and fn_id not in rule_refs:
+                rule_refs.append(fn_id)
+            elif fn_name and fn_name not in rule_refs:
+                rule_refs.append(fn_name)
+
+        triggered_details = []
+        for rref in rule_refs:
+            meta = _get_rule_meta(rref)
+            meta["funnelStage"] = funnel
+            triggered_details.append(meta)
+
+            # Aggregate into rule_agg
+            key = meta["ruleId"]
+            if key not in rule_agg:
+                rule_agg[key] = {
+                    **meta,
+                    "funnelStage": funnel,
+                    "triggeredByCases": [],
+                    "totalTriggered": 0,
+                    "blockedCount": 0,
+                    "scores": [],
+                }
+            agg = rule_agg[key]
+            agg["totalTriggered"] += 1
+            agg["triggeredByCases"].append({
+                "caseId": case_id,
+                "title": title,
+                "verdict": verdict,
+                "score": score,
+            })
+            if verdict == "FAIL":
+                agg["blockedCount"] += 1
+            if score is not None:
+                agg["scores"].append(score)
+            if funnel and not agg["funnelStage"]:
+                agg["funnelStage"] = funnel
+
+        case_coverage.append({
+            "caseId": case_id,
+            "title": title,
+            "category": category,
+            "verdict": verdict,
+            "score": score,
+            "triggeredRuleIds": [d["ruleId"] for d in triggered_details],
+            "triggeredRuleDetails": triggered_details,
+            "failedNode": fn,
+        })
+
+    # Finalize rule coverage
+    rule_coverage = []
+    for agg in rule_agg.values():
+        scores = agg.pop("scores", [])
+        agg["avgScore"] = round(sum(scores) / len(scores), 1) if scores else None
+        rule_coverage.append(agg)
+    rule_coverage.sort(key=lambda x: x["blockedCount"], reverse=True)
+
+    # ── Blocking summary ──
+    all_scores = [r.get("score") for r in records if r.get("score") is not None]
+    blocked_records = [r for r in records if r.get("verdict") == "FAIL"]
+    blocked_scores = [r.get("score") for r in blocked_records if r.get("score") is not None]
+
+    funnel_breakdown: Dict[str, dict] = {}
+    for rec in records:
+        fn = rec.get("failedNode")
+        stage = (fn.get("funnelStage", "") if fn and isinstance(fn, dict) else "") or "unknown"
+        if stage not in funnel_breakdown:
+            funnel_breakdown[stage] = {"total": 0, "blocked": 0}
+        funnel_breakdown[stage]["total"] += 1
+        if rec.get("verdict") == "FAIL":
+            funnel_breakdown[stage]["blocked"] += 1
+
+    top_rules = sorted(rule_coverage, key=lambda x: x["blockedCount"], reverse=True)[:10]
+
+    blocking_summary = {
+        "totalRulesInvolved": len(rule_coverage),
+        "totalCases": len(records),
+        "totalBlocked": len(blocked_records),
+        "avgScoreAll": round(sum(all_scores) / len(all_scores), 1) if all_scores else None,
+        "avgScoreBlocked": round(sum(blocked_scores) / len(blocked_scores), 1) if blocked_scores else None,
+        "funnelBreakdown": funnel_breakdown,
+        "topBlockingRules": [{
+            "ruleId": r["ruleId"],
+            "ruleName": r["ruleName"],
+            "blockedCount": r["blockedCount"],
+            "avgBlockedScore": round(
+                sum(c["score"] for c in r["triggeredByCases"] if c["verdict"] == "FAIL" and c["score"] is not None) /
+                max(sum(1 for c in r["triggeredByCases"] if c["verdict"] == "FAIL" and c["score"] is not None), 1),
+                1
+            ) if any(c["score"] is not None for c in r["triggeredByCases"]) else None,
+            "funnelStage": r["funnelStage"],
+        } for r in top_rules],
+    }
+
+    return {
+        "status": "ok",
+        "data": {
+            "runId": run_id,
+            "executedAt": run.get("executedAt", ""),
+            "executionMode": run.get("executionMode", ""),
+            "isCrossTest": is_cross,
+            "ruleCoverage": rule_coverage,
+            "caseCoverage": case_coverage,
+            "blockingSummary": blocking_summary,
+        },
+    }
+
+
+class FunnelSuggestionsRequest(BaseModel):
+    runId: str
+    ruleIds: List[str]
+    scoreThreshold: int = 60
+
+
+@app.post("/coverage-matrix/funnel-suggestions")
+async def funnel_suggestions(req: FunnelSuggestionsRequest):
+    """Generate rule relaxation suggestions for high-blocking rules."""
+    run = None
+    for r in _runs:
+        if r["runId"] == req.runId:
+            run = r
+            break
+    if not run:
+        raise HTTPException(404, "Run not found")
+
+    snap_id = run.get("snapshotId", "")
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snap_id:
+            snap = s
+            break
+    rules_list = snap.get("rules", []) if snap else []
+
+    records = run.get("records", [])
+    total_cases = len(records)
+    passed_cases = sum(1 for r in records if r.get("verdict") == "PASS")
+    current_pass_rate = round(passed_cases / max(total_cases, 1), 2)
+
+    # Compute current funnel
+    funnel_counts: Dict[str, int] = {}
+    for rec in records:
+        fn = rec.get("failedNode")
+        stage = (fn.get("funnelStage", "") if fn and isinstance(fn, dict) else "") or "unknown"
+        funnel_counts[stage] = funnel_counts.get(stage, 0) + 1
+
+    # For each requested rule, gather blocked cases
+    rules_context = []
+    for rule_id in req.ruleIds:
+        # Find rule definition
+        rule_def = None
+        for rule in rules_list:
+            if rule.get("id") == rule_id or rule.get("name") == rule_id or rule.get("businessLogicRuleName") == rule_id:
+                rule_def = rule
+                break
+
+        # Find blocked cases by this rule
+        blocked_cases = []
+        for rec in records:
+            triggered = rec.get("triggeredRules", [])
+            fn = rec.get("failedNode")
+            fn_id = fn.get("id", "") if fn and isinstance(fn, dict) else ""
+            fn_name = fn.get("ruleName", "") if fn and isinstance(fn, dict) else ""
+            is_related = rule_id in triggered or fn_id == rule_id or fn_name == rule_id
+            is_blocked = rec.get("verdict") == "FAIL" or (rec.get("score") is not None and rec["score"] < req.scoreThreshold)
+            if is_related and is_blocked:
+                # Extract candidate name from caseId or title
+                title = rec.get("title", rec.get("caseId", ""))
+                parts = title.split(" ↔ ") if " ↔ " in title else title.split(" × ")
+                cand_name = parts[0] if parts else title
+                blocked_cases.append({
+                    "name": cand_name,
+                    "jdTitle": parts[1] if len(parts) > 1 else "",
+                    "score": rec.get("score"),
+                    "verdict": rec.get("verdict"),
+                    "reasoning": rec.get("reasoning", "")[:200],
+                })
+
+        rules_context.append({
+            "ruleId": rule_id,
+            "ruleName": rule_def.get("name", rule_def.get("businessLogicRuleName", rule_id)) if rule_def else rule_id,
+            "ruleDescription": rule_def.get("standardizedLogicRule", rule_def.get("description", "")) if rule_def else "",
+            "scenarioStage": rule_def.get("specificScenarioStage", "") if rule_def else "",
+            "applicableClient": rule_def.get("applicableClient", "") if rule_def else "",
+            "blockedCases": blocked_cases[:10],
+            "blockedCount": len(blocked_cases),
+        })
+
+    rules_json = json.dumps(rules_context, ensure_ascii=False, indent=1)
+    funnel_json = json.dumps(funnel_counts, ensure_ascii=False)
+
+    prompt = f"""你是一个招聘本体规则优化顾问。以下是在一次测试运行中高频阻拦候选人的规则列表，请逐条分析并给出放松建议。
+
+## 当前整体情况
+- 总测试用例数: {total_cases}
+- 当前通过率: {current_pass_rate * 100:.0f}%
+- 评分阈值（低于视为阻拦）: {req.scoreThreshold}
+- 当前漏斗各阶段人数: {funnel_json}
+
+## 需要分析的规则
+{rules_json}
+
+请对每条规则返回一个JSON对象，最终返回一个JSON数组。每条规则的格式：
+{{
+  "ruleId": "<规则ID>",
+  "ruleName": "<规则名称>",
+  "currentBlockedCount": <当前阻拦人数>,
+  "currentRule": "<当前规则摘要>",
+  "relaxSuggestion": "<具体的放松建议，说明修改哪些条件/阈值>",
+  "modifiedRulePreview": "<修改后的规则文本预览>",
+  "riskLevel": "LOW|MEDIUM|HIGH",
+  "riskDescription": "<放松后的风险评估>",
+  "prediction": {{
+    "currentPassRate": {current_pass_rate},
+    "predictedPassRate": <预测修改后通过率，0-1>,
+    "passRateChange": "<如+15%>",
+    "currentFunnel": {funnel_json},
+    "predictedFunnel": {{<各阶段预测人数>}},
+    "newlyPassedCandidates": [
+      {{"name": "<候选人名>", "currentScore": <当前分>, "predictedScore": <预测修改后分数>}}
+    ]
+  }}
+}}
+
+注意：
+1. 放松建议要具体可操作，而不是泛泛而谈
+2. 预测通过率变化要合理，考虑规则放松的实际影响范围
+3. 风险评估要考虑放松后可能引入的误匹配
+4. newlyPassedCandidates 从被阻拦候选人中选择最可能通过的
+
+返回一个JSON数组。"""
+
+    result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.4)
+
+    suggestions = []
+    if result:
+        raw = result if isinstance(result, list) else result.get("suggestions", [])
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            # Ensure prediction sub-object
+            pred = item.get("prediction", {})
+            if not isinstance(pred, dict):
+                pred = {}
+            item["prediction"] = {
+                "currentPassRate": pred.get("currentPassRate", current_pass_rate),
+                "predictedPassRate": pred.get("predictedPassRate", current_pass_rate),
+                "passRateChange": pred.get("passRateChange", "+0%"),
+                "currentFunnel": pred.get("currentFunnel", funnel_counts),
+                "predictedFunnel": pred.get("predictedFunnel", funnel_counts),
+                "newlyPassedCandidates": pred.get("newlyPassedCandidates", []),
+            }
+            suggestions.append(item)
 
     return {"status": "ok", "data": {"suggestions": suggestions}}
 

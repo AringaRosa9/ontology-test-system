@@ -18,7 +18,9 @@ function FailedNodePanel({ node }: { node: FailedNode }) {
         { title: '规则名称', dataIndex: 'businessLogicRuleName', key: 'businessLogicRuleName', width: 160 },
         { title: '适用客户', dataIndex: 'applicableClient', key: 'applicableClient', width: 120 },
         { title: '适用部门', dataIndex: 'applicableDepartment', key: 'applicableDepartment', width: 120 },
-        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule', ellipsis: true },
+        { title: '规则详情', dataIndex: 'standardizedLogicRule', key: 'standardizedLogicRule',
+            render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
+        },
         {
             title: '关联实体', dataIndex: 'relatedEntities', key: 'relatedEntities', width: 180,
             render: (v: string) => v ? v.split('\n').map((e: string, i: number) => <Tag key={i} color="blue">{e.trim()}</Tag>) : '—',
@@ -321,7 +323,7 @@ export default function ExecutionPage() {
                             {
                                 title: '触发规则', dataIndex: 'triggeredRules', width: 180,
                                 render: (rules: string[]) => rules?.length
-                                    ? rules.slice(0, 3).map(r => <Tag key={r} color="volcano" style={{ marginBottom: 2 }}>{r}</Tag>)
+                                    ? rules.map(r => <Tag key={r} color="volcano" style={{ marginBottom: 2 }}>{r}</Tag>)
                                     : <Tag>无</Tag>,
                             },
                             { title: '推理', dataIndex: 'reasoning', ellipsis: true },

@@ -9,6 +9,7 @@ import {
     FileTextOutlined, FilePdfOutlined, DeleteOutlined,
     ExperimentOutlined, InboxOutlined, EyeOutlined, UserOutlined,
     CloudServerOutlined, CloudDownloadOutlined, ApiOutlined, FolderOpenOutlined,
+    TagOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, OntologySnapshot, BusinessDataItem, GeneratedTestCase } from '../types';
@@ -227,6 +228,8 @@ export default function BusinessDataPage() {
     const [resumeLoading, setResumeLoading] = useState(false);
     const [jdModal, setJdModal] = useState<any>(null);
     const [jdLoading, setJdLoading] = useState(false);
+    const [selectedJdIds, setSelectedJdIds] = useState<string[]>([]);
+    const [tagging, setTagging] = useState(false);
 
     const fetchData = () => {
         setLoading(true);
@@ -320,6 +323,23 @@ export default function BusinessDataPage() {
         setGenerating(false);
     };
 
+    const handleBatchTagClient = async (client: '通用' | '字节' | '腾讯') => {
+        if (!selectedJdIds.length) { message.warning('请先选择JD'); return; }
+        setTagging(true);
+        try {
+            const { data: resp } = await api.patch<ApiResponse<{ updated: number }>>('/business-data/batch-tag-client', {
+                itemIds: selectedJdIds,
+                applicableClient: client,
+            });
+            message.success(`已将 ${resp.data.updated} 条JD标记为「${client}」`);
+            setSelectedJdIds([]);
+            fetchData();
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || '标记失败');
+        }
+        setTagging(false);
+    };
+
     const resumes = data.filter(d => d.type === 'resume');
     const jds = data.filter(d => d.type === 'jd');
     const totalJdRecords = jds.reduce((s, j) => s + (j.recordCount ?? (j.preview as any)?.recordCount ?? 0), 0);
@@ -390,49 +410,102 @@ export default function BusinessDataPage() {
     );
 
     // ── JD table ────────────────────────────────────────────────────
+    const CLIENT_COLOR: Record<string, string> = { '通用': 'blue', '字节': 'cyan', '腾讯': 'green' };
     const jdTable = (
         jds.length > 0 ? (
-            <Table
-                rowKey="itemId" size="small" loading={loading}
-                pagination={{ pageSize: 8 }} dataSource={jds}
-                columns={[
-                    {
-                        title: '文件名', dataIndex: 'filename', width: 200, ellipsis: true,
-                        render: (n: string) => <Space><FileTextOutlined style={{ color: '#4ade80' }} />{n}</Space>,
-                    },
-                    {
-                        title: '字段', ellipsis: true,
-                        render: (_: any, r: BusinessDataItem) => {
-                            const cols: string[] = (r.preview as any)?.columns || [];
-                            return cols.length > 0
-                                ? <>{cols.slice(0, 4).map(c => <Tag key={c}>{c}</Tag>)}{cols.length > 4 ? <Tag>…{cols.length}个字段</Tag> : null}</>
-                                : '—';
+            <>
+                {selectedJdIds.length > 0 && (
+                    <div style={{ marginBottom: 12, padding: '8px 12px', background: '#111a2e', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Typography.Text>已选 <strong>{selectedJdIds.length}</strong> 条</Typography.Text>
+                        <TagOutlined style={{ color: '#a78bfa' }} />
+                        <Typography.Text>标记为：</Typography.Text>
+                        {(['通用', '字节', '腾讯'] as const).map(c => (
+                            <Button key={c} size="small" loading={tagging} onClick={() => handleBatchTagClient(c)}>
+                                <Tag color={CLIENT_COLOR[c]} style={{ margin: 0 }}>{c}</Tag>
+                            </Button>
+                        ))}
+                        <Button size="small" type="link" onClick={() => setSelectedJdIds([])}>取消选择</Button>
+                    </div>
+                )}
+                <Table
+                    rowKey="itemId" size="small" loading={loading}
+                    pagination={{ pageSize: 8 }} dataSource={jds}
+                    rowSelection={{
+                        selectedRowKeys: selectedJdIds,
+                        onChange: (keys) => setSelectedJdIds(keys as string[]),
+                    }}
+                    columns={[
+                        {
+                            title: '文件名', dataIndex: 'filename', width: 200, ellipsis: true,
+                            render: (n: string) => <Space><FileTextOutlined style={{ color: '#4ade80' }} />{n}</Space>,
                         },
-                    },
-                    {
-                        title: '记录数', width: 100,
-                        render: (_: any, r: BusinessDataItem) => {
-                            const cnt = r.recordCount ?? (r.preview as any)?.recordCount ?? 0;
-                            return <Tag color="blue">{cnt} 条</Tag>;
+                        {
+                            title: '适用客户', dataIndex: 'applicableClient', width: 100,
+                            filters: [
+                                { text: '通用', value: '通用' },
+                                { text: '字节', value: '字节' },
+                                { text: '腾讯', value: '腾讯' },
+                            ],
+                            onFilter: (value, record) => (record.applicableClient || '通用') === value,
+                            render: (c: string) => {
+                                const client = c || '通用';
+                                return <Tag color={CLIENT_COLOR[client] || 'default'}>{client}</Tag>;
+                            },
                         },
-                    },
-                    {
-                        title: '上传时间', dataIndex: 'uploadedAt', width: 170,
-                        render: (t: string) => new Date(t).toLocaleString('zh-CN'),
-                    },
-                    {
-                        title: '操作', width: 120, fixed: 'right' as const,
-                        render: (_: any, r: BusinessDataItem) => (
-                            <Space>
-                                <Button size="small" onClick={() => openJdDetail(r.itemId)}>查看记录</Button>
-                                <Popconfirm title="确认删除？" onConfirm={() => handleDelete(r.itemId)}>
-                                    <Button size="small" danger icon={<DeleteOutlined />} />
-                                </Popconfirm>
-                            </Space>
-                        ),
-                    },
-                ]}
-            />
+                        {
+                            title: '所属部门', width: 100,
+                            render: (_: any, r: BusinessDataItem) => {
+                                const dept = (r as any).department || (r.preview as any)?.department || '';
+                                return dept ? <Tag color="purple">{dept}</Tag> : <span style={{ color: '#6b7a99' }}>—</span>;
+                            },
+                            filters: [
+                                { text: 'IEG', value: 'IEG' },
+                                { text: 'PCG', value: 'PCG' },
+                                { text: 'WXG', value: 'WXG' },
+                                { text: 'CDG', value: 'CDG' },
+                                { text: 'CSIG', value: 'CSIG' },
+                                { text: 'TEG', value: 'TEG' },
+                                { text: 'S线', value: 'S线' },
+                            ],
+                            onFilter: (value: any, record: any) => {
+                                const dept = record.department || record.preview?.department || '';
+                                return dept === value;
+                            },
+                        },
+                        {
+                            title: '字段', ellipsis: true,
+                            render: (_: any, r: BusinessDataItem) => {
+                                const cols: string[] = (r.preview as any)?.columns || [];
+                                return cols.length > 0
+                                    ? <>{cols.slice(0, 4).map(c => <Tag key={c}>{c}</Tag>)}{cols.length > 4 ? <Tag>…{cols.length}个字段</Tag> : null}</>
+                                    : '—';
+                            },
+                        },
+                        {
+                            title: '记录数', width: 100,
+                            render: (_: any, r: BusinessDataItem) => {
+                                const cnt = r.recordCount ?? (r.preview as any)?.recordCount ?? 0;
+                                return <Tag color="blue">{cnt} 条</Tag>;
+                            },
+                        },
+                        {
+                            title: '上传时间', dataIndex: 'uploadedAt', width: 170,
+                            render: (t: string) => new Date(t).toLocaleString('zh-CN'),
+                        },
+                        {
+                            title: '操作', width: 120, fixed: 'right' as const,
+                            render: (_: any, r: BusinessDataItem) => (
+                                <Space>
+                                    <Button size="small" onClick={() => openJdDetail(r.itemId)}>查看记录</Button>
+                                    <Popconfirm title="确认删除？" onConfirm={() => handleDelete(r.itemId)}>
+                                        <Button size="small" danger icon={<DeleteOutlined />} />
+                                    </Popconfirm>
+                                </Space>
+                            ),
+                        },
+                    ]}
+                />
+            </>
         ) : <Empty description="暂无JD数据，请上传CSV文件" style={{ padding: 40 }} />
     );
 

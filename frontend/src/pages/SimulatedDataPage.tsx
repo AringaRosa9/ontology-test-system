@@ -34,6 +34,7 @@ export default function SimulatedDataPage() {
     const [dataType, setDataType] = useState<'resume' | 'jd'>('resume');
     const [selectedSubTypes, setSelectedSubTypes] = useState<string[]>(['normal']);
     const [count, setCount] = useState(3);
+    const [targetClient, setTargetClient] = useState('通用');
     const [generating, setGenerating] = useState(false);
     const [items, setItems] = useState<SimulatedDataItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -69,6 +70,7 @@ export default function SimulatedDataPage() {
                 dataType,
                 subTypes: selectedSubTypes,
                 count,
+                ...(dataType === 'jd' ? { targetClient } : {}),
             });
             const gen = data.data.generated || [];
             message.success(`已生成 ${gen.length} 条模拟${dataType === 'resume' ? '简历' : 'JD'}`);
@@ -170,6 +172,24 @@ export default function SimulatedDataPage() {
                         </Col>
                     </Row>
 
+                    {dataType === 'jd' && (
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Typography.Text strong>适用客户：</Typography.Text>
+                                <Select
+                                    style={{ width: '100%', marginTop: 4 }}
+                                    value={targetClient}
+                                    onChange={setTargetClient}
+                                    options={[
+                                        { label: '通用', value: '通用' },
+                                        { label: '字节', value: '字节' },
+                                        { label: '腾讯', value: '腾讯' },
+                                    ]}
+                                />
+                            </Col>
+                        </Row>
+                    )}
+
                     <div>
                         <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>生成类型：</Typography.Text>
                         <Checkbox.Group
@@ -244,6 +264,14 @@ export default function SimulatedDataPage() {
                         dataSource={jds} loading={loading}
                         columns={[
                             { title: '职位', dataIndex: ['generatedData', 'title'], width: 200, ellipsis: true },
+                            { title: '部门', dataIndex: ['generatedData', 'department'], width: 120, ellipsis: true,
+                              render: (d: string) => d || '-' },
+                            { title: '适用客户', width: 100,
+                              render: (_: any, r: SimulatedDataItem) => {
+                                const client = r.applicableClient || r.generatedData?.applicableClient || '通用';
+                                const colorMap: Record<string, string> = { '通用': 'blue', '字节': 'cyan', '腾讯': 'green' };
+                                return <Tag color={colorMap[client] || 'default'}>{client}</Tag>;
+                              }},
                             { title: '类型', dataIndex: 'subType', width: 150,
                               render: (t: string) => {
                                 const meta = JD_TYPES.find(j => j.value === t);

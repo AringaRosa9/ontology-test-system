@@ -1,6 +1,6 @@
 [
   {
-    "itemId": "bd_5be2f3a5",
+    "itemId": "bd_8ab43dbd",
     "type": "jd",
     "filename": "平台运营二组--公众号--客服专员",
     "columns": [
@@ -75,11 +75,13 @@
     ],
     "recordCount": 1,
     "title": "平台运营二组--公众号--客服专员",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_10617ffe",
+    "itemId": "bd_bb355573",
     "type": "jd",
     "filename": "时效性项目-服务号关注区运营",
     "columns": [
@@ -154,11 +156,13 @@
     ],
     "recordCount": 1,
     "title": "时效性项目-服务号关注区运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_0a943bfd",
+    "itemId": "bd_35f59a75",
     "type": "jd",
     "filename": "小程序运营助理",
     "columns": [
@@ -233,11 +237,13 @@
     ],
     "recordCount": 1,
     "title": "小程序运营助理",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_eb2fc5f8",
+    "itemId": "bd_6bd77511",
     "type": "jd",
     "filename": "设计",
     "columns": [
@@ -312,11 +318,13 @@
     ],
     "recordCount": 1,
     "title": "设计",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_80a2ed1a",
+    "itemId": "bd_e26015bf",
     "type": "jd",
     "filename": "直播产品二组-微信视频号直播-助播-助播运营评估",
     "columns": [
@@ -391,11 +399,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品二组-微信视频号直播-助播-助播运营评估",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_63b40a0a",
+    "itemId": "bd_a7505430",
     "type": "jd",
     "filename": "直播产品二组-微信视频号直播-生态-内容运营",
     "columns": [
@@ -470,11 +480,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品二组-微信视频号直播-生态-内容运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_213b7cd2",
+    "itemId": "bd_ea87c502",
     "type": "jd",
     "filename": "商品内容规则审核",
     "columns": [
@@ -549,11 +561,13 @@
     ],
     "recordCount": 1,
     "title": "商品内容规则审核",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_933ec7e2",
+    "itemId": "bd_cb129c22",
     "type": "jd",
     "filename": "微信公众号推荐内容生态-产品运营-问题发现",
     "columns": [
@@ -628,11 +642,13 @@
     ],
     "recordCount": 1,
     "title": "微信公众号推荐内容生态-产品运营-问题发现",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_643bd8fd",
+    "itemId": "bd_ecbe34c6",
     "type": "jd",
     "filename": "恶意用户下单符审核",
     "columns": [
@@ -707,11 +723,13 @@
     ],
     "recordCount": 1,
     "title": "恶意用户下单符审核",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_59c873f1",
+    "itemId": "bd_15866202",
     "type": "jd",
     "filename": "企业微信线上行业解决方案经理（智能表产品方向）",
     "columns": [
@@ -786,11 +804,13 @@
     ],
     "recordCount": 1,
     "title": "企业微信线上行业解决方案经理（智能表产品方向）",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_2a8d0a63",
+    "itemId": "bd_ac6ee393",
     "type": "jd",
     "filename": "平台运营二组-信息审核岗",
     "columns": [
@@ -865,11 +885,13 @@
     ],
     "recordCount": 1,
     "title": "平台运营二组-信息审核岗",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_a87e9446",
+    "itemId": "bd_b1eb7337",
     "type": "jd",
     "filename": "企业微信网络销售招聘",
     "columns": [
@@ -944,11 +966,13 @@
     ],
     "recordCount": 1,
     "title": "企业微信网络销售招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_f953f10b",
+    "itemId": "bd_e740643b",
     "type": "jd",
     "filename": "企业微信网络销售招聘",
     "columns": [
@@ -1023,11 +1047,13 @@
     ],
     "recordCount": 1,
     "title": "企业微信网络销售招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_514ed0f0",
+    "itemId": "bd_da5af545",
     "type": "jd",
     "filename": "企业微信网络销售招聘",
     "columns": [
@@ -1102,11 +1128,13 @@
     ],
     "recordCount": 1,
     "title": "企业微信网络销售招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_6bd1bb46",
+    "itemId": "bd_398d1acb",
     "type": "jd",
     "filename": "企业微信网络销售招聘",
     "columns": [
@@ -1181,11 +1209,13 @@
     ],
     "recordCount": 1,
     "title": "企业微信网络销售招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_edbe474d",
+    "itemId": "bd_3ad87bac",
     "type": "jd",
     "filename": "直播产品四组-微信视频号直播-安全-直播客诉专员",
     "columns": [
@@ -1260,11 +1290,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品四组-微信视频号直播-安全-直播客诉专员",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_22ce3d2c",
+    "itemId": "bd_e8e3ba16",
     "type": "jd",
     "filename": "教育平台招聘",
     "columns": [
@@ -1339,11 +1371,13 @@
     ],
     "recordCount": 1,
     "title": "教育平台招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_7f18933b",
+    "itemId": "bd_e167a1c6",
     "type": "jd",
     "filename": "运营招聘",
     "columns": [
@@ -1418,11 +1452,13 @@
     ],
     "recordCount": 1,
     "title": "运营招聘",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_27a0577f",
+    "itemId": "bd_697b2564",
     "type": "jd",
     "filename": "线上商业组产品运营助理",
     "columns": [
@@ -1497,11 +1533,13 @@
     ],
     "recordCount": 1,
     "title": "线上商业组产品运营助理",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_d9353984",
+    "itemId": "bd_3d46864f",
     "type": "jd",
     "filename": "web前端开发",
     "columns": [
@@ -1576,11 +1614,13 @@
     ],
     "recordCount": 1,
     "title": "web前端开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_bf29df3e",
+    "itemId": "bd_1f967384",
     "type": "jd",
     "filename": "大模型AI数据标注",
     "columns": [
@@ -1655,11 +1695,13 @@
     ],
     "recordCount": 1,
     "title": "大模型AI数据标注",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_f8e6fad4",
+    "itemId": "bd_160acea2",
     "type": "jd",
     "filename": "业务管理中心-交易管理组-社交策略运营",
     "columns": [
@@ -1734,11 +1776,13 @@
     ],
     "recordCount": 1,
     "title": "业务管理中心-交易管理组-社交策略运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_716fdd48",
+    "itemId": "bd_463c21af",
     "type": "jd",
     "filename": "境外支付技术支持",
     "columns": [
@@ -1813,11 +1857,13 @@
     ],
     "recordCount": 1,
     "title": "境外支付技术支持",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_f356cc17",
+    "itemId": "bd_de42a507",
     "type": "jd",
     "filename": "产品六组-产品-小游戏策略-产品运营",
     "columns": [
@@ -1892,11 +1938,13 @@
     ],
     "recordCount": 1,
     "title": "产品六组-产品-小游戏策略-产品运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_fe15ee0e",
+    "itemId": "bd_920c5e78",
     "type": "jd",
     "filename": "微信支付行业运营AI应用开发",
     "columns": [
@@ -1971,11 +2019,13 @@
     ],
     "recordCount": 1,
     "title": "微信支付行业运营AI应用开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_2a088bcd",
+    "itemId": "bd_7d98612f",
     "type": "jd",
     "filename": "直播产品三组-微信视频号直播-标签-视频号直播标签审核",
     "columns": [
@@ -2050,11 +2100,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品三组-微信视频号直播-标签-视频号直播标签审核",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_e6292143",
+    "itemId": "bd_c5650904",
     "type": "jd",
     "filename": "直播产品二组-微信视频号直播-生态-内容运营",
     "columns": [
@@ -2129,11 +2181,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品二组-微信视频号直播-生态-内容运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_f81a6fdc",
+    "itemId": "bd_53f9808f",
     "type": "jd",
     "filename": "web前端开发",
     "columns": [
@@ -2208,11 +2262,13 @@
     ],
     "recordCount": 1,
     "title": "web前端开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_b300a4e2",
+    "itemId": "bd_43f8beb6",
     "type": "jd",
     "filename": "UI设计",
     "columns": [
@@ -2287,11 +2343,13 @@
     ],
     "recordCount": 1,
     "title": "UI设计",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_e3d9d5d1",
+    "itemId": "bd_cbb271d0",
     "type": "jd",
     "filename": "业务测试五组-视频号-专项测试工程师",
     "columns": [
@@ -2366,11 +2424,13 @@
     ],
     "recordCount": 1,
     "title": "业务测试五组-视频号-专项测试工程师",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_5656db62",
+    "itemId": "bd_9c742a8f",
     "type": "jd",
     "filename": "脚本调试员",
     "columns": [
@@ -2445,11 +2505,13 @@
     ],
     "recordCount": 1,
     "title": "脚本调试员",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_91443093",
+    "itemId": "bd_9ac9e3f7",
     "type": "jd",
     "filename": "SpaceX运营系统前端开发",
     "columns": [
@@ -2524,11 +2586,13 @@
     ],
     "recordCount": 1,
     "title": "SpaceX运营系统前端开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_5729c278",
+    "itemId": "bd_cee638c4",
     "type": "jd",
     "filename": "微信小游戏前端开发",
     "columns": [
@@ -2603,11 +2667,13 @@
     ],
     "recordCount": 1,
     "title": "微信小游戏前端开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_e035d29d",
+    "itemId": "bd_9d1852d6",
     "type": "jd",
     "filename": "游戏中心前端开发工程师",
     "columns": [
@@ -2682,11 +2748,13 @@
     ],
     "recordCount": 1,
     "title": "游戏中心前端开发工程师",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_8c409471",
+    "itemId": "bd_8e3d080c",
     "type": "jd",
     "filename": "小游戏运营前端开发",
     "columns": [
@@ -2761,11 +2829,13 @@
     ],
     "recordCount": 1,
     "title": "小游戏运营前端开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_8c373ba9",
+    "itemId": "bd_ad5d87aa",
     "type": "jd",
     "filename": "SOA系统开发",
     "columns": [
@@ -2840,11 +2910,13 @@
     ],
     "recordCount": 1,
     "title": "SOA系统开发",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_3d94e750",
+    "itemId": "bd_aa428dd8",
     "type": "jd",
     "filename": "产品四组-基础微信功能-平台-表情开放平台-表情审核",
     "columns": [
@@ -2919,11 +2991,13 @@
     ],
     "recordCount": 1,
     "title": "产品四组-基础微信功能-平台-表情开放平台-表情审核",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_3cb69685",
+    "itemId": "bd_cee9b471",
     "type": "jd",
     "filename": "直播产品三组/微信视频号直播/垂类/视频号直播汽车垂类运营",
     "columns": [
@@ -2998,11 +3072,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品三组/微信视频号直播/垂类/视频号直播汽车垂类运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_4cbff9d2",
+    "itemId": "bd_0c6d7922",
     "type": "jd",
     "filename": "电商治理审核",
     "columns": [
@@ -3077,11 +3153,13 @@
     ],
     "recordCount": 1,
     "title": "电商治理审核",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_2079f782",
+    "itemId": "bd_737a1708",
     "type": "jd",
     "filename": "后台研发工程师",
     "columns": [
@@ -3156,11 +3234,13 @@
     ],
     "recordCount": 1,
     "title": "后台研发工程师",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_fb5e2a03",
+    "itemId": "bd_2f4647ac",
     "type": "jd",
     "filename": "视频号拓展和运营",
     "columns": [
@@ -3235,11 +3315,13 @@
     ],
     "recordCount": 1,
     "title": "视频号拓展和运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
-    "itemId": "bd_a507263a",
+    "itemId": "bd_45635756",
     "type": "jd",
     "filename": "直播产品三组/微信视频号直播/知识生活/视频号直播产品运营",
     "columns": [
@@ -3314,11 +3396,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品三组/微信视频号直播/知识生活/视频号直播产品运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_dae8eefb",
+    "itemId": "bd_f6ca919a",
     "type": "jd",
     "filename": "直播产品四组/微信视频号直播/标签/视频号直播标签运营",
     "columns": [
@@ -3393,11 +3477,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品四组/微信视频号直播/标签/视频号直播标签运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_7d5d2f60",
+    "itemId": "bd_383210f0",
     "type": "jd",
     "filename": "直播产品三组/微信视频号直播/垂类/视频号直播产品运营",
     "columns": [
@@ -3472,11 +3558,13 @@
     ],
     "recordCount": 1,
     "title": "直播产品三组/微信视频号直播/垂类/视频号直播产品运营",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": ""
   },
   {
-    "itemId": "bd_7414782a",
+    "itemId": "bd_592ad955",
     "type": "jd",
     "filename": "产品策划助理",
     "columns": [
@@ -3551,8 +3639,10 @@
     ],
     "recordCount": 1,
     "title": "产品策划助理",
-    "sourceFile": "JD样本.csv",
-    "uploadedAt": "2026-03-09T07:05:31.440076+00:00"
+    "sourceFile": "腾讯JD样本.csv",
+    "applicableClient": "腾讯",
+    "uploadedAt": "2026-03-10T03:46:49.869150+00:00",
+    "department": "WXG"
   },
   {
     "itemId": "bd_a512e3b6",
@@ -3826,209 +3916,6 @@
       "summary": "拥有5年后端开发经验，精通Java和Python，熟悉微服务架构与高并发系统设计。具备从需求分析到系统部署的全栈开发能力，致力于构建高性能、高可用的分布式系统。"
     },
     "uploadedAt": "2026-03-09T06:34:02.305387+00:00"
-  },
-  {
-    "itemId": "bd_d67cd167",
-    "type": "jd",
-    "filename": "[simulated] 高级量子纠错算法工程师.json",
-    "columns": [
-      "title",
-      "department",
-      "requirements",
-      "responsibilities",
-      "salaryRange",
-      "location",
-      "experienceYears"
-    ],
-    "records": [
-      {
-        "title": "高级量子纠错算法工程师",
-        "department": "前沿科技研究院 - 量子计算实验室",
-        "requirements": [
-          "量子信息、理论物理、计算机科学或相关领域的博士学位。",
-          "至少5年专注于量子纠错码（如表面码、拓扑码、CSS码）理论研究与实验实现经验。",
-          "精通至少一种主流量子编程框架（如Qiskit, Cirq, PennyLane），并具备在实际量子硬件平台（如超导量子比特、离子阱）上部署和测试纠错协议的经验。",
-          "深入理解量子信道噪声模型、错误诊断与恢复技术，具备设计和优化容错量子计算架构的能力。",
-          "熟悉量子信息论、多体物理及拓扑量子场论基础，能将理论知识应用于实际纠错方案设计。",
-          "具备大规模量子模拟或高性能计算背景，能处理复杂的量子系统数据。",
-          "在国际顶级会议或期刊（如Nature, Science, PRL, PRX Quantum等）发表过高质量的量子纠错相关论文优先。"
-        ],
-        "responsibilities": [
-          "负责前沿量子纠错算法的理论研究、设计与仿真，提升量子比特的相干时间和计算可靠性。",
-          "与量子硬件团队紧密合作，共同开发和测试基于特定硬件平台的量子纠错协议和容错架构。",
-          "分析量子硬件噪声特性，设计并实现高效的错误诊断、解码和恢复策略。",
-          "跟踪国际量子纠错领域最新进展，探索新的纠错码方案和实现技术。",
-          "撰写技术报告、专利申请及学术论文，推动团队在量子纠错领域的创新与突破。",
-          "指导初级工程师和研究员，共同解决量子计算中的核心技术难题。"
-        ],
-        "salaryRange": "80K-150K/月",
-        "location": "上海",
-        "experienceYears": "5-8年"
-      }
-    ],
-    "recordCount": 1,
-    "uploadedAt": "2026-03-09T06:33:45.535961+00:00"
-  },
-  {
-    "itemId": "bd_bb3d83ff",
-    "type": "jd",
-    "filename": "[simulated] 高级软件工程师.json",
-    "columns": [
-      "title",
-      "department",
-      "requirements",
-      "responsibilities",
-      "salaryRange",
-      "location",
-      "experienceYears"
-    ],
-    "records": [
-      {
-        "title": "高级软件工程师",
-        "department": "技术研发部",
-        "requirements": [
-          "计算机科学或相关专业本科及以上学历",
-          "5年以上Java/Python/Go等主流编程语言开发经验",
-          "精通Spring Boot, Spring Cloud, Mybatis等主流开发框架",
-          "熟悉分布式系统设计、微服务架构、高并发处理等技术",
-          "具备MySQL、Redis、Kafka等数据库和中间件的实际应用经验",
-          "熟悉Linux操作系统，具备Shell脚本编写能力",
-          "优秀的沟通能力和团队协作精神，具备独立解决问题的能力"
-        ],
-        "responsibilities": [
-          "负责核心业务系统的设计、开发与优化",
-          "参与系统架构评审，确保系统的高可用、高性能和可扩展性",
-          "指导初级工程师进行技术开发，进行代码Review",
-          "解决系统运行中的复杂技术问题，保证系统稳定运行",
-          "跟踪前沿技术，进行技术创新和应用"
-        ],
-        "salaryRange": "500万 - 1000万人民币/年",
-        "location": "上海市",
-        "experienceYears": "5年以上"
-      }
-    ],
-    "recordCount": 1,
-    "uploadedAt": "2026-03-09T06:33:44.926566+00:00"
-  },
-  {
-    "itemId": "bd_0709f28e",
-    "type": "jd",
-    "filename": "[simulated] 高级前端开发工程师.json",
-    "columns": [
-      "title",
-      "department",
-      "requirements",
-      "responsibilities",
-      "salaryRange",
-      "location",
-      "experienceYears"
-    ],
-    "records": [
-      {
-        "title": "高级前端开发工程师",
-        "department": "产品研发中心",
-        "requirements": [
-          "计算机相关专业本科及以上学历，具备扎实的计算机科学基础。",
-          "3年以上前端开发经验，精通React/Vue等主流前端框架，并有大型项目实战经验。",
-          "熟悉Node.js，有全栈开发经验者优先。",
-          "具备良好的代码规范、调试能力和性能优化意识。",
-          "优秀的沟通能力和团队协作精神，能够独立解决复杂问题。",
-          "欢迎优秀应届毕业生投递，我们提供完善的培养体系。"
-        ],
-        "responsibilities": [
-          "负责公司核心产品前端系统的设计、开发和优化。",
-          "参与前端技术选型和架构设计，推动前端技术栈的升级。",
-          "持续优化用户体验和系统性能，确保系统的高可用性和稳定性。",
-          "参与团队内部技术分享和知识沉淀，提升团队整体技术水平。"
-        ],
-        "salaryRange": "20K-40K/月",
-        "location": "上海",
-        "experienceYears": "3年以上"
-      }
-    ],
-    "recordCount": 1,
-    "uploadedAt": "2026-03-09T06:33:44.329352+00:00"
-  },
-  {
-    "itemId": "bd_e464d77f",
-    "type": "jd",
-    "filename": "[simulated] 高级前端开发工程师.json",
-    "columns": [
-      "title",
-      "department",
-      "requirements",
-      "responsibilities",
-      "salaryRange",
-      "location",
-      "experienceYears"
-    ],
-    "records": [
-      {
-        "title": "高级前端开发工程师",
-        "department": "技术研发部",
-        "requirements": [
-          "3年以上前端开发经验，有大型互联网公司经验者优先",
-          "精通JavaScript、HTML5、CSS3等前端技术，深入理解其原理",
-          "熟悉React/Vue/Angular等主流前端框架，并有实际项目经验",
-          "熟练使用Webpack、Vite等前端构建工具，具备性能优化实践经验",
-          "具备良好的代码规范、调试和问题解决能力",
-          "对用户体验、产品可用性有深刻理解，并能提出优化方案",
-          "良好的沟通能力、团队协作精神和抗压能力"
-        ],
-        "responsibilities": [
-          "负责公司Web前端产品的功能开发、维护和优化工作",
-          "参与前端架构设计与选型，持续提升前端系统的性能、可维护性和稳定性",
-          "与产品经理、后端工程师紧密协作，高质量完成项目需求分析、设计与实现",
-          "关注前端前沿技术发展，并能将其引入团队或项目中，推动技术创新",
-          "编写高质量、可测试、可维护的前端代码，并进行单元测试和集成测试"
-        ],
-        "salaryRange": "20K-40K/月",
-        "location": "上海",
-        "experienceYears": "3-5年"
-      }
-    ],
-    "recordCount": 1,
-    "uploadedAt": "2026-03-09T06:33:43.571358+00:00"
-  },
-  {
-    "itemId": "bd_153d55a3",
-    "type": "jd",
-    "filename": "[simulated] 高级项目经理.json",
-    "columns": [
-      "title",
-      "department",
-      "requirements",
-      "responsibilities",
-      "salaryRange",
-      "location",
-      "experienceYears"
-    ],
-    "records": [
-      {
-        "title": "高级项目经理",
-        "department": "项目管理部",
-        "requirements": [
-          "具备优秀的综合协调能力和沟通能力",
-          "对项目管理有深刻理解和独到见解",
-          "能够独立处理复杂多变的项目情况",
-          "拥有良好的学习能力和适应能力，快速掌握新知识",
-          "具备高度的责任感和积极主动的工作态度",
-          "对团队合作有强烈的认同感，善于激励团队成员"
-        ],
-        "responsibilities": [
-          "负责重要项目的整体规划、执行与交付",
-          "协调内外部资源，确保项目按时高质量完成",
-          "管理项目风险，制定并实施应对方案",
-          "与客户及团队保持有效沟通，推动项目进展",
-          "持续优化项目管理流程和方法"
-        ],
-        "salaryRange": "30K-55K/月",
-        "location": "北京",
-        "experienceYears": "5年以上"
-      }
-    ],
-    "recordCount": 1,
-    "uploadedAt": "2026-03-09T06:33:38.904972+00:00"
   },
   {
     "itemId": "bd_1d0bf73c",

@@ -6,7 +6,7 @@ import {
 import {
     KeyOutlined, PlusOutlined, DeleteOutlined, ApiOutlined,
     CheckCircleOutlined, CloseCircleOutlined, QuestionCircleOutlined,
-    ThunderboltOutlined,
+    ThunderboltOutlined, EditOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, ApiKeyItem } from '../types';
@@ -23,6 +23,13 @@ export default function ApiKeyPage() {
     const [testResult, setTestResult] = useState<any>(null);
     const [newModel, setNewModel] = useState('gemini-3.0-flash');
     const [newBaseUrl, setNewBaseUrl] = useState('');
+    // Edit modal state
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editingKey, setEditingKey] = useState<ApiKeyItem | null>(null);
+    const [editModel, setEditModel] = useState('');
+    const [editLabel, setEditLabel] = useState('');
+    const [editBaseUrl, setEditBaseUrl] = useState('');
+    const [editing, setEditing] = useState(false);
 
     const fetchKeys = () => {
         setLoading(true);
@@ -82,6 +89,32 @@ export default function ApiKeyPage() {
         setTestingId('');
     };
 
+    const openEdit = (record: ApiKeyItem) => {
+        setEditingKey(record);
+        setEditModel(record.model || 'gemini-3.0-flash');
+        setEditLabel(record.label || '');
+        setEditBaseUrl(record.baseUrl || '');
+        setEditModalOpen(true);
+    };
+
+    const handleEdit = async () => {
+        if (!editingKey) return;
+        setEditing(true);
+        try {
+            await api.put(`/api-keys/${editingKey.keyId}`, {
+                model: editModel.trim() || 'gemini-3.0-flash',
+                label: editLabel.trim(),
+                baseUrl: editingKey.provider === 'custom' ? editBaseUrl.trim() : undefined,
+            });
+            message.success('更新成功');
+            setEditModalOpen(false);
+            fetchKeys();
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || '更新失败');
+        }
+        setEditing(false);
+    };
+
     const handleToggle = async (keyId: string) => {
         try {
             await api.post(`/api-keys/${keyId}/toggle`);
@@ -117,6 +150,7 @@ export default function ApiKeyPage() {
                     loading={loading}
                     pagination={false}
                     dataSource={keys}
+                    scroll={{ x: 1300 }}
                     columns={[
                         {
                             title: '提供商', dataIndex: 'provider', width: 120,
@@ -159,7 +193,7 @@ export default function ApiKeyPage() {
                             render: (t: string | null) => t ? new Date(t).toLocaleString('zh-CN') : '-',
                         },
                         {
-                            title: '操作', width: 180,
+                            title: '操作', width: 220, fixed: 'right' as const,
                             render: (_: any, r: ApiKeyItem) => (
                                 <Space>
                                     <Button
@@ -170,6 +204,7 @@ export default function ApiKeyPage() {
                                     >
                                         测试
                                     </Button>
+                                    <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>编辑</Button>
                                     <Popconfirm title="确认删除此Key？" onConfirm={() => handleDelete(r.keyId)}>
                                         <Button size="small" danger icon={<DeleteOutlined />} />
                                     </Popconfirm>
@@ -303,6 +338,76 @@ export default function ApiKeyPage() {
                             placeholder="输入API Key"
                             value={newKey}
                             onChange={e => setNewKey(e.target.value)}
+                        />
+                    </div>
+                </Space>
+            </Modal>
+
+            {/* Edit Key Modal */}
+            <Modal
+                open={editModalOpen}
+                onCancel={() => setEditModalOpen(false)}
+                onOk={handleEdit}
+                confirmLoading={editing}
+                title="编辑 API Key"
+                okText="保存"
+                cancelText="取消"
+            >
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                    <div>
+                        <Typography.Text>提供商</Typography.Text>
+                        <Input style={{ width: '100%', marginTop: 4 }} value={editingKey?.provider?.toUpperCase() || ''} disabled />
+                    </div>
+                    <div>
+                        <Typography.Text>Key</Typography.Text>
+                        <Input style={{ width: '100%', marginTop: 4 }} value={editingKey?.maskedKey || ''} disabled />
+                    </div>
+                    {editingKey?.provider === 'custom' && (
+                        <div>
+                            <Typography.Text>接口地址（URL）</Typography.Text>
+                            <Input
+                                style={{ marginTop: 4 }}
+                                placeholder="例：https://api.example.com/v1"
+                                value={editBaseUrl}
+                                onChange={e => setEditBaseUrl(e.target.value)}
+                                allowClear
+                            />
+                        </div>
+                    )}
+                    <div>
+                        <Typography.Text>模型名称</Typography.Text>
+                        <AutoComplete
+                            style={{ width: '100%', marginTop: 4 }}
+                            value={editModel}
+                            onChange={setEditModel}
+                            placeholder="选择预设模型，或直接输入自定义模型名"
+                            options={[
+                                { label: 'gemini-3.0-flash（推荐）', value: 'gemini-3.0-flash' },
+                                { label: 'gemini-3.0-pro', value: 'gemini-3.0-pro' },
+                                { label: 'gemini-2.0-flash', value: 'gemini-2.0-flash' },
+                                { label: 'gemini-2.0-flash-lite', value: 'gemini-2.0-flash-lite' },
+                                { label: 'gemini-2.0-flash-exp', value: 'gemini-2.0-flash-exp' },
+                                { label: 'gemini-1.5-flash', value: 'gemini-1.5-flash' },
+                                { label: 'gemini-1.5-pro', value: 'gemini-1.5-pro' },
+                                { label: 'gpt-4o', value: 'gpt-4o' },
+                                { label: 'gpt-4o-mini', value: 'gpt-4o-mini' },
+                                { label: 'gpt-4-turbo', value: 'gpt-4-turbo' },
+                                { label: 'claude-3-5-sonnet-20241022', value: 'claude-3-5-sonnet-20241022' },
+                                { label: 'deepseek-chat', value: 'deepseek-chat' },
+                            ]}
+                            filterOption={(input, option) =>
+                                (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
+                            allowClear
+                        />
+                    </div>
+                    <div>
+                        <Typography.Text>标签</Typography.Text>
+                        <Input
+                            style={{ marginTop: 4 }}
+                            placeholder="例：团队共享Key、测试Key"
+                            value={editLabel}
+                            onChange={e => setEditLabel(e.target.value)}
                         />
                     </div>
                 </Space>
