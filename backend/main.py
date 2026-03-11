@@ -3371,12 +3371,74 @@ Step 描述: {step_description}
 }}
 
 IMPORTANT:
+- ruleId 字段必须严格使用上方"当前步骤的规则列表"中给出的 id 值，禁止编造、合并或创建任何新的 ruleId
+- 返回的 rules 数组长度必须与输入的规则列表长度一致，每条输入规则对应一条输出结果
+- 如果某条规则不适用，status 设为 "skip"，但仍必须在输出中保留该规则的原始 ruleId
 - stepStatus 为 "terminated" 当任一规则的 terminateFlow 为 true 时
 - stepStatus 为 "fail" 当有规则 fail 但没有 terminateFlow 时
 - stepStatus 为 "pass" 当所有规则 pass 或 skip 时
 - 只返回JSON，不要有其他内容"""
 
     return await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
+
+
+def _validate_llm_rule_results(
+    llm_rules: list,
+    valid_rule_ids: set,
+    input_rules: list,
+    step_name: str = "",
+) -> list:
+    """Validate LLM-returned rule results against known rule IDs.
+
+    1. Filter out hallucinated ruleIds not in valid_rule_ids.
+    2. Deduplicate by ruleId (keep first occurrence).
+    3. Fill in missing rules that LLM failed to return.
+    """
+    seen_ids: set = set()
+    validated: list = []
+    hallucinated_count = 0
+
+    for rule in llm_rules:
+        rid = rule.get("ruleId", "")
+        # Filter: must be a known rule ID
+        if rid not in valid_rule_ids:
+            hallucinated_count += 1
+            logger.warning(
+                f"LLM 幻觉过滤 [{step_name}]: 移除不存在的 ruleId '{rid}'"
+            )
+            continue
+        # Deduplicate
+        if rid in seen_ids:
+            logger.warning(
+                f"LLM 去重 [{step_name}]: ruleId '{rid}' 重复返回，保留首条"
+            )
+            continue
+        seen_ids.add(rid)
+        validated.append(rule)
+
+    # Fill missing rules
+    for inp_rule in input_rules:
+        inp_id = inp_rule.get("id", "")
+        if inp_id and inp_id not in seen_ids:
+            logger.warning(
+                f"LLM 补全 [{step_name}]: ruleId '{inp_id}' 未被 LLM 返回，补充为 skip"
+            )
+            validated.append({
+                "ruleId": inp_id,
+                "status": "skip",
+                "criteriaMatch": False,
+                "detail": "LLM 未返回此规则的评估结果",
+                "terminateFlow": False,
+            })
+
+    if hallucinated_count > 0:
+        logger.info(
+            f"LLM 幻觉统计 [{step_name}]: 输入 {len(input_rules)} 条规则, "
+            f"LLM 返回 {len(llm_rules)} 条, 过滤幻觉 {hallucinated_count} 条, "
+            f"最终有效 {len(validated)} 条"
+        )
+
+    return validated
 
 
 async def _evaluate_step_rules(
@@ -3396,6 +3458,7 @@ async def _evaluate_step_rules(
     all_rules = step["rules"]
     step_name = step["name"]
     step_desc = step.get("description", "")
+    valid_rule_ids = {r.get("id", "") for r in all_rules if r.get("id")}
 
     if not all_rules:
         return {
@@ -3449,7 +3512,10 @@ async def _evaluate_step_rules(
                 ])
                 has_error = True
             else:
-                merged_rules.extend(br.get("rules", []))
+                batch_valid = _validate_llm_rule_results(
+                    br.get("rules", []), valid_rule_ids, batches[idx], step_name,
+                )
+                merged_rules.extend(batch_valid)
                 all_status_updates.extend(br.get("candidateStatusUpdates", []))
                 if br.get("stepSummary"):
                     summaries.append(br["stepSummary"])
@@ -3488,6 +3554,10 @@ async def _evaluate_step_rules(
 
     if "rules" not in result or not isinstance(result.get("rules"), list):
         result["rules"] = []
+    # Validate LLM output against known rule IDs
+    result["rules"] = _validate_llm_rule_results(
+        result["rules"], valid_rule_ids, all_rules, step_name,
+    )
     if "stepStatus" not in result:
         has_fail = any(r.get("status") == "fail" for r in result.get("rules", []))
         has_terminate = any(r.get("terminateFlow") for r in result.get("rules", []))
@@ -3561,6 +3631,7 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
     # Build execution plan from snapshot actions
     plan = _build_cross_test_plan(snap, jd_items)
     rules_list = snap.get("rules", [])
+    valid_snapshot_rule_ids = {r.get("id", "") for r in rules_list if r.get("id")}
 
     if not plan:
         logger.warning("交叉测试: 未找到可用的 Action 执行计划，回退到扁平规则评估")
@@ -3708,8 +3779,9 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
                     step_result["stepDescription"] = step.get("description", "")
 
                     for rule_result in step_result.get("rules", []):
-                        if rule_result.get("status") in ("pass", "fail"):
-                            triggered_rules.append(rule_result.get("ruleId", ""))
+                        rid = rule_result.get("ruleId", "")
+                        if rule_result.get("status") in ("pass", "fail") and rid and rid in valid_snapshot_rule_ids:
+                            triggered_rules.append(rid)
 
                     new_statuses = step_result.get("candidateStatusUpdates", [])
                     if new_statuses:
@@ -3780,12 +3852,22 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
                 if rl.get("id") == rule_id:
                     full_rule = rl
                     break
+            # Fallback: search enriched rules in the step's plan data
+            if not full_rule:
+                for sr in first_failed_step.get("rules", []):
+                    if sr.get("id") == rule_id:
+                        full_rule = sr
+                        break
+            failure_type = "RULE_MISMATCH"
+            if not full_rule and rule_id not in valid_snapshot_rule_ids:
+                failure_type = "UNVERIFIED_RULE"
+                logger.warning(f"failedNode 引用了未验证的 ruleId: '{rule_id}'")
             failed_node = {
                 "ruleName": (full_rule or {}).get("businessLogicRuleName", rule_id),
                 "ruleDescription": first_failed_rule.get("detail", ""),
                 "brokenLink": None,
                 "funnelStage": (first_failed_action or {}).get("category", "screening"),
-                "failureType": "RULE_MISMATCH",
+                "failureType": failure_type,
                 "contextSnapshot": {},
                 "actionId": (first_failed_action or {}).get("actionId", ""),
                 "actionName": (first_failed_action or {}).get("actionName", ""),
