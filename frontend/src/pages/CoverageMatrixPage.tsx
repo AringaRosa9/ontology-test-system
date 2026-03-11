@@ -318,7 +318,7 @@ export default function CoverageMatrixPage() {
                                     )}
                                 </Space>
                             )}
-                            {row.triggeredRuleDetails.length > 0 && (
+                            {row.triggeredRuleDetails.length > 0 ? (
                                 <Table size="small" pagination={false} rowKey="ruleId"
                                     dataSource={row.triggeredRuleDetails}
                                     columns={[
@@ -327,16 +327,25 @@ export default function CoverageMatrixPage() {
                                             render: (id: string, r: any) => <a onClick={() => showRuleDetail(id, r.ruleName, r.ruleDescription, '', '', '')} style={{ color: '#1890ff' }}>{id}</a>,
                                         },
                                         {
-                                            title: '规则极性', dataIndex: 'rulePolarity', width: 90,
-                                            render: (v: string) => {
-                                                const map: Record<string, { color: string; label: string }> = {
-                                                    positive: { color: 'green', label: '正向' },
-                                                    negative: { color: 'red', label: '负向' },
-                                                    neutral: { color: 'default', label: '无影响' },
+                                            title: '应用情况', dataIndex: 'ruleStatus', width: 110,
+                                            render: (v: string, r: any) => {
+                                                const statusMap: Record<string, { color: string; label: string }> = {
+                                                    pass: { color: 'green', label: '通过' },
+                                                    fail: { color: 'red', label: '失败' },
+                                                    skip: { color: 'default', label: '跳过' },
                                                 };
-                                                const item = map[v] || map.neutral;
-                                                return <Tag color={item.color}>{item.label}</Tag>;
+                                                const s = statusMap[v] || statusMap.skip;
+                                                return (
+                                                    <Space size={4}>
+                                                        <Tag color={s.color}>{v ? v.toUpperCase().slice(0,2) + ' ' + s.label : '—'}</Tag>
+                                                        {r.terminateFlow && <Tag color="magenta">终止</Tag>}
+                                                    </Space>
+                                                );
                                             },
+                                        },
+                                        {
+                                            title: '所在步骤', dataIndex: 'stepName', width: 160, ellipsis: true,
+                                            render: (v: string) => v ? <Typography.Text type="secondary" style={{ fontSize: 12 }}>{v}</Typography.Text> : '—',
                                         },
                                         { title: '规则名称', dataIndex: 'ruleName', width: 180 },
                                         { title: '规则描述', dataIndex: 'ruleDescription',
@@ -355,6 +364,8 @@ export default function CoverageMatrixPage() {
                                         },
                                     ]}
                                 />
+                            ) : (
+                                <Typography.Text type="secondary" style={{ fontSize: 12 }}>此记录不含执行链路数据（stepTrace），规则溯源详情不可用。</Typography.Text>
                             )}
                             {row.failedNode && <FailedNodePanel node={row.failedNode} />}
                         </Space>

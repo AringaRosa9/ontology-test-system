@@ -276,9 +276,12 @@ export interface CaseCoverageItem {
     triggeredRuleDetails: {
         ruleId: string;
         ruleName: string;
-        rulePolarity: 'positive' | 'negative' | 'neutral';
         ruleDescription: string;
+        ruleStatus: 'pass' | 'fail' | 'skip';
+        terminateFlow: boolean;
         aiChainOfThought: string;
+        stepName?: string;
+        actionName?: string;
     }[];
     failedNode?: FailedNode;
     resumeItemId?: string | null;
@@ -379,6 +382,7 @@ export interface BusinessDataDetail {
         experience?: { company: string; title: string; startDate: string; endDate: string; description: string }[];
         skills?: string[];
         summary?: string;
+        expectedSalary?: string | null;
     };
     uploadedAt: string;
 }

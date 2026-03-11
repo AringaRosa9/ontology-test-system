@@ -1581,6 +1581,7 @@ async def list_business_data():
                 "summary": pd.get("summary") or "",
                 "educationCount": len(pd.get("education") or []),
                 "experienceCount": len(pd.get("experience") or []),
+                "expectedSalary": pd.get("expectedSalary"),
             }
         elif item["type"] == "jd":
             recs = item.get("records", [])
@@ -3051,6 +3052,15 @@ Make the data realistic and in Chinese. For abnormal types, ensure the issues ar
         _simulated_data.extend(all_generated)
         _persist_simulated_data()
 
+    # Validate 60/40 expectedSalary distribution for generated resumes
+    resume_items = [i for i in all_generated if i.get("type") == "resume"]
+    if resume_items:
+        with_salary = [i for i in resume_items if i.get("generatedData", {}).get("expectedSalary")]
+        without_salary = [i for i in resume_items if not i.get("generatedData", {}).get("expectedSalary")]
+        print(f"[simulated-data] Generated {len(resume_items)} resumes: "
+              f"{len(with_salary)} with expectedSalary ({len(with_salary)/len(resume_items)*100:.0f}%), "
+              f"{len(without_salary)} without ({len(without_salary)/len(resume_items)*100:.0f}%)")
+
     return {"status": "ok", "data": {"generated": all_generated}}
 
 
@@ -3621,6 +3631,7 @@ def _resume_summary(item: dict) -> str:
         "education": pd.get("education", []),
         "experience": pd.get("experience", []),
         "summary": pd.get("summary", ""),
+        "expectedSalary": pd.get("expectedSalary"),
     }, ensure_ascii=False)
 
 
@@ -4397,17 +4408,38 @@ async def get_coverage_matrix(run_id: str):
             "relatedEntities": "",
         }
 
-    def _determine_polarity(rule_ref: str, verdict: str, score) -> str:
-        """Determine rule polarity: positive (pass=bonus), negative (fail=penalty), neutral."""
-        if verdict == "FAIL":
-            return "negative"
-        if verdict == "PASS" and score is not None and score >= 70:
-            return "positive"
-        if verdict == "PASS" and score is not None and score < 70:
-            return "neutral"
-        if verdict == "PASS":
-            return "positive"
-        return "neutral"
+    def _extract_rules_from_step_trace(step_trace: list) -> list:
+        """Extract per-rule application details directly from the execution stepTrace.
+
+        For rules appearing in multiple steps the most significant status is kept:
+        fail > skip > pass.  The ``detail`` field from StepRuleResult is used
+        verbatim as the AI chain-of-thought — no re-generation needed.
+        """
+        STATUS_PRIORITY: Dict[str, int] = {"fail": 0, "skip": 1, "pass": 2}
+        seen: Dict[str, dict] = {}
+        for step in step_trace:
+            if not isinstance(step, dict):
+                continue
+            step_name = step.get("stepName", "")
+            action_name = step.get("actionName", "")
+            for rule in step.get("rules", []):
+                if not isinstance(rule, dict):
+                    continue
+                rule_id = rule.get("ruleId", "")
+                if not rule_id:
+                    continue
+                status = rule.get("status", "skip")
+                entry = {
+                    "ruleId": rule_id,
+                    "status": status,
+                    "terminateFlow": bool(rule.get("terminateFlow", False)),
+                    "aiChainOfThought": rule.get("detail", ""),
+                    "stepName": step_name,
+                    "actionName": action_name,
+                }
+                if rule_id not in seen or STATUS_PRIORITY.get(status, 1) < STATUS_PRIORITY.get(seen[rule_id]["status"], 2):
+                    seen[rule_id] = entry
+        return list(seen.values())
 
     # ── Build per-rule and per-case aggregations ──
     rule_agg: Dict[str, dict] = {}  # ruleId -> aggregation
@@ -4419,34 +4451,64 @@ async def get_coverage_matrix(run_id: str):
         verdict = rec.get("verdict", "")
         score = rec.get("score")
         category = rec.get("category", "")
-        triggered = rec.get("triggeredRules", [])
         fn = rec.get("failedNode")
         funnel = fn.get("funnelStage", "") if fn and isinstance(fn, dict) else ""
 
-        # Collect all rule refs for this case
-        rule_refs = list(set(triggered))
-        # Also include failedNode rule if present
-        if fn and isinstance(fn, dict):
-            fn_id = fn.get("id", "")
-            fn_name = fn.get("ruleName", "")
-            if fn_id and fn_id not in rule_refs:
-                rule_refs.append(fn_id)
-            elif fn_name and fn_name not in rule_refs:
-                rule_refs.append(fn_name)
+        # ── Extract rules from stepTrace (authoritative source) ──
+        step_rule_entries = _extract_rules_from_step_trace(rec.get("stepTrace", []))
+
+        # Fallback for older runs that only have triggeredRules
+        if not step_rule_entries:
+            existing_ids: set = set()
+            for rref in list(set(rec.get("triggeredRules", []))):
+                step_rule_entries.append({
+                    "ruleId": rref,
+                    "status": "fail" if verdict == "FAIL" else "pass",
+                    "terminateFlow": False,
+                    "aiChainOfThought": "",
+                    "stepName": "",
+                    "actionName": "",
+                })
+                existing_ids.add(rref)
+            if fn and isinstance(fn, dict):
+                fn_id = fn.get("id", "")
+                fn_name = fn.get("ruleName", "")
+                ref = fn_id or fn_name
+                if ref and ref not in existing_ids:
+                    step_rule_entries.append({
+                        "ruleId": ref,
+                        "status": "fail",
+                        "terminateFlow": True,
+                        "aiChainOfThought": fn.get("ruleDescription", ""),
+                        "stepName": fn.get("stepName", ""),
+                        "actionName": fn.get("actionName", ""),
+                    })
 
         triggered_details = []
-        for rref in rule_refs:
-            meta = _get_rule_meta(rref)
-            polarity = _determine_polarity(rref, verdict, score)
-            meta["rulePolarity"] = polarity
-            meta["aiChainOfThought"] = ""  # placeholder, will be filled by AI batch below
-            triggered_details.append(meta)
+        for entry in step_rule_entries:
+            meta = _get_rule_meta(entry["ruleId"])
+            detail = {
+                "ruleId": meta["ruleId"],
+                "ruleName": meta["ruleName"],
+                "ruleDescription": meta["ruleDescription"],
+                "ruleStatus": entry["status"],
+                "terminateFlow": entry["terminateFlow"],
+                "aiChainOfThought": entry["aiChainOfThought"],
+                "stepName": entry["stepName"],
+                "actionName": entry["actionName"],
+            }
+            triggered_details.append(detail)
 
             # Aggregate into rule_agg
             key = meta["ruleId"]
             if key not in rule_agg:
                 rule_agg[key] = {
-                    **meta,
+                    "ruleId": meta["ruleId"],
+                    "ruleName": meta["ruleName"],
+                    "ruleDescription": meta["ruleDescription"],
+                    "scenarioStage": meta["scenarioStage"],
+                    "applicableClient": meta["applicableClient"],
+                    "relatedEntities": meta["relatedEntities"],
                     "funnelStage": funnel,
                     "triggeredByCases": [],
                     "totalTriggered": 0,
@@ -4460,8 +4522,9 @@ async def get_coverage_matrix(run_id: str):
                 "title": title,
                 "verdict": verdict,
                 "score": score,
+                "ruleStatus": entry["status"],
             })
-            if verdict == "FAIL":
+            if entry["status"] == "fail":
                 agg["blockedCount"] += 1
             if score is not None:
                 agg["scores"].append(score)
@@ -4521,71 +4584,6 @@ async def get_coverage_matrix(run_id: str):
             "jdItemId": jd_item_id,
             "jdTitle": jd_title_resolved,
         })
-
-    # ── Generate AI Chain-of-Thought for triggered rules in case coverage ──
-    if gemini.is_configured and case_coverage:
-        cot_items = []
-        for cc in case_coverage:
-            case_title = cc.get("title", "")
-            case_verdict = cc.get("verdict", "")
-            case_score = cc.get("score")
-            for rd in cc.get("triggeredRuleDetails", []):
-                cot_items.append({
-                    "caseTitle": case_title,
-                    "verdict": case_verdict,
-                    "score": case_score,
-                    "ruleId": rd.get("ruleId", ""),
-                    "ruleName": rd.get("ruleName", ""),
-                    "ruleDescription": rd.get("ruleDescription", ""),
-                    "rulePolarity": rd.get("rulePolarity", "neutral"),
-                })
-        if cot_items:
-            cot_batch = cot_items[:30]  # limit to 30 to avoid token overflow
-            cot_prompt = f"""你是招聘匹配系统的AI评估专家。以下是一组测试用例与其触发规则的信息。
-请对每条记录生成一段简短的"AI思维链"（50-100字），说明LLM在匹配候选人简历与JD时，是如何判断这条规则对该候选人是加分（正向）还是减分（负向）还是无影响的推理过程。
-
-## 数据
-{json.dumps(cot_batch, ensure_ascii=False, indent=1)}
-
-请返回一个JSON数组，每个元素格式：
-{{"ruleId": "<规则ID>", "caseTitle": "<用例标题>", "chainOfThought": "<AI思维链推理过程>"}}
-
-要求：
-1. 思维链要体现LLM的推理逻辑，例如"该候选人具备X技能，满足规则Y要求的Z条件，因此该规则为加分项"
-2. 如果是负向规则，说明候选人哪些方面不满足规则要求
-3. 如果是无影响规则，说明为何该规则不影响最终评分
-4. 语言简洁，每条50-100字
-
-返回JSON数组。"""
-            try:
-                cot_result = await gemini.generate_json(SYSTEM_PROMPT, cot_prompt, temp=0.3)
-                if cot_result and isinstance(cot_result, list):
-                    cot_map = {}
-                    for item in cot_result:
-                        if isinstance(item, dict):
-                            key = (item.get("ruleId", ""), item.get("caseTitle", ""))
-                            cot_map[key] = item.get("chainOfThought", "")
-                    for cc in case_coverage:
-                        case_title = cc.get("title", "")
-                        for rd in cc.get("triggeredRuleDetails", []):
-                            key = (rd.get("ruleId", ""), case_title)
-                            if key in cot_map:
-                                rd["aiChainOfThought"] = cot_map[key]
-            except Exception as e:
-                logger.warning(f"AI chain-of-thought generation failed: {str(e)[:200]}")
-
-    # If AI was not available, generate fallback chain-of-thought based on polarity
-    for cc in case_coverage:
-        for rd in cc.get("triggeredRuleDetails", []):
-            if not rd.get("aiChainOfThought"):
-                polarity = rd.get("rulePolarity", "neutral")
-                rule_name = rd.get("ruleName", "该规则")
-                if polarity == "positive":
-                    rd["aiChainOfThought"] = f"候选人满足「{rule_name}」的要求条件，该规则在匹配中为加分项，提升了整体匹配评分。"
-                elif polarity == "negative":
-                    rd["aiChainOfThought"] = f"候选人未能满足「{rule_name}」的要求条件，该规则在匹配中为减分项，降低了整体匹配评分。"
-                else:
-                    rd["aiChainOfThought"] = f"「{rule_name}」在匹配过程中被涉及，但未对候选人的最终匹配评分产生显著正向或负向影响。"
 
     # Finalize rule coverage
     rule_coverage = []
@@ -4693,16 +4691,29 @@ async def funnel_suggestions(req: FunnelSuggestionsRequest):
                 rule_def = rule
                 break
 
-        # Find blocked cases by this rule
+        # Find blocked cases by this rule using stepTrace (authoritative source)
         blocked_cases = []
         for rec in records:
-            triggered = rec.get("triggeredRules", [])
-            fn = rec.get("failedNode")
-            fn_id = fn.get("id", "") if fn and isinstance(fn, dict) else ""
-            fn_name = fn.get("ruleName", "") if fn and isinstance(fn, dict) else ""
-            is_related = rule_id in triggered or fn_id == rule_id or fn_name == rule_id
-            is_blocked = rec.get("verdict") == "FAIL" or (rec.get("score") is not None and rec["score"] < req.scoreThreshold)
-            if is_related and is_blocked:
+            rule_failed = False
+            for step in rec.get("stepTrace", []):
+                if not isinstance(step, dict):
+                    continue
+                for rule in step.get("rules", []):
+                    if isinstance(rule, dict) and rule.get("ruleId") == rule_id and rule.get("status") == "fail":
+                        rule_failed = True
+                        break
+                if rule_failed:
+                    break
+            # Fallback for runs without stepTrace
+            if not rec.get("stepTrace") and not rule_failed:
+                triggered = rec.get("triggeredRules", [])
+                fn = rec.get("failedNode")
+                fn_id = fn.get("id", "") if fn and isinstance(fn, dict) else ""
+                fn_name = fn.get("ruleName", "") if fn and isinstance(fn, dict) else ""
+                is_related = rule_id in triggered or fn_id == rule_id or fn_name == rule_id
+                is_blocked = rec.get("verdict") == "FAIL" or (rec.get("score") is not None and rec["score"] < req.scoreThreshold)
+                rule_failed = is_related and is_blocked
+            if rule_failed:
                 # Extract candidate name from caseId or title
                 title = rec.get("title", rec.get("caseId", ""))
                 parts = title.split(" ↔ ") if " ↔ " in title else title.split(" × ")
