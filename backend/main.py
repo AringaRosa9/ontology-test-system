@@ -94,6 +94,18 @@ if _bd_dirty:
     _save_json(BUSINESS_DATA_FILE, _business_data)
 
 
+def _agent_only_rules(rules: list) -> list:
+    """Return only rules whose executor is 'Agent', excluding Human-executed rules."""
+    return [r for r in rules if r.get("executor") == "Agent"]
+
+
+# ── On load: strip Human rules from every cached snapshot ──
+for _snap in _snapshots:
+    if "rules" in _snap:
+        _snap["rules"] = _agent_only_rules(_snap["rules"])
+        _snap["rulesCount"] = len(_snap["rules"])
+
+
 def _persist_snapshots():
     _save_json(SNAPSHOTS_FILE, _snapshots)
 
@@ -487,6 +499,7 @@ async def upload_ontology(
         raise HTTPException(400, "无法解析JSON文件")
 
     sections = _parse_ontology_json(raw, filename)
+    sections["rules"] = _agent_only_rules(sections["rules"])
 
     snapshot_id = f"snap_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:8]}"
 
@@ -2731,6 +2744,7 @@ async def minio_pull(req: MinIOPullRequest):
 
     # Create ontology snapshot if any JSON files were imported
     if results["ontologyFiles"] > 0:
+        ontology_sections["rules"] = _agent_only_rules(ontology_sections["rules"])
         snapshot_id = f"snap_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:8]}"
         snapshot = {
             "snapshotId": snapshot_id,
@@ -3906,6 +3920,45 @@ async def get_coverage_matrix(run_id: str):
             if funnel and not agg["funnelStage"]:
                 agg["funnelStage"] = funnel
 
+        # ── Resolve resume/JD item IDs for cross-test cases ──
+        resume_item_id = None
+        resume_name = None
+        jd_item_id = None
+        jd_title_resolved = None
+        if is_cross and " × " in case_id:
+            parts = case_id.split(" × ", 1)
+            resume_name = parts[0].strip() if len(parts) > 0 else None
+            jd_title_resolved = parts[1].strip() if len(parts) > 1 else None
+        elif is_cross and " ↔ " in title:
+            parts = title.split(" ↔ ", 1)
+            resume_name = parts[0].strip() if len(parts) > 0 else None
+            jd_title_resolved = parts[1].strip() if len(parts) > 1 else None
+
+        if resume_name:
+            for bd in _business_data:
+                if bd.get("type") != "resume":
+                    continue
+                pd = bd.get("parsedData") or bd.get("generatedData") or {}
+                if pd.get("name") == resume_name or bd.get("filename", "").startswith(resume_name):
+                    resume_item_id = bd["itemId"]
+                    break
+        if jd_title_resolved:
+            for bd in _business_data:
+                if bd.get("type") != "jd":
+                    continue
+                if bd.get("title") == jd_title_resolved or bd.get("filename", "") == jd_title_resolved:
+                    jd_item_id = bd["itemId"]
+                    break
+                # Also try matching first record title-like column
+                for rec in bd.get("records", [])[:1]:
+                    for col in (bd.get("columns") or []):
+                        if any(kw in col.lower() for kw in ("职位", "岗位", "title", "名称")):
+                            if rec.get(col) == jd_title_resolved:
+                                jd_item_id = bd["itemId"]
+                                break
+                    if jd_item_id:
+                        break
+
         case_coverage.append({
             "caseId": case_id,
             "title": title,
@@ -3915,6 +3968,10 @@ async def get_coverage_matrix(run_id: str):
             "triggeredRuleIds": [d["ruleId"] for d in triggered_details],
             "triggeredRuleDetails": triggered_details,
             "failedNode": fn,
+            "resumeItemId": resume_item_id,
+            "resumeName": resume_name,
+            "jdItemId": jd_item_id,
+            "jdTitle": jd_title_resolved,
         })
 
     # ── Generate AI Chain-of-Thought for triggered rules in case coverage ──
@@ -4187,6 +4244,235 @@ async def funnel_suggestions(req: FunnelSuggestionsRequest):
             suggestions.append(item)
 
     return {"status": "ok", "data": {"suggestions": suggestions}}
+
+
+# ─── Rule Self-Check (inter-rule logic analysis) ─────────────────────────────
+
+class RuleSelfCheckRequest(BaseModel):
+    strategies: Optional[List[str]] = None  # subset of the five; None = all
+
+
+RULE_CHECK_STRATEGIES = ["counter_example", "conflict", "boundary", "omission", "challenge"]
+RULE_CHECK_STRATEGY_LABEL = {
+    "counter_example": "规则反例",
+    "conflict": "交叉冲突",
+    "boundary": "边界探测",
+    "omission": "遗漏探测",
+    "challenge": "综合挑战",
+}
+
+
+def _deterministic_rule_check(rules: list) -> dict:
+    """Deterministic (no-LLM) rule self-check. Returns findings keyed by strategy."""
+    from collections import defaultdict
+    import re as _re
+
+    findings: Dict[str, list] = {s: [] for s in RULE_CHECK_STRATEGIES}
+
+    # ── conflict: detect rules with same scenario stage sharing entities ──
+    stage_groups: Dict[str, list] = defaultdict(list)
+    for r in rules:
+        stage = r.get("specificScenarioStage", "")
+        if stage:
+            stage_groups[stage].append(r)
+    for stage, group in stage_groups.items():
+        if len(group) >= 2:
+            for i in range(len(group)):
+                for j in range(i + 1, len(group)):
+                    ra, rb = group[i], group[j]
+                    ra_rule = (ra.get("standardizedLogicRule") or "").lower()
+                    rb_rule = (rb.get("standardizedLogicRule") or "").lower()
+                    ra_entities = set(e.strip() for e in (ra.get("relatedEntities") or "").split("\n") if e.strip())
+                    rb_entities = set(e.strip() for e in (rb.get("relatedEntities") or "").split("\n") if e.strip())
+                    shared = ra_entities & rb_entities
+                    if shared:
+                        neg_a = any(kw in ra_rule for kw in ["不", "禁止", "不得"])
+                        neg_b = any(kw in rb_rule for kw in ["不", "禁止", "不得"])
+                        if neg_a != neg_b:
+                            findings["conflict"].append({
+                                "ruleId": ra.get("id", "?"), "ruleIdB": rb.get("id", "?"),
+                                "severity": "P1", "strategy": "conflict",
+                                "finding": f"规则 {ra.get('id')} 与 {rb.get('id')} 在阶段「{stage}」中对相同实体存在潜在逻辑矛盾（一条含否定语义，另一条不含）",
+                                "suggestion": "请核查两条规则的业务逻辑是否互斥，确认是否需要增加优先级或互斥条件",
+                            })
+                        if ra.get("applicableClient") == rb.get("applicableClient"):
+                            findings["conflict"].append({
+                                "ruleId": ra.get("id", "?"), "ruleIdB": rb.get("id", "?"),
+                                "severity": "P2", "strategy": "conflict",
+                                "finding": f"规则 {ra.get('id')} 与 {rb.get('id')} 在同一阶段「{stage}」、同一客户下共享实体，可能存在冗余或冲突",
+                                "suggestion": "建议合并或明确两条规则的边界条件",
+                            })
+
+    # ── boundary: rules with numeric thresholds ──
+    for r in rules:
+        rule_text = r.get("standardizedLogicRule") or ""
+        nums = _re.findall(r'(\d+)\s*[年月天%分]', rule_text)
+        if nums:
+            findings["boundary"].append({
+                "ruleId": r.get("id", "?"), "severity": "P2", "strategy": "boundary",
+                "finding": f"规则 {r.get('id')} 包含数值阈值（{', '.join(nums)}），但未明确定义边界情况（如等于阈值时的处理）",
+                "suggestion": "建议明确阈值的包含/排除边界，例如「≥3年」还是「>3年」",
+            })
+
+    # ── omission: scenario stages with no rules ──
+    known_stages = ["简历匹配", "简历处理", "需求分析", "候选人沟通&简历下载",
+                     "客户系统需求创建与更新", "面试安排", "录用审批", "入职管理"]
+    covered_stages = set(r.get("specificScenarioStage", "") for r in rules)
+    for stage in known_stages:
+        if stage not in covered_stages:
+            findings["omission"].append({
+                "ruleId": "N/A", "severity": "P1", "strategy": "omission",
+                "finding": f"业务场景阶段「{stage}」没有任何规则覆盖，存在规则盲区",
+                "suggestion": f"建议为「{stage}」阶段补充业务规则",
+            })
+
+    # ── omission: entities referenced by only 1 rule ──
+    entity_coverage: Dict[str, int] = defaultdict(int)
+    for r in rules:
+        for e in (r.get("relatedEntities") or "").split("\n"):
+            e = e.strip()
+            if e:
+                entity_coverage[e] += 1
+    for ent, count in entity_coverage.items():
+        if count == 1:
+            findings["omission"].append({
+                "ruleId": "N/A", "severity": "P2", "strategy": "omission",
+                "finding": f"实体「{ent}」仅被 1 条规则引用，可能存在覆盖不足",
+                "suggestion": "建议检查该实体是否需要更多规则约束",
+            })
+
+    # ── counter_example: absolute rules without exceptions ──
+    for r in rules:
+        rule_text = r.get("standardizedLogicRule") or ""
+        has_exception = any(kw in rule_text for kw in ["除非", "例外", "特殊情况", "豁免", "排除"])
+        has_absolute = any(kw in rule_text for kw in ["必须", "一定", "禁止", "不得", "强制"])
+        if has_absolute and not has_exception:
+            findings["counter_example"].append({
+                "ruleId": r.get("id", "?"), "severity": "P2", "strategy": "counter_example",
+                "finding": f"规则 {r.get('id')} 使用绝对性表述（必须/禁止等）但未定义任何例外情况",
+                "suggestion": "建议考虑是否存在合理的例外场景，并在规则中明确定义",
+            })
+
+    # ── challenge: client-specific rules overlapping with general rules ──
+    client_groups: Dict[str, list] = defaultdict(list)
+    for r in rules:
+        client_groups[r.get("applicableClient", "通用")].append(r)
+    if len(client_groups) > 1 and "通用" in client_groups:
+        general_stages = set(r.get("specificScenarioStage", "") for r in client_groups["通用"])
+        for client, client_rules in client_groups.items():
+            if client == "通用":
+                continue
+            for cr in client_rules:
+                if cr.get("specificScenarioStage", "") in general_stages:
+                    findings["challenge"].append({
+                        "ruleId": cr.get("id", "?"), "severity": "P2", "strategy": "challenge",
+                        "finding": f"规则 {cr.get('id')}（客户: {client}）与通用规则在同一阶段「{cr.get('specificScenarioStage')}」并存，可能产生叠加效果",
+                        "suggestion": "建议明确客户专属规则与通用规则的优先级关系",
+                    })
+
+    return findings
+
+
+@app.post("/ontology/snapshots/{snapshot_id}/rule-self-check")
+async def rule_self_check(snapshot_id: str, req: RuleSelfCheckRequest = None):
+    """Perform inter-rule logic analysis using five strategies."""
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snapshot_id:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "快照不存在")
+
+    rules = snap.get("rules", [])
+    if not rules:
+        raise HTTPException(400, "该快照不包含任何规则")
+
+    strategies = (req.strategies if req and req.strategies else None) or RULE_CHECK_STRATEGIES
+    strategies = [s for s in strategies if s in RULE_CHECK_STRATEGIES]
+
+    # Deterministic checks
+    det_findings = _deterministic_rule_check(rules)
+
+    # LLM-enhanced checks if available
+    if gemini.is_configured:
+        rules_ctx = json.dumps([{
+            "id": r.get("id"),
+            "ruleName": r.get("businessLogicRuleName"),
+            "stage": r.get("specificScenarioStage"),
+            "client": r.get("applicableClient"),
+            "rule": r.get("standardizedLogicRule"),
+            "relatedEntities": r.get("relatedEntities"),
+        } for r in rules[:40]], ensure_ascii=False, indent=1)
+
+        strategy_desc = "\n".join([f"- {s}: {RULE_CHECK_STRATEGY_LABEL[s]}" for s in strategies])
+
+        llm_prompt = f"""你是 Palantir Kinetic Ontology 本体规则质量审计专家。请对以下规则集合进行深度自检分析。
+
+## 规则列表
+{rules_ctx}
+
+## 检查策略
+{strategy_desc}
+
+请对每个策略进行分析，找出规则集合中存在的问题。具体要求：
+1. **counter_example（规则反例）**：找出规则可能被合理反例打破的场景
+2. **conflict（交叉冲突）**：找出规则之间的逻辑矛盾或冲突
+3. **boundary（边界探测）**：找出规则边界条件不清晰的地方
+4. **omission（遗漏探测）**：找出规则体系的盲区和遗漏
+5. **challenge（综合挑战）**：找出多规则叠加后可能产生的意外结果
+
+返回JSON格式：
+{{
+  "counter_example": [{{"ruleId": "规则ID", "severity": "P0/P1/P2", "finding": "发现的问题", "suggestion": "修复建议"}}],
+  "conflict": [{{"ruleId": "规则A的ID", "ruleIdB": "规则B的ID", "severity": "P0/P1/P2", "finding": "冲突描述", "suggestion": "修复建议"}}],
+  "boundary": [{{"ruleId": "规则ID", "severity": "P0/P1/P2", "finding": "边界问题", "suggestion": "修复建议"}}],
+  "omission": [{{"ruleId": "N/A", "severity": "P0/P1/P2", "finding": "遗漏描述", "suggestion": "补充建议"}}],
+  "challenge": [{{"ruleId": "规则ID", "severity": "P0/P1/P2", "finding": "挑战描述", "suggestion": "应对建议"}}]
+}}
+
+要求：每个策略至少1-3条发现，severity按影响判断，finding引用规则ID，suggestion给可操作建议。"""
+
+        try:
+            llm_result = await gemini.generate_json(SYSTEM_PROMPT, llm_prompt, temp=0.3)
+            if llm_result and isinstance(llm_result, dict):
+                for strat in strategies:
+                    llm_items = llm_result.get(strat, [])
+                    if isinstance(llm_items, list):
+                        for item in llm_items:
+                            if isinstance(item, dict) and item.get("finding"):
+                                item.setdefault("strategy", strat)
+                                item.setdefault("severity", "P2")
+                                item.setdefault("ruleId", "N/A")
+                                item.setdefault("suggestion", "")
+                                det_findings[strat].append(item)
+        except Exception as e:
+            logger.warning(f"LLM rule self-check failed, deterministic only: {str(e)[:200]}")
+
+    check_results = {s: det_findings.get(s, []) for s in strategies}
+
+    all_items = []
+    for items in check_results.values():
+        all_items.extend(items)
+    summary = {
+        "total": len(all_items),
+        "P0": sum(1 for i in all_items if i.get("severity") == "P0"),
+        "P1": sum(1 for i in all_items if i.get("severity") == "P1"),
+        "P2": sum(1 for i in all_items if i.get("severity") == "P2"),
+        "byStrategy": {s: len(items) for s, items in check_results.items()},
+    }
+
+    result = {
+        "snapshotId": snapshot_id,
+        "checkResults": check_results,
+        "summary": summary,
+    }
+
+    with _lock:
+        snap["ruleCheckReport"] = result
+        _persist_snapshots()
+
+    return {"status": "ok", "data": result}
 
 
 if __name__ == "__main__":

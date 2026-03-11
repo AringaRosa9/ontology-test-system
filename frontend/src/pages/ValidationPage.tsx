@@ -8,11 +8,12 @@ import {
     SafetyCertificateOutlined, ReloadOutlined, ThunderboltOutlined,
     CheckCircleOutlined, CloseCircleOutlined, WarningOutlined,
     BugOutlined, LinkOutlined, NodeIndexOutlined, ApartmentOutlined,
-    FileSearchOutlined, PlayCircleOutlined,
+    FileSearchOutlined, PlayCircleOutlined, AuditOutlined,
 } from '@ant-design/icons';
 import api from '../api';
+import { useValidationStore } from '../store';
 import type {
-    ApiResponse, OntologySnapshot, ValidationReport, ValidationErrorItem,
+    ApiResponse, OntologySnapshot, ValidationReport, ValidationErrorItem, RuleCheckReport, RuleCheckFinding,
 } from '../types';
 
 const SEVERITY_COLOR: Record<string, string> = { P0: 'red', P1: 'orange', P2: 'blue' };
@@ -248,6 +249,11 @@ export default function ValidationPage() {
     const [report, setReport] = useState<ValidationReport | null>(null);
     const [loading, setLoading] = useState(false);
     const [runningDeterministic, setRunningDeterministic] = useState(false);
+    const ruleCheckReport = useValidationStore(s => s.ruleCheckReport);
+    const cachedSnapshotId = useValidationStore(s => s.cachedSnapshotId);
+    const setRuleCheckReport = useValidationStore(s => s.setRuleCheckReport);
+    const clearRuleCheck = useValidationStore(s => s.clearRuleCheck);
+    const [ruleCheckLoading, setRuleCheckLoading] = useState(false);
 
     const fetchSnapshots = () => {
         api.get<ApiResponse<OntologySnapshot[]>>('/ontology/snapshots')
@@ -306,27 +312,176 @@ export default function ValidationPage() {
         setRunningDeterministic(false);
     };
 
-    // Build per-category tabs
-    const categoryTabItems: TabsProps['items'] = report
-        ? Object.entries(report.errorsByType).map(([type, errors]) => ({
-            key: type,
-            label: (
+    const handleRuleCheck = async () => {
+        if (!selectedSnapshotId) { message.warning('请先选择快照'); return; }
+        setRuleCheckLoading(true);
+        try {
+            const { data } = await api.post<ApiResponse<RuleCheckReport>>(
+                `/ontology/snapshots/${selectedSnapshotId}/rule-self-check`, {}
+            );
+            setRuleCheckReport(selectedSnapshotId, data.data);
+            const s = data.data.summary;
+            message.success(`规则自检完成：共 ${s.total} 个发现（P0: ${s.P0}, P1: ${s.P1}, P2: ${s.P2}）`);
+        } catch (e: any) {
+            message.error(e?.response?.data?.detail || '规则自检失败');
+        }
+        setRuleCheckLoading(false);
+    };
+
+    const STRATEGY_LABEL: Record<string, string> = {
+        counter_example: '规则反例',
+        conflict: '交叉冲突',
+        boundary: '边界探测',
+        omission: '遗漏探测',
+        challenge: '综合挑战',
+    };
+    const STRATEGY_DESC: Record<string, string> = {
+        counter_example: '检查规则是否存在被合理反例打破的场景',
+        conflict: '检查规则之间是否存在逻辑矛盾或冲突',
+        boundary: '检查规则边界条件是否明确',
+        omission: '检查规则体系是否存在盲区和遗漏',
+        challenge: '检查多规则叠加后是否产生意外结果',
+    };
+
+    const ruleCheckColumns = [
+        {
+            title: '严重度', dataIndex: 'severity', width: 80,
+            filters: [{ text: 'P0', value: 'P0' }, { text: 'P1', value: 'P1' }, { text: 'P2', value: 'P2' }],
+            onFilter: (v: any, r: RuleCheckFinding) => r.severity === v,
+            render: (sev: string) => <Tag color={SEVERITY_COLOR[sev]}>{sev} {SEVERITY_LABEL[sev]}</Tag>,
+        },
+        {
+            title: '涉及规则', dataIndex: 'ruleId', width: 180,
+            render: (_: string, r: RuleCheckFinding) => (
                 <Space size={4}>
-                    {ENTITY_ICON[type] || <BugOutlined />}
-                    <span>{ENTITY_LABEL[type] || type}</span>
-                    <Badge
-                        count={errors.length}
-                        style={{
-                            backgroundColor:
-                                errors.some(e => e.severity === 'P0') ? '#fb7185' :
-                                errors.some(e => e.severity === 'P1') ? '#fbbf24' : '#38bdf8',
-                        }}
-                        size="small"
-                    />
+                    <Typography.Text code copyable={{ text: r.ruleId }}>{r.ruleId}</Typography.Text>
+                    {r.ruleIdB && <><span>↔</span><Typography.Text code copyable={{ text: r.ruleIdB }}>{r.ruleIdB}</Typography.Text></>}
                 </Space>
             ),
-            children: <ErrorTable errors={errors} />,
-        }))
+        },
+        { title: '问题描述', dataIndex: 'finding', render: (v: string) => <Typography.Text style={{ fontSize: 13 }}>{v}</Typography.Text> },
+        { title: '修复建议', dataIndex: 'suggestion', width: 280, render: (v: string) => <Typography.Text type="secondary" style={{ fontSize: 12 }}>{v}</Typography.Text> },
+    ];
+
+    const ruleCheckTabContent = (
+        <div>
+            <Space style={{ marginBottom: 16 }}>
+                <Button
+                    type="primary"
+                    icon={<AuditOutlined />}
+                    loading={ruleCheckLoading}
+                    onClick={handleRuleCheck}
+                    disabled={!selectedSnapshotId}
+                    style={{ background: 'linear-gradient(135deg, #a78bfa, #6366f1)', border: 'none' }}
+                >
+                    执行规则自检
+                </Button>
+                {ruleCheckReport && (
+                    <Space>
+                        <Tag color="red">P0: {ruleCheckReport.summary.P0}</Tag>
+                        <Tag color="orange">P1: {ruleCheckReport.summary.P1}</Tag>
+                        <Tag color="blue">P2: {ruleCheckReport.summary.P2}</Tag>
+                        <Tag>总计: {ruleCheckReport.summary.total}</Tag>
+                    </Space>
+                )}
+            </Space>
+            {ruleCheckReport ? (
+                <Collapse
+                    defaultActiveKey={Object.keys(ruleCheckReport.checkResults).filter(k => (ruleCheckReport.checkResults[k]?.length || 0) > 0)}
+                    items={Object.entries(ruleCheckReport.checkResults).map(([strategy, findings]) => ({
+                        key: strategy,
+                        label: (
+                            <Space>
+                                <span>{STRATEGY_LABEL[strategy] || strategy}</span>
+                                <Badge count={findings.length} style={{ backgroundColor: findings.some(f => f.severity === 'P0') ? '#fb7185' : findings.some(f => f.severity === 'P1') ? '#fbbf24' : '#38bdf8' }} size="small" />
+                                <Typography.Text type="secondary" style={{ fontSize: 12 }}>{STRATEGY_DESC[strategy] || ''}</Typography.Text>
+                            </Space>
+                        ),
+                        children: findings.length > 0 ? (
+                            <Table<RuleCheckFinding>
+                                rowKey={(r, i) => `${r.ruleId}-${r.strategy}-${i}`}
+                                dataSource={findings}
+                                columns={ruleCheckColumns}
+                                size="small"
+                                pagination={{ pageSize: 10 }}
+                            />
+                        ) : (
+                            <Alert type="success" showIcon message="该维度未发现问题" />
+                        ),
+                    }))}
+                />
+            ) : (
+                <Alert type="info" showIcon message="点击「执行规则自检」对规则集合进行五维深度分析" />
+            )}
+        </div>
+    );
+
+    // Build per-category tabs — insert "规则自检" between objects and ontology
+    const categoryTabItems: TabsProps['items'] = report
+        ? (() => {
+            const ordered = ['objects', 'rules', 'actions', 'events', 'links'];
+            const items: TabsProps['items'] = [];
+            // Add entity type tabs (excluding ontology)
+            for (const type of ordered) {
+                const errors = report.errorsByType[type];
+                if (!errors) continue;
+                items.push({
+                    key: type,
+                    label: (
+                        <Space size={4}>
+                            {ENTITY_ICON[type] || <BugOutlined />}
+                            <span>{ENTITY_LABEL[type] || type}</span>
+                            <Badge count={errors.length} style={{ backgroundColor: errors.some(e => e.severity === 'P0') ? '#fb7185' : errors.some(e => e.severity === 'P1') ? '#fbbf24' : '#38bdf8' }} size="small" />
+                        </Space>
+                    ),
+                    children: <ErrorTable errors={errors} />,
+                });
+            }
+            // Insert rule self-check tab
+            items.push({
+                key: 'rule_self_check',
+                label: (
+                    <Space size={4}>
+                        <AuditOutlined />
+                        <span>规则自检</span>
+                        {ruleCheckReport && <Badge count={ruleCheckReport.summary.total} style={{ backgroundColor: ruleCheckReport.summary.P0 > 0 ? '#fb7185' : ruleCheckReport.summary.P1 > 0 ? '#fbbf24' : '#38bdf8' }} size="small" />}
+                    </Space>
+                ),
+                children: ruleCheckTabContent,
+            });
+            // Add ontology tab last
+            const ontErrors = report.errorsByType['ontology'];
+            if (ontErrors) {
+                items.push({
+                    key: 'ontology',
+                    label: (
+                        <Space size={4}>
+                            {ENTITY_ICON['ontology']}
+                            <span>{ENTITY_LABEL['ontology']}</span>
+                            <Badge count={ontErrors.length} style={{ backgroundColor: ontErrors.some(e => e.severity === 'P0') ? '#fb7185' : ontErrors.some(e => e.severity === 'P1') ? '#fbbf24' : '#38bdf8' }} size="small" />
+                        </Space>
+                    ),
+                    children: <ErrorTable errors={ontErrors} />,
+                });
+            }
+            // Add any remaining types not in ordered list
+            for (const [type, errors] of Object.entries(report.errorsByType)) {
+                if (!ordered.includes(type) && type !== 'ontology') {
+                    items.push({
+                        key: type,
+                        label: (
+                            <Space size={4}>
+                                {ENTITY_ICON[type] || <BugOutlined />}
+                                <span>{ENTITY_LABEL[type] || type}</span>
+                                <Badge count={errors.length} style={{ backgroundColor: errors.some(e => e.severity === 'P0') ? '#fb7185' : errors.some(e => e.severity === 'P1') ? '#fbbf24' : '#38bdf8' }} size="small" />
+                            </Space>
+                        ),
+                        children: <ErrorTable errors={errors} />,
+                    });
+                }
+            }
+            return items;
+        })()
         : [];
 
     // Find selected snapshot info
@@ -349,7 +504,7 @@ export default function ValidationPage() {
                         <Typography.Text strong>选择快照：</Typography.Text>
                         <Select
                             value={selectedSnapshotId}
-                            onChange={v => { setSelectedSnapshotId(v); setReport(null); }}
+                            onChange={v => { setSelectedSnapshotId(v); setReport(null); if (v !== cachedSnapshotId) clearRuleCheck(); }}
                             style={{ minWidth: 400 }}
                             placeholder="选择要校验的本体快照"
                             options={snapshots.map(s => ({

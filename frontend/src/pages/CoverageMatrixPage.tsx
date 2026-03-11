@@ -8,11 +8,13 @@ import {
     AppstoreOutlined, NodeIndexOutlined, StopOutlined, FunnelPlotOutlined,
     CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, InfoCircleOutlined,
     BulbOutlined, ArrowUpOutlined, ArrowDownOutlined,
+    FileTextOutlined, SolutionOutlined, DownloadOutlined,
 } from '@ant-design/icons';
 import api from '../api';
+import { useCoverageStore } from '../store';
 import type {
     ApiResponse, TestRun, CoverageMatrixData, RuleCoverageItem, CaseCoverageItem,
-    BlockingSummary, FunnelSuggestionItem, FailedNode, RuleDetailFields,
+    BlockingSummary, FunnelSuggestionItem, FailedNode, RuleDetailFields, BusinessDataDetail,
 } from '../types';
 
 const FUNNEL_LABEL: Record<string, string> = {
@@ -89,39 +91,77 @@ function FailedNodePanel({ node }: { node: FailedNode }) {
 
 export default function CoverageMatrixPage() {
     const [runs, setRuns] = useState<TestRun[]>([]);
-    const [selectedRunId, setSelectedRunId] = useState('');
     const [loading, setLoading] = useState(false);
-    const [matrixData, setMatrixData] = useState<CoverageMatrixData | null>(null);
     const [activeTab, setActiveTab] = useState('trace');
-
-    // Funnel management state
-    const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
-    const [scoreThreshold, setScoreThreshold] = useState(60);
     const [funnelLoading, setFunnelLoading] = useState(false);
-    const [funnelSuggestions, setFunnelSuggestions] = useState<FunnelSuggestionItem[]>([]);
+
+    // Persisted state from store
+    const matrixData = useCoverageStore(s => s.matrixData);
+    const cachedRunId = useCoverageStore(s => s.cachedRunId);
+    const storeSetMatrixData = useCoverageStore(s => s.setMatrixData);
+    const funnelSuggestions = useCoverageStore(s => s.funnelSuggestions);
+    const storSetFunnelSuggestions = useCoverageStore(s => s.setFunnelSuggestions);
+    const selectedRuleIds = useCoverageStore(s => s.selectedRuleIds);
+    const storeSetSelectedRuleIds = useCoverageStore(s => s.setSelectedRuleIds);
+    const scoreThreshold = useCoverageStore(s => s.scoreThreshold);
+    const storeSetScoreThreshold = useCoverageStore(s => s.setScoreThreshold);
+    const clearCoverageCache = useCoverageStore(s => s.clearCoverageCache);
+
+    const [selectedRunId, setSelectedRunIdLocal] = useState('');
 
     // Rule detail modal
     const [detailRule, setDetailRule] = useState<RuleDetailFields | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
+
+    // Resume / JD modal
+    const [bdModalData, setBdModalData] = useState<BusinessDataDetail | null>(null);
+    const [bdModalType, setBdModalType] = useState<'resume' | 'jd'>('resume');
+    const [bdModalOpen, setBdModalOpen] = useState(false);
+    const [bdModalLoading, setBdModalLoading] = useState(false);
+
+    const openBusinessDataModal = async (itemId: string, type: 'resume' | 'jd') => {
+        setBdModalType(type);
+        setBdModalOpen(true);
+        setBdModalLoading(true);
+        setBdModalData(null);
+        try {
+            const { data } = await api.get<ApiResponse<BusinessDataDetail>>(`/business-data/${itemId}`);
+            setBdModalData(data.data);
+        } catch {
+            message.error(`加载${type === 'resume' ? '简历' : 'JD'}失败`);
+        }
+        setBdModalLoading(false);
+    };
+
+    const setSelectedRunId = (id: string) => {
+        setSelectedRunIdLocal(id);
+    };
 
     useEffect(() => {
         api.get<ApiResponse<TestRun[]>>('/executor/runs')
             .then(r => {
                 const data = r.data.data || [];
                 setRuns(data);
-                if (data.length > 0) setSelectedRunId(data[0].runId);
+                // Restore cached run if still valid, otherwise pick first
+                if (cachedRunId && data.some(d => d.runId === cachedRunId)) {
+                    setSelectedRunIdLocal(cachedRunId);
+                } else if (data.length > 0) {
+                    setSelectedRunIdLocal(data[0].runId);
+                }
             }).catch(() => {});
     }, []);
 
     const fetchMatrix = async (runId: string) => {
         if (!runId) return;
+        // Skip fetch if we already have cached data for this run
+        if (runId === cachedRunId && matrixData) {
+            return;
+        }
         setLoading(true);
-        setMatrixData(null);
-        setFunnelSuggestions([]);
-        setSelectedRuleIds([]);
+        clearCoverageCache();
         try {
             const { data } = await api.get<ApiResponse<CoverageMatrixData>>(`/coverage-matrix/${runId}`);
-            setMatrixData(data.data);
+            storeSetMatrixData(runId, data.data);
         } catch {
             message.error('加载覆盖矩阵失败');
         }
@@ -138,14 +178,14 @@ export default function CoverageMatrixPage() {
             return;
         }
         setFunnelLoading(true);
-        setFunnelSuggestions([]);
+        storSetFunnelSuggestions([]);
         try {
             const { data } = await api.post<ApiResponse<{ suggestions: FunnelSuggestionItem[] }>>('/coverage-matrix/funnel-suggestions', {
                 runId: selectedRunId,
                 ruleIds: selectedRuleIds,
                 scoreThreshold,
             });
-            setFunnelSuggestions(data.data.suggestions || []);
+            storSetFunnelSuggestions(data.data.suggestions || []);
             message.success(`已生成 ${data.data.suggestions?.length || 0} 条放松建议`);
         } catch (e: any) {
             message.error(e?.response?.data?.detail || '生成建议失败');
@@ -257,6 +297,27 @@ export default function CoverageMatrixPage() {
                 expandable={{
                     expandedRowRender: (row: CaseCoverageItem) => (
                         <Space direction="vertical" style={{ width: '100%' }} size="small">
+                            {/* Resume / JD buttons for cross-test cases */}
+                            {isCross && (row.resumeItemId || row.jdItemId) && (
+                                <Space style={{ marginBottom: 8 }}>
+                                    {row.resumeItemId && (
+                                        <Button
+                                            icon={<FileTextOutlined />}
+                                            onClick={() => openBusinessDataModal(row.resumeItemId!, 'resume')}
+                                        >
+                                            查看简历{row.resumeName ? `（${row.resumeName}）` : ''}
+                                        </Button>
+                                    )}
+                                    {row.jdItemId && (
+                                        <Button
+                                            icon={<SolutionOutlined />}
+                                            onClick={() => openBusinessDataModal(row.jdItemId!, 'jd')}
+                                        >
+                                            查看JD{row.jdTitle ? `（${row.jdTitle.length > 15 ? row.jdTitle.slice(0, 15) + '…' : row.jdTitle}）` : ''}
+                                        </Button>
+                                    )}
+                                </Space>
+                            )}
                             {row.triggeredRuleDetails.length > 0 && (
                                 <Table size="small" pagination={false} rowKey="ruleId"
                                     dataSource={row.triggeredRuleDetails}
@@ -358,7 +419,7 @@ export default function CoverageMatrixPage() {
                             dataSource={summary.topBlockingRules}
                             rowSelection={{
                                 selectedRowKeys: selectedRuleIds,
-                                onChange: (keys) => setSelectedRuleIds(keys as string[]),
+                                onChange: (keys) => storeSetSelectedRuleIds(keys as string[]),
                             }}
                             columns={[
                                 { title: '规则ID', dataIndex: 'ruleId', width: 100 },
@@ -410,7 +471,7 @@ export default function CoverageMatrixPage() {
                         <Typography.Text strong>已选规则：</Typography.Text>
                         <div style={{ marginTop: 4 }}>
                             {selectedRuleIds.length > 0 ? selectedRuleIds.map(id => (
-                                <Tag key={id} color="volcano" closable onClose={() => setSelectedRuleIds(prev => prev.filter(r => r !== id))}>{id}</Tag>
+                                <Tag key={id} color="volcano" closable onClose={() => storeSetSelectedRuleIds(selectedRuleIds.filter(r => r !== id))}>{id}</Tag>
                             )) : <Typography.Text type="secondary">请在「阻拦统计」Tab 中勾选规则，或手动添加</Typography.Text>}
                         </div>
                     </div>
@@ -420,7 +481,7 @@ export default function CoverageMatrixPage() {
                             mode="multiple" style={{ width: '100%', marginTop: 4 }}
                             placeholder="选择要分析的高阻拦规则"
                             value={selectedRuleIds}
-                            onChange={setSelectedRuleIds}
+                            onChange={storeSetSelectedRuleIds}
                             options={(summary?.topBlockingRules || []).map(r => ({
                                 label: `${r.ruleId} - ${r.ruleName} (阻拦 ${r.blockedCount})`,
                                 value: r.ruleId,
@@ -430,7 +491,7 @@ export default function CoverageMatrixPage() {
                     {isCross && (
                         <div>
                             <Typography.Text strong>评分阈值（低于此分视为阻拦）：{scoreThreshold}</Typography.Text>
-                            <Slider min={0} max={100} value={scoreThreshold} onChange={setScoreThreshold} />
+                            <Slider min={0} max={100} value={scoreThreshold} onChange={storeSetScoreThreshold} />
                         </div>
                     )}
                     <Button
@@ -617,6 +678,105 @@ export default function CoverageMatrixPage() {
             </Card>
 
             <RuleDetailModal rule={detailRule} open={detailOpen} onClose={() => setDetailOpen(false)} />
+
+            {/* Resume / JD Detail Modal */}
+            <Modal
+                title={
+                    <span>
+                        {bdModalType === 'resume' ? <FileTextOutlined style={{ color: '#1890ff', marginRight: 8 }} /> : <SolutionOutlined style={{ color: '#52c41a', marginRight: 8 }} />}
+                        {bdModalType === 'resume' ? '候选人简历' : '岗位JD'}
+                        {bdModalData ? ` — ${bdModalType === 'resume' ? (bdModalData.parsedData?.name || bdModalData.filename) : (bdModalData.title || bdModalData.filename)}` : ''}
+                    </span>
+                }
+                open={bdModalOpen}
+                onCancel={() => setBdModalOpen(false)}
+                footer={bdModalData ? (
+                    <Button
+                        icon={<DownloadOutlined />}
+                        onClick={() => window.open(`http://localhost:8000/business-data/${bdModalData.itemId}/file`, '_blank')}
+                    >
+                        下载原始文件
+                    </Button>
+                ) : null}
+                width={800}
+            >
+                {bdModalLoading ? (
+                    <div style={{ textAlign: 'center', padding: 48 }}><Typography.Text type="secondary">加载中…</Typography.Text></div>
+                ) : bdModalData && bdModalType === 'resume' ? (
+                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                        <Descriptions bordered column={2} size="small">
+                            <Descriptions.Item label="姓名">{bdModalData.parsedData?.name || '—'}</Descriptions.Item>
+                            <Descriptions.Item label="联系电话">{bdModalData.parsedData?.phone || '—'}</Descriptions.Item>
+                            <Descriptions.Item label="邮箱" span={2}>{bdModalData.parsedData?.email || '—'}</Descriptions.Item>
+                        </Descriptions>
+                        {bdModalData.parsedData?.education && bdModalData.parsedData.education.length > 0 && (
+                            <Card size="small" title="教育背景">
+                                <Table size="small" pagination={false} rowKey={(_, i) => `edu-${i}`}
+                                    dataSource={bdModalData.parsedData.education}
+                                    columns={[
+                                        { title: '学校', dataIndex: 'school' },
+                                        { title: '学位', dataIndex: 'degree', width: 80 },
+                                        { title: '专业', dataIndex: 'major' },
+                                        { title: '毕业年份', dataIndex: 'graduationYear', width: 90 },
+                                    ]}
+                                />
+                            </Card>
+                        )}
+                        {bdModalData.parsedData?.experience && bdModalData.parsedData.experience.length > 0 && (
+                            <Card size="small" title="工作经历">
+                                <Table size="small" pagination={false} rowKey={(_, i) => `exp-${i}`}
+                                    dataSource={bdModalData.parsedData.experience}
+                                    columns={[
+                                        { title: '公司', dataIndex: 'company', width: 140 },
+                                        { title: '职位', dataIndex: 'title', width: 120 },
+                                        { title: '起止时间', width: 160, render: (_: any, r: any) => `${r.startDate || '?'} ~ ${r.endDate || '?'}` },
+                                        { title: '描述', dataIndex: 'description', render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', maxHeight: 100, overflow: 'auto' }}>{v || '—'}</div> },
+                                    ]}
+                                />
+                            </Card>
+                        )}
+                        {bdModalData.parsedData?.skills && bdModalData.parsedData.skills.length > 0 && (
+                            <Card size="small" title="技能">
+                                <Space wrap>
+                                    {bdModalData.parsedData.skills.map((s, i) => <Tag key={i} color="blue">{s}</Tag>)}
+                                </Space>
+                            </Card>
+                        )}
+                        {bdModalData.parsedData?.summary && (
+                            <Card size="small" title="个人总结">
+                                <Typography.Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{bdModalData.parsedData.summary}</Typography.Paragraph>
+                            </Card>
+                        )}
+                    </Space>
+                ) : bdModalData && bdModalType === 'jd' ? (
+                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                        <Descriptions bordered column={2} size="small">
+                            <Descriptions.Item label="JD标题">{bdModalData.title || bdModalData.filename}</Descriptions.Item>
+                            <Descriptions.Item label="部门">{bdModalData.department || '—'}</Descriptions.Item>
+                            <Descriptions.Item label="适用客户">{bdModalData.applicableClient || '—'}</Descriptions.Item>
+                            <Descriptions.Item label="记录数">{bdModalData.recordCount ?? bdModalData.records?.length ?? '—'}</Descriptions.Item>
+                        </Descriptions>
+                        {bdModalData.records && bdModalData.records.length > 0 && (
+                            <Card size="small" title="JD详情">
+                                {bdModalData.records.slice(0, 3).map((rec, idx) => (
+                                    <Descriptions key={idx} bordered column={1} size="small" style={{ marginBottom: idx < Math.min(bdModalData.records!.length, 3) - 1 ? 12 : 0 }}>
+                                        {Object.entries(rec).map(([k, v]) => (
+                                            <Descriptions.Item key={k} label={k}>
+                                                <div style={{ whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{String(v ?? '—')}</div>
+                                            </Descriptions.Item>
+                                        ))}
+                                    </Descriptions>
+                                ))}
+                                {bdModalData.records.length > 3 && (
+                                    <Typography.Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                                        仅展示前 3 条记录，共 {bdModalData.records.length} 条
+                                    </Typography.Text>
+                                )}
+                            </Card>
+                        )}
+                    </Space>
+                ) : null}
+            </Modal>
         </div>
     );
 }

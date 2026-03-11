@@ -258,6 +258,10 @@ export interface CaseCoverageItem {
         aiChainOfThought: string;
     }[];
     failedNode?: FailedNode;
+    resumeItemId?: string | null;
+    resumeName?: string | null;
+    jdItemId?: string | null;
+    jdTitle?: string | null;
 }
 
 export interface BlockingSummary {
@@ -309,6 +313,51 @@ export interface FunnelSuggestionItem {
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
     riskDescription: string;
     prediction: FunnelPrediction;
+}
+
+// ── Rule Self-Check Types ──
+
+export interface RuleCheckFinding {
+    ruleId: string;
+    ruleIdB?: string;
+    severity: 'P0' | 'P1' | 'P2';
+    strategy: string;
+    finding: string;
+    suggestion: string;
+}
+
+export interface RuleCheckReport {
+    snapshotId: string;
+    checkResults: Record<string, RuleCheckFinding[]>;
+    summary: {
+        total: number;
+        P0: number;
+        P1: number;
+        P2: number;
+        byStrategy: Record<string, number>;
+    };
+}
+
+export interface BusinessDataDetail {
+    itemId: string;
+    type: 'resume' | 'jd';
+    filename: string;
+    title?: string;
+    department?: string;
+    applicableClient?: string;
+    columns?: string[];
+    recordCount?: number;
+    records?: Record<string, any>[];
+    parsedData?: {
+        name?: string;
+        phone?: string;
+        email?: string;
+        education?: { school: string; degree: string; major: string; graduationYear: number }[];
+        experience?: { company: string; title: string; startDate: string; endDate: string; description: string }[];
+        skills?: string[];
+        summary?: string;
+    };
+    uploadedAt: string;
 }
 
 export interface ApiResponse<T> {

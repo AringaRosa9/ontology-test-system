@@ -275,7 +275,10 @@ export default function OptimizationPage() {
                                                 title: '领域', dataIndex: 'area', width: 100,
                                                 render: (a: string) => <Tag color="blue">{a}</Tag>,
                                             },
-                                            { title: '当前状态', dataIndex: 'currentState', width: 180, ellipsis: true },
+                                            {
+                                                title: '当前状态', dataIndex: 'currentState', width: 200,
+                                                render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '-'}</div>,
+                                            },
                                             { title: '优化建议', dataIndex: 'recommendation' },
                                             {
                                                 title: '优先级', dataIndex: 'priority', width: 80,
