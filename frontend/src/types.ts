@@ -109,6 +109,9 @@ export interface TestExecutionRecord {
     title?: string;
     score?: number;
     failedNode?: FailedNode;
+    stepTrace?: StepTraceItem[];
+    resumeName?: string;
+    jdTitle?: string;
 }
 
 export interface TestRun {

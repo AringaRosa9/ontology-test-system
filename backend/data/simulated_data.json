@@ -1,2632 +1,469 @@
 [
   {
-    "itemId": "sim_f40c5b4b",
+    "itemId": "sim_014cbf37",
     "type": "resume",
     "subType": "normal",
-    "filename": "simulated_normal_57e1.json",
+    "filename": "simulated_normal_72b8.json",
     "generatedData": {
-      "name": "王丽",
+      "name": "张伟",
       "phone": "13812345678",
-      "email": "wangli.tech@example.com",
+      "email": "zhangwei_dev@example.com",
       "education": [
         {
-          "school": "清华大学",
-          "degree": "硕士",
-          "major": "计算机科学与技术",
-          "graduationYear": 2018
-        },
-        {
-          "school": "北京邮电大学",
+          "school": "苏州大学",
           "degree": "本科",
-          "major": "软件工程",
-          "graduationYear": 2015
+          "major": "计算机科学与技术",
+          "graduationYear": "2019"
         }
       ],
       "experience": [
         {
-          "company": "字节跳动",
-          "title": "高级后端工程师",
-          "startDate": "2021-03-01",
+          "company": "软通动力信息技术（集团）股份有限公司",
+          "title": "Java开发工程师",
+          "startDate": "2021-07",
           "endDate": "至今",
-          "description": "负责核心推荐系统的后端服务开发与优化，处理高并发请求。参与微服务架构设计与实现，提高系统可扩展性。使用Java、Spring Boot、Kafka、Redis等技术栈。"
+          "description": "负责电商平台后端核心模块的开发与维护，基于Spring Cloud架构实现微服务治理。通过优化SQL索引和引入Redis缓存，将核心接口响应速度提升了40%。参与了双十一大促期间的系统压测与扩容方案实施。"
         },
         {
-          "company": "腾讯科技",
-          "title": "后端工程师",
-          "startDate": "2018-07-01",
-          "endDate": "2021-02-28",
-          "description": "参与社交应用的用户数据平台开发，负责API接口设计与实现。优化数据库查询性能，支持千万级用户数据存储与分析。熟练使用Python、Django、MySQL。"
+          "company": "中软国际科技服务有限公司",
+          "title": "初级软件工程师",
+          "startDate": "2019-07",
+          "endDate": "2021-06",
+          "description": "参与甲方通信企业的内部管理系统研发，负责权限管理模块和报表统计模块的编码工作。协助高级工程师进行Bug排查及系统上线后的日常维护。"
         }
       ],
       "skills": [
         "Java",
         "Spring Boot",
-        "Python",
-        "Django",
+        "Spring Cloud",
         "MySQL",
-        "PostgreSQL",
         "Redis",
-        "Kafka",
+        "MyBatis-Plus",
         "Docker",
-        "Kubernetes",
-        "微服务架构",
-        "高并发处理"
+        "Git"
       ],
-      "summary": "拥有5年后端开发经验，精通Java和Python，熟悉微服务架构与高并发系统设计。具备从需求分析到系统部署的全栈开发能力，致力于构建高性能、高可用的分布式系统。"
+      "summary": "拥有4年Java后端开发经验的专业人士，熟悉微服务架构与分布式系统设计，具备良好的逻辑思维能力和团队协作精神，能够高效解决生产环境中的技术难题。",
+      "expectedSalary": "11000-14000元/月"
     },
-    "generatedAt": "2026-03-09T06:25:08.116752+00:00"
+    "generatedAt": "2026-03-11T11:54:21.109625+00:00"
   },
   {
-    "itemId": "sim_30bc1416",
+    "itemId": "sim_c0ee5158",
     "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_024e.json",
+    "subType": "missing_education",
+    "filename": "simulated_missing_education_b4ef.json",
+    "generatedData": {
+      "name": "张建国",
+      "phone": "13800138000",
+      "email": "jianguo.zhang_dev@163.com",
+      "education": [],
+      "experience": [
+        {
+          "company": "深圳市拓保软件有限公司",
+          "title": "Java开发工程师",
+          "startDate": "2020-03",
+          "endDate": "2024-05",
+          "description": "作为外包开发人员派驻至某大型股份制银行，负责信贷系统后台模块的开发与维护。使用Spring Boot与MyBatis-Plus进行业务逻辑实现，优化了核心审批流程的SQL查询，提升系统响应速度20%。"
+        },
+        {
+          "company": "北京软通动力信息技术有限公司",
+          "title": "初级软件工程师",
+          "startDate": "2018-06",
+          "endDate": "2020-02",
+          "description": "参与电商平台后台管理系统的功能迭代，负责商品管理、订单查询等基础模块的编码及单元测试工作。"
+        }
+      ],
+      "skills": [
+        "Java",
+        "Spring Cloud",
+        "MySQL",
+        "Redis",
+        "Git",
+        "Maven"
+      ],
+      "summary": "拥有6年Java后端开发经验，熟悉微服务架构，具备大型银行项目外包经验，能够快速适应高强度工作环境。因个人证件正在补办中，暂未上传学历证明材料。",
+      "expectedSalary": "14000-16000元/月"
+    },
+    "generatedAt": "2026-03-11T11:54:43.587897+00:00"
+  },
+  {
+    "itemId": "sim_6f0abaf3",
+    "type": "resume",
+    "subType": "missing_skills",
+    "filename": "simulated_missing_skills_2992.json",
     "generatedData": {
       "name": "张伟",
-      "phone": "13987654321",
-      "email": "zhangwei.pm@example.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "硕士",
-          "major": "工商管理",
-          "graduationYear": 2017
-        },
-        {
-          "school": "浙江大学",
-          "degree": "本科",
-          "major": "信息管理与信息系统",
-          "graduationYear": 2014
-        }
-      ],
-      "experience": [
-        {
-          "company": "阿里巴巴集团",
-          "title": "高级产品经理",
-          "startDate": "2020-09-01",
-          "endDate": "至今",
-          "description": "负责电商平台核心交易链路的产品规划与迭代，提升用户转化率。主导多项大型产品项目，从市场调研、需求分析到产品上线全流程管理。与研发、设计、运营团队紧密协作，确保项目按时高质量交付。"
-        },
-        {
-          "company": "美团点评",
-          "title": "产品经理",
-          "startDate": "2017-07-01",
-          "endDate": "2020-08-31",
-          "description": "负责本地生活服务O2O产品的功能设计与优化。通过用户访谈、数据分析等方式，挖掘用户痛点，提升产品体验。撰写PRD、原型设计，协调开发资源。"
-        }
-      ],
-      "skills": [
-        "产品规划",
-        "需求分析",
-        "用户研究",
-        "市场分析",
-        "原型设计",
-        "PRD撰写",
-        "项目管理",
-        "数据分析",
-        "敏捷开发",
-        "SQL"
-      ],
-      "summary": "具备6年互联网产品管理经验，擅长电商和O2O领域。精通产品全生命周期管理，具备优秀的需求洞察、产品规划和跨团队协作能力，致力于打造卓越用户体验的产品。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116800+00:00"
-  },
-  {
-    "itemId": "sim_5408a2b2",
-    "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_d422.json",
-    "generatedData": {
-      "name": "李娜",
-      "phone": "13567891234",
-      "email": "lina.data@example.com",
-      "education": [
-        {
-          "school": "复旦大学",
-          "degree": "硕士",
-          "major": "统计学",
-          "graduationYear": 2019
-        },
-        {
-          "school": "武汉大学",
-          "degree": "本科",
-          "major": "数学与应用数学",
-          "graduationYear": 2016
-        }
-      ],
-      "experience": [
-        {
-          "company": "京东集团",
-          "title": "资深数据分析师",
-          "startDate": "2021-06-01",
-          "endDate": "至今",
-          "description": "负责用户行为数据分析，构建用户画像，为精准营销提供数据支持。利用Python、SQL、Tableau进行数据清洗、建模和可视化，输出业务洞察报告。主导数据分析项目，提升业务决策效率。"
-        },
-        {
-          "company": "网易",
-          "title": "数据分析师",
-          "startDate": "2019-07-01",
-          "endDate": "2021-05-31",
-          "description": "参与游戏运营数据分析，监控关键指标，发现异常并提供解决方案。负责A/B测试设计与结果评估，优化产品功能。撰写数据报告，定期向业务部门汇报分析结果。"
-        }
-      ],
-      "skills": [
-        "SQL",
-        "Python",
-        "Pandas",
-        "NumPy",
-        "Matplotlib",
-        "Seaborn",
-        "Tableau",
-        "Power BI",
-        "A/B测试",
-        "统计建模",
-        "数据可视化",
-        "用户行为分析"
-      ],
-      "summary": "拥有4年数据分析经验，精通SQL、Python及主流数据可视化工具。擅长用户行为分析、业务指标监控和A/B测试，能够将复杂数据转化为可执行的业务洞察。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116818+00:00"
-  },
-  {
-    "itemId": "sim_65fd02b8",
-    "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_2c55.json",
-    "generatedData": {
-      "name": "刘强",
-      "phone": "13700112233",
-      "email": "liuqiang.hr@example.com",
-      "education": [
-        {
-          "school": "中国人民大学",
-          "degree": "硕士",
-          "major": "人力资源管理",
-          "graduationYear": 2016
-        },
-        {
-          "school": "对外经济贸易大学",
-          "degree": "本科",
-          "major": "劳动与社会保障",
-          "graduationYear": 2013
-        }
-      ],
-      "experience": [
-        {
-          "company": "华为技术有限公司",
-          "title": "人力资源专家",
-          "startDate": "2019-01-01",
-          "endDate": "至今",
-          "description": "负责公司海外区域的人力资源管理工作，包括招聘、绩效、员工关系、薪酬福利等。主导人才发展项目，提升团队整体能力。处理复杂员工关系问题，确保合规性。"
-        },
-        {
-          "company": "中信银行",
-          "title": "人力资源专员",
-          "startDate": "2016-07-01",
-          "endDate": "2018-12-31",
-          "description": "负责分支机构的招聘与配置工作，完成年度招聘指标。组织员工培训与发展项目。协助制定并执行薪酬福利方案。熟悉劳动法律法规。"
-        }
-      ],
-      "skills": [
-        "招聘管理",
-        "绩效管理",
-        "员工关系",
-        "薪酬福利",
-        "人才发展",
-        "培训管理",
-        "劳动法",
-        "HRIS系统",
-        "组织发展"
-      ],
-      "summary": "拥有7年人力资源管理经验，涵盖招聘、绩效、员工关系等多个模块。熟悉大型企业HR体系运作，具备解决复杂HR问题的能力，致力于推动组织与人才共同成长。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116832+00:00"
-  },
-  {
-    "itemId": "sim_f2a22d1c",
-    "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_01cf.json",
-    "generatedData": {
-      "name": "陈敏",
-      "phone": "18655443322",
-      "email": "chenmin.market@example.com",
-      "education": [
-        {
-          "school": "北京大学",
-          "degree": "硕士",
-          "major": "市场营销",
-          "graduationYear": 2017
-        },
-        {
-          "school": "南开大学",
-          "degree": "本科",
-          "major": "广告学",
-          "graduationYear": 2014
-        }
-      ],
-      "experience": [
-        {
-          "company": "小米科技",
-          "title": "市场运营经理",
-          "startDate": "2020-05-01",
-          "endDate": "至今",
-          "description": "负责智能硬件产品的线上营销策略制定与执行，实现销售额同比增长20%。策划并组织多场新品发布会及线上推广活动。管理社交媒体内容，提升品牌影响力。分析市场数据，优化营销方案。"
-        },
-        {
-          "company": "新浪微博",
-          "title": "品牌推广专员",
-          "startDate": "2017-07-01",
-          "endDate": "2020-04-30",
-          "description": "负责公司品牌在社交媒体平台的推广。与KOL合作，策划创意内容，扩大品牌曝光。监控舆情，处理危机公关。撰写营销文案与报告。"
-        }
-      ],
-      "skills": [
-        "市场营销",
-        "品牌管理",
-        "数字营销",
-        "社交媒体运营",
-        "内容营销",
-        "活动策划",
-        "数据分析",
-        "文案撰写",
-        "KOL合作",
-        "公关传播"
-      ],
-      "summary": "拥有6年市场营销及品牌推广经验，擅长数字营销和社交媒体运营。具备优秀的市场洞察力、活动策划和品牌管理能力，致力于通过创新营销策略提升品牌价值和市场份额。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116845+00:00"
-  },
-  {
-    "itemId": "sim_ed6a8fa8",
-    "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_cfcf.json",
-    "generatedData": {
-      "name": "赵磊",
-      "phone": "13311223344",
-      "email": "zhaolei.frontend@example.com",
-      "education": [
-        {
-          "school": "华中科技大学",
-          "degree": "本科",
-          "major": "电子信息工程",
-          "graduationYear": 2018
-        }
-      ],
-      "experience": [
-        {
-          "company": "快手",
-          "title": "高级前端开发工程师",
-          "startDate": "2021-08-01",
-          "endDate": "至今",
-          "description": "负责短视频社交平台核心业务的前端架构设计与开发。主导组件库的开发与维护，提升开发效率。优化页面性能和用户体验，减少加载时间30%。使用React、Vue.js、TypeScript、Webpack。"
-        },
-        {
-          "company": "滴滴出行",
-          "title": "前端开发工程师",
-          "startDate": "2018-07-01",
-          "endDate": "2021-07-31",
-          "description": "参与打车业务管理后台和司机端应用的前端开发。负责PC端和移动端页面的适配与优化。与后端工程师协作，完成前后端接口联调。熟悉HTML5、CSS3、JavaScript。"
-        }
-      ],
-      "skills": [
-        "HTML5",
-        "CSS3",
-        "JavaScript",
-        "TypeScript",
-        "React",
-        "Vue.js",
-        "Webpack",
-        "Less/Sass",
-        "Git",
-        "前端性能优化",
-        "响应式设计",
-        "UI/UX"
-      ],
-      "summary": "4年多前端开发经验，精通React和Vue.js，熟悉前端架构设计与性能优化。具备开发高质量、高可用Web应用的能力，致力于提升用户体验和开发效率。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116867+00:00"
-  },
-  {
-    "itemId": "sim_bb283bc6",
-    "type": "resume",
-    "subType": "normal",
-    "filename": "simulated_normal_b22b.json",
-    "generatedData": {
-      "name": "孙悦",
-      "phone": "18099887766",
-      "email": "sunyue.sa@example.com",
-      "education": [
-        {
-          "school": "西安交通大学",
-          "degree": "硕士",
-          "major": "计算机应用技术",
-          "graduationYear": 2016
-        },
-        {
-          "school": "电子科技大学",
-          "degree": "本科",
-          "major": "网络工程",
-          "graduationYear": 2013
-        }
-      ],
-      "experience": [
-        {
-          "company": "百度智能云",
-          "title": "解决方案架构师",
-          "startDate": "2019-04-01",
-          "endDate": "至今",
-          "description": "负责为企业客户提供云计算、大数据、AI等领域的解决方案设计与咨询。深入理解客户业务需求，设计高可用、可扩展的技术架构。撰写技术方案书，进行技术宣讲与沟通。与销售团队紧密合作，推动项目落地。"
-        },
-        {
-          "company": "IBM",
-          "title": "技术顾问",
-          "startDate": "2016-07-01",
-          "endDate": "2019-03-31",
-          "description": "为金融和制造行业客户提供IT系统集成和优化方案。参与多个大型项目的需求分析、系统设计和实施指导。熟悉企业级应用架构、数据库和中间件技术。"
-        }
-      ],
-      "skills": [
-        "云计算 (AWS/Azure/阿里云/百度云)",
-        "大数据技术 (Hadoop/Spark)",
-        "AI/机器学习",
-        "解决方案设计",
-        "系统架构",
-        "技术咨询",
-        "项目管理",
-        "Pre-sales",
-        "数据库",
-        "中间件"
-      ],
-      "summary": "拥有7年IT行业经验，其中4年解决方案架构师经验。精通云计算、大数据和AI技术，具备为复杂企业客户提供端到端解决方案的能力。擅长技术沟通与方案落地，致力于帮助客户实现数字化转型。"
-    },
-    "generatedAt": "2026-03-09T06:25:08.116883+00:00"
-  },
-  {
-    "itemId": "sim_53ee702c",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_74a5.json",
-    "generatedData": {
-      "name": "李明",
       "phone": "13812345678",
-      "email": "liming.resume@example.com",
+      "email": "zhangwei_work@163.com",
       "education": [
         {
-          "school": "国际超自然现象研究所",
-          "degree": "宇宙能量学学士",
-          "major": "宇宙能量与生命和谐",
-          "graduationYear": 2018
+          "school": "武汉工程大学",
+          "degree": "本科",
+          "major": "计算机科学与技术",
+          "graduationYear": "2020"
         }
       ],
       "experience": [
         {
-          "company": "身心灵疗愈中心",
-          "title": "高级能量疗愈师",
-          "startDate": "2020-03-01",
-          "endDate": "2023-11-30",
-          "description": "为客户提供个性化能量疗愈服务，指导冥想与放松技巧，帮助客户平衡身心能量，提升生活质量。组织多场线上线下能量工作坊。"
-        },
-        {
-          "company": "未来健康科技公司",
-          "title": "冥想课程开发助理",
-          "startDate": "2018-07-01",
-          "endDate": "2020-02-28",
-          "description": "协助开发冥想和放松课程内容，研究不同文化背景下的冥想实践，支持用户社区运营和活动策划。"
+          "company": "武汉众诚信息技术有限公司",
+          "title": "软件开发助理",
+          "startDate": "2020-07",
+          "endDate": "2024-05",
+          "description": "主要负责公司内部OA系统的日常维护工作，处理员工反馈的系统操作问题；编写软件使用说明书及技术文档；协助项目经理进行简单的系统测试与环境搭建，确保各部门业务流程的正常流转。"
         }
       ],
       "skills": [
-        "能量疗愈",
-        "冥想指导",
-        "身心平衡",
-        "客户沟通",
-        "工作坊组织",
-        "情绪管理"
+        "熟练使用Microsoft Office系列办公软件",
+        "具备良好的文档编写能力",
+        "打字录入速度快",
+        "沟通能力强",
+        "了解计算机基础理论",
+        "具备团队协作意识"
       ],
-      "summary": "一位拥有宇宙能量学学士学位的身心灵疗愈师，擅长通过能量疗愈和冥想指导帮助客户实现身心和谐。对提升个人福祉和精神成长有深刻理解。"
+      "summary": "拥有近4年软件开发行业相关工作经验，态度认真负责，擅长技术文档整理与跨部门沟通协作，能够快速适应办公环境。",
+      "expectedSalary": "10000-13000元/月"
     },
-    "generatedAt": "2026-03-09T06:25:31.663667+00:00"
+    "generatedAt": "2026-03-11T11:55:02.598772+00:00"
   },
   {
-    "itemId": "sim_5f846901",
+    "itemId": "sim_5331e3fc",
     "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_3e7a.json",
+    "subType": "career_gap",
+    "filename": "simulated_career_gap_5572.json",
     "generatedData": {
-      "name": "王芳",
-      "phone": "13987654321",
-      "email": "wangfang.cv@example.com",
+      "name": "张伟",
+      "phone": "13812345678",
+      "email": "zhangwei_dev@163.com",
       "education": [
         {
-          "school": "亚洲动物行为科学大学",
-          "degree": "情绪智能与猫咪行为学硕士",
-          "major": "宠物心理与行为矫正",
+          "school": "武汉工程大学",
+          "degree": "本科",
+          "major": "计算机科学与技术",
+          "graduationYear": "2015"
+        }
+      ],
+      "experience": [
+        {
+          "company": "上海锐智科技有限公司",
+          "title": "高级Java开发工程师",
+          "startDate": "2021-06",
+          "endDate": "2023-12",
+          "description": "负责电商平台后端核心模块的开发与维护，使用Spring Cloud微服务架构，优化系统响应速度，提升了30%的并发处理能力。"
+        },
+        {
+          "company": "武汉众诚信息技术有限公司",
+          "title": "Java开发工程师",
+          "startDate": "2015-07",
+          "endDate": "2018-05",
+          "description": "参与企业ERP系统的模块设计与编码，负责数据库表结构设计及SQL性能调优。"
+        }
+      ],
+      "skills": [
+        "Java",
+        "Spring Boot",
+        "MyBatis",
+        "MySQL",
+        "Redis",
+        "RabbitMQ"
+      ],
+      "summary": "具备5年以上Java开发经验，技术栈扎实。2018年5月至2021年6月期间因处理家庭事务及个人创业尝试离职，现已稳定，可全身心投入职场。",
+      "expectedSalary": "15000-18000元/月"
+    },
+    "generatedAt": "2026-03-11T11:55:19.043781+00:00"
+  },
+  {
+    "itemId": "sim_16955ea2",
+    "type": "resume",
+    "subType": "strange_degree",
+    "filename": "simulated_strange_degree_e00f.json",
+    "generatedData": {
+      "name": "赵星宇",
+      "phone": "13910293847",
+      "email": "zhao_xingyu_energy@163.com",
+      "education": [
+        {
+          "school": "环球灵性成长研修学院",
+          "degree": "宇宙能量协调硕士",
+          "major": "量子磁场与人类行为干预",
           "graduationYear": 2021
         },
         {
-          "school": "城市大学",
-          "degree": "应用心理学学士",
-          "major": "心理学",
-          "graduationYear": 2019
-        }
-      ],
-      "experience": [
-        {
-          "company": "萌宠之家宠物服务",
-          "title": "高级宠物行为咨询师",
-          "startDate": "2021-08-01",
-          "endDate": "2023-11-30",
-          "description": "为宠物主人提供专业的猫咪行为问题诊断与解决方案，包括攻击性、乱排泄等。设计并实施个性化行为矫正方案，深受客户好评。"
-        },
-        {
-          "company": "社区动物保护中心",
-          "title": "社区运营协调员",
-          "startDate": "2019-09-01",
-          "endDate": "2021-07-31",
-          "description": "负责社区宠物领养活动策划与执行，维护线上社群活跃度，提供基础宠物喂养与护理知识咨询。"
-        }
-      ],
-      "skills": [
-        "猫咪行为学",
-        "情绪智能",
-        "宠物心理咨询",
-        "行为矫正",
-        "社群运营",
-        "沟通协调"
-      ],
-      "summary": "持有情绪智能与猫咪行为学硕士学位，专注于宠物心理与行为矫正。具备扎实的理论基础和丰富的实践经验，致力于改善人宠关系。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663699+00:00"
-  },
-  {
-    "itemId": "sim_45794d58",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_13ce.json",
-    "generatedData": {
-      "name": "张伟",
-      "phone": "13700112233",
-      "email": "zhangwei.job@example.com",
-      "education": [
-        {
-          "school": "未来科技与意识研究学院",
-          "degree": "虚拟现实冥想指导与实践博士",
-          "major": "沉浸式体验与精神健康",
-          "graduationYear": 2022
-        },
-        {
-          "school": "科技大学",
-          "degree": "计算机科学与技术硕士",
-          "major": "人机交互",
-          "graduationYear": 2019
-        }
-      ],
-      "experience": [
-        {
-          "company": "元宇宙健康平台",
-          "title": "VR产品经理",
-          "startDate": "2022-09-01",
-          "endDate": "2023-11-30",
-          "description": "负责VR冥想产品的规划、设计与迭代，结合虚拟现实技术和精神健康理论，提升用户沉浸式体验。带领团队完成多个版本发布。"
-        },
-        {
-          "company": "创新实验室",
-          "title": "用户体验研究员",
-          "startDate": "2019-07-01",
-          "endDate": "2022-08-31",
-          "description": "参与多项VR/AR项目用户体验研究，进行用户访谈、可用性测试，并提出优化建议，为产品开发提供数据支持。"
-        }
-      ],
-      "skills": [
-        "VR/AR技术",
-        "产品管理",
-        "用户体验设计",
-        "冥想指导",
-        "人机交互",
-        "项目管理"
-      ],
-      "summary": "一位拥有虚拟现实冥想指导与实践博士学位的VR产品经理，专注于将前沿科技与精神健康相结合。在VR产品规划、用户体验研究和团队管理方面经验丰富。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663715+00:00"
-  },
-  {
-    "itemId": "sim_9e4b4668",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_2ad7.json",
-    "generatedData": {
-      "name": "刘丽",
-      "phone": "13655443322",
-      "email": "liuli.profile@example.com",
-      "education": [
-        {
-          "school": "东方神秘学大学",
-          "degree": "城市传说与民间故事研究学士",
-          "major": "叙事学与文化传播",
-          "graduationYear": 2017
-        }
-      ],
-      "experience": [
-        {
-          "company": "文化传播有限公司",
-          "title": "资深内容编辑",
-          "startDate": "2019-01-01",
-          "endDate": "2023-11-30",
-          "description": "负责原创内容撰写、编辑与发布，专注于挖掘城市传说、民间故事等文化题材，提升内容传播效果和用户互动。管理社交媒体账号。"
-        },
-        {
-          "company": "媒体公司",
-          "title": "市场助理",
-          "startDate": "2017-07-01",
-          "endDate": "2018-12-31",
-          "description": "协助市场推广活动策划与执行，撰写宣传文案，进行市场调研和数据分析，支持品牌传播工作。"
-        }
-      ],
-      "skills": [
-        "内容创作",
-        "文案撰写",
-        "文化研究",
-        "叙事技巧",
-        "社交媒体运营",
-        "市场推广"
-      ],
-      "summary": "持有城市传说与民间故事研究学士学位，对叙事学和文化传播有独到见解。擅长内容创作与编辑，致力于通过故事传播文化价值。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663730+00:00"
-  },
-  {
-    "itemId": "sim_b511fd6a",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_999b.json",
-    "generatedData": {
-      "name": "陈强",
-      "phone": "13599887766",
-      "email": "chenqiang.hr@example.com",
-      "education": [
-        {
-          "school": "国际梦境研究大学",
-          "degree": "沉浸式梦境设计与心理学硕士",
-          "major": "游戏化应用与用户心理",
-          "graduationYear": 2020
-        },
-        {
-          "school": "艺术学院",
-          "degree": "数字媒体艺术学士",
-          "major": "互动媒体设计",
-          "graduationYear": 2018
-        }
-      ],
-      "experience": [
-        {
-          "company": "创新游戏工作室",
-          "title": "高级游戏策划师",
-          "startDate": "2020-09-01",
-          "endDate": "2023-11-30",
-          "description": "负责多款沉浸式游戏的玩法设计、剧情构建和用户体验优化，将梦境心理学原理融入游戏机制，提升玩家代入感。带领小团队完成项目。"
-        },
-        {
-          "company": "心理健康咨询中心",
-          "title": "心理咨询师助理",
-          "startDate": "2018-07-01",
-          "endDate": "2020-08-31",
-          "description": "协助心理咨询师进行个案分析和团体辅导，整理咨询记录，参与心理学研究项目，提升沟通和共情能力。"
-        }
-      ],
-      "skills": [
-        "游戏策划",
-        "用户心理学",
-        "梦境解析",
-        "互动设计",
-        "数字媒体",
-        "团队协作"
-      ],
-      "summary": "一位拥有沉浸式梦境设计与心理学硕士学位的游戏策划师，致力于将心理学与游戏设计相结合。在创造独特沉浸式体验方面具有创新能力。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663745+00:00"
-  },
-  {
-    "itemId": "sim_e7c095a2",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_f7fb.json",
-    "generatedData": {
-      "name": "赵敏",
-      "phone": "13322110099",
-      "email": "zhaomin.apply@example.com",
-      "education": [
-        {
-          "school": "新时代健康科学学院",
-          "degree": "另类疗法与晶体能量应用学士",
-          "major": "自然疗法与身心平衡",
-          "graduationYear": 2016
-        }
-      ],
-      "experience": [
-        {
-          "company": "自然疗法健康管理中心",
-          "title": "健康顾问",
-          "startDate": "2018-01-01",
-          "endDate": "2023-11-30",
-          "description": "为客户提供个性化自然健康咨询服务，推广晶体能量疗法和芳香疗法，制定健康管理方案。负责客户关系维护和健康讲座宣讲。"
-        },
-        {
-          "company": "养生产品公司",
-          "title": "销售代表",
-          "startDate": "2016-07-01",
-          "endDate": "2017-12-31",
-          "description": "负责健康养生产品的市场推广与销售，达成销售目标，建立和维护客户关系，提升产品市场占有率。"
-        }
-      ],
-      "skills": [
-        "自然疗法",
-        "晶体能量",
-        "芳香疗法",
-        "健康咨询",
-        "销售技巧",
-        "客户服务"
-      ],
-      "summary": "拥有另类疗法与晶体能量应用学士学位，专注于自然疗法和身心平衡。具备多年健康顾问经验，擅长为客户提供个性化健康解决方案。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663760+00:00"
-  },
-  {
-    "itemId": "sim_05d11aae",
-    "type": "resume",
-    "subType": "strange_degree",
-    "filename": "simulated_strange_degree_45a1.json",
-    "generatedData": {
-      "name": "孙涛",
-      "phone": "13010203040",
-      "email": "suntao.resume@example.com",
-      "education": [
-        {
-          "school": "银河联邦学院",
-          "degree": "星际外交与跨物种沟通学硕士",
-          "major": "宇宙文明研究与交流",
-          "graduationYear": 2022
-        },
-        {
-          "school": "国际关系学院",
-          "degree": "国际关系学士",
-          "major": "国际政治",
-          "graduationYear": 2020
-        }
-      ],
-      "experience": [
-        {
-          "company": "国际文化交流中心",
-          "title": "国际项目协调员",
-          "startDate": "2022-09-01",
-          "endDate": "2023-11-30",
-          "description": "负责协调国际文化交流项目，与各国代表团建立并维护良好关系，处理跨文化沟通中的潜在问题，确保项目顺利进行。"
-        },
-        {
-          "company": "联合国青年大使项目",
-          "title": "项目助理",
-          "startDate": "2020-07-01",
-          "endDate": "2022-08-31",
-          "description": "协助组织国际会议和研讨会，撰写会议纪要和报告，负责与各国青年代表的日常沟通与联络工作。"
-        }
-      ],
-      "skills": [
-        "国际关系",
-        "跨文化沟通",
-        "外交礼仪",
-        "项目协调",
-        "报告撰写",
-        "多语言能力 (英语流利)"
-      ],
-      "summary": "一位拥有星际外交与跨物种沟通学硕士学位的国际项目协调员，具备卓越的跨文化交流和协调能力。致力于促进多元主体间的理解与合作。"
-    },
-    "generatedAt": "2026-03-09T06:25:31.663775+00:00"
-  },
-  {
-    "itemId": "sim_fbce15dd",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_8438.json",
-    "generatedData": {
-      "name": "王强",
-      "phone": "13812345678",
-      "email": "wangqiang@outlook.com",
-      "education": [],
-      "experience": [
-        {
-          "company": "深圳市顺丰速运有限公司",
-          "title": "快递员",
-          "startDate": "2018-03-01",
-          "endDate": "2023-11-30",
-          "description": "负责区域内快件的收派工作，确保及时准确送达。熟悉路线规划，处理客户查询和投诉。"
-        },
-        {
-          "company": "广州市外卖配送服务中心",
-          "title": "外卖骑手",
-          "startDate": "2016-07-01",
-          "endDate": "2018-02-28",
-          "description": "通过平台接单，高效完成餐饮配送任务，熟悉城市交通，保持高客户满意度。"
-        }
-      ],
-      "skills": [
-        "路线规划",
-        "客户服务",
-        "电动车驾驶",
-        "时间管理"
-      ],
-      "summary": "拥有五年以上物流配送和客户服务经验，熟悉城市交通，具备较强的责任心和抗压能力。致力于提供高效、准确的服务。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730556+00:00"
-  },
-  {
-    "itemId": "sim_d4f934cc",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_e064.json",
-    "generatedData": {
-      "name": "李娜",
-      "phone": "13923456789",
-      "email": "lina_job@163.com",
-      "education": [
-        {
-          "school": "北京市职业高中",
-          "degree": "高中毕业",
-          "major": "计算机应用",
-          "graduationYear": 2010
-        }
-      ],
-      "experience": [
-        {
-          "company": "北京某互联网公司",
-          "title": "数据录入员",
-          "startDate": "2015-09-01",
-          "endDate": "2023-12-31",
-          "description": "负责公司各类业务数据录入、核对与整理，确保数据准确性。熟练使用Office办公软件。"
-        },
-        {
-          "company": "北京市一家超市",
-          "title": "收银员",
-          "startDate": "2010-07-01",
-          "endDate": "2015-08-31",
-          "description": "负责日常收银操作，处理现金及电子支付，提供良好的顾客服务。"
-        }
-      ],
-      "skills": [
-        "数据录入",
-        "Microsoft Office",
-        "细心严谨",
-        "客户沟通"
-      ],
-      "summary": "具备扎实的计算机应用基础和八年数据录入经验，工作细致高效，能熟练操作各类办公软件，适应性强。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730594+00:00"
-  },
-  {
-    "itemId": "sim_67d1e15f",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_22f3.json",
-    "generatedData": {
-      "name": "张伟",
-      "phone": "13734567890",
-      "email": "zhangwei_work@qq.com",
-      "education": [
-        {
-          "school": "上海市蓝翔技工学校",
-          "degree": "职业技能证书",
-          "major": "汽车维修",
-          "graduationYear": 2012
-        }
-      ],
-      "experience": [
-        {
-          "company": "上海大众汽车4S店",
-          "title": "汽车维修技师",
-          "startDate": "2012-08-01",
-          "endDate": "2023-12-31",
-          "description": "负责各类汽车的常规保养、故障诊断与维修，熟练使用专业检测设备。处理客户车辆问题，提供技术支持。"
-        },
-        {
-          "company": "上海汽车修理厂",
-          "title": "学徒工",
-          "startDate": "2010-03-01",
-          "endDate": "2012-07-31",
-          "description": "协助师傅进行车辆维修，学习汽车结构和维修技术，负责工具整理和车间清洁。"
-        }
-      ],
-      "skills": [
-        "汽车故障诊断",
-        "发动机维修",
-        "底盘维修",
-        "钣金喷漆"
-      ],
-      "summary": "拥有超过十年汽车维修经验，精通各类车型故障诊断与维修，持有专业技能证书，致力于为客户提供高质量的维修服务。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730612+00:00"
-  },
-  {
-    "itemId": "sim_64529e52",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_4668.json",
-    "generatedData": {
-      "name": "赵丽",
-      "phone": "13645678901",
-      "email": "zhaoli.hr@sina.com",
-      "education": [
-        {
-          "school": "成都市职业技术学院",
-          "degree": "肄业",
-          "major": "酒店管理",
-          "graduationYear": 2008
-        }
-      ],
-      "experience": [
-        {
-          "company": "成都希尔顿酒店",
-          "title": "前台接待",
-          "startDate": "2010-05-01",
-          "endDate": "2023-12-31",
-          "description": "负责宾客入住、退房手续办理，处理预订和咨询，协调解决客户问题，确保宾客满意度。"
-        },
-        {
-          "company": "成都市某连锁咖啡店",
-          "title": "咖啡师",
-          "startDate": "2008-03-01",
-          "endDate": "2010-04-30",
-          "description": "制作各类咖啡饮品，维护设备清洁，提供优质顾客服务，管理库存。"
-        }
-      ],
-      "skills": [
-        "酒店前台操作",
-        "客户服务",
-        "问题解决",
-        "英语口语"
-      ],
-      "summary": "拥有十四年酒店前台及客户服务经验，具备优秀的沟通能力和解决问题能力，能熟练应对各类突发状况，致力于提升客户体验。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730630+00:00"
-  },
-  {
-    "itemId": "sim_3e1eda6c",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_828b.json",
-    "generatedData": {
-      "name": "刘明",
-      "phone": "13556789012",
-      "email": "liuming_it@gmail.com",
-      "education": [
-        {
-          "school": "无",
-          "degree": "小学毕业",
-          "major": "无",
-          "graduationYear": 1998
-        }
-      ],
-      "experience": [
-        {
-          "company": "深圳市电子产品制造厂",
-          "title": "生产线操作工",
-          "startDate": "2005-01-01",
-          "endDate": "2023-12-31",
-          "description": "负责电子产品组装、测试及包装，严格遵守生产流程和质量标准。具备良好的团队协作精神。"
-        },
-        {
-          "company": "东莞市玩具厂",
-          "title": "普工",
-          "startDate": "1999-03-01",
-          "endDate": "2004-12-31",
-          "description": "从事玩具部件加工和组装，服从生产安排，保质保量完成生产任务。"
-        }
-      ],
-      "skills": [
-        "生产线操作",
-        "质量控制",
-        "团队协作",
-        "吃苦耐劳"
-      ],
-      "summary": "拥有近二十年制造业生产线经验，熟悉电子产品组装及质量控制流程，工作认真负责，能适应高强度生产环境。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730646+00:00"
-  },
-  {
-    "itemId": "sim_3e8e1918",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_bf13.json",
-    "generatedData": {
-      "name": "孙莉",
-      "phone": "13467890123",
-      "email": "sunli_career@qq.com",
-      "education": [],
-      "experience": [
-        {
-          "company": "杭州某服装批发市场",
-          "title": "销售助理",
-          "startDate": "2019-01-01",
-          "endDate": "2023-12-31",
-          "description": "协助销售经理处理订单、客户接待及产品展示。熟悉服装市场动态，具备良好的沟通技巧。"
-        },
-        {
-          "company": "个体经营（淘宝店）",
-          "title": "客服/运营",
-          "startDate": "2015-03-01",
-          "endDate": "2018-12-31",
-          "description": "负责淘宝店铺日常运营、客户咨询、订单处理及售后服务。积累了丰富的电商平台操作经验。"
-        }
-      ],
-      "skills": [
-        "销售支持",
-        "客户沟通",
-        "电商运营",
-        "市场分析"
-      ],
-      "summary": "具备多年销售助理及电商运营经验，熟悉线上线下销售流程，善于与客户沟通，能有效协助团队达成销售目标。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730661+00:00"
-  },
-  {
-    "itemId": "sim_8de755fe",
-    "type": "resume",
-    "subType": "missing_education",
-    "filename": "simulated_missing_education_6c04.json",
-    "generatedData": {
-      "name": "周平",
-      "phone": "13378901234",
-      "email": "zhouping.tech@126.com",
-      "education": [
-        {
-          "school": "深圳市计算机技能培训中心",
-          "degree": "计算机操作员证书",
-          "major": "办公自动化",
-          "graduationYear": 2017
-        }
-      ],
-      "experience": [
-        {
-          "company": "深圳某科技公司",
-          "title": "行政助理",
-          "startDate": "2017-09-01",
-          "endDate": "2023-12-31",
-          "description": "负责办公室日常行政事务，包括文件管理、会议安排、物资采购等。熟练使用办公软件，协调能力强。"
-        },
-        {
-          "company": "深圳市餐饮连锁店",
-          "title": "服务员",
-          "startDate": "2014-03-01",
-          "endDate": "2017-08-31",
-          "description": "提供餐饮服务，负责点餐、上菜、清洁等工作，积累了丰富的服务行业经验。"
-        }
-      ],
-      "skills": [
-        "行政管理",
-        "Microsoft Office",
-        "沟通协调",
-        "客户服务"
-      ],
-      "summary": "拥有多年行政助理经验，具备良好的办公自动化技能和沟通协调能力，能够高效处理各项行政事务，确保公司运营顺畅。"
-    },
-    "generatedAt": "2026-03-09T06:25:49.730677+00:00"
-  },
-  {
-    "itemId": "sim_e00db38e",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_b391.json",
-    "generatedData": {
-      "name": "王伟",
-      "phone": "13812345678",
-      "email": "wangwei.arch@example.com",
-      "education": [
-        {
-          "school": "清华大学",
-          "degree": "博士",
-          "major": "计算机科学与技术",
-          "graduationYear": 2009
-        },
-        {
-          "school": "北京航空航天大学",
-          "degree": "学士",
-          "major": "软件工程",
-          "graduationYear": 2004
-        }
-      ],
-      "experience": [
-        {
-          "company": "字节跳动",
-          "title": "首席架构师",
-          "startDate": "2019-03-01",
-          "endDate": "至今",
-          "description": "负责多个核心产品线的技术架构规划、设计与实施，主导微服务化改造和高并发系统优化，带领团队攻克技术难题，提升系统稳定性与可扩展性。"
-        },
-        {
-          "company": "腾讯科技",
-          "title": "高级软件架构师",
-          "startDate": "2014-07-01",
-          "endDate": "2019-02-28",
-          "description": "参与社交平台核心组件的架构设计与开发，引入新技术栈，优化开发流程，提升团队开发效率和代码质量。"
-        },
-        {
-          "company": "华为技术",
-          "title": "软件工程师",
-          "startDate": "2009-09-01",
-          "endDate": "2014-06-30",
-          "description": "负责企业级应用软件模块的设计、开发与测试，参与需求分析和技术选型，积累了扎实的编程基础和系统设计能力。"
-        }
-      ],
-      "skills": [
-        "Java",
-        "Python",
-        "Go",
-        "微服务",
-        "分布式系统",
-        "云计算 (AWS/Azure)",
-        "大数据",
-        "AI/ML基础",
-        "技术战略",
-        "团队领导"
-      ],
-      "summary": "拥有15年以上软件开发经验，曾担任知名科技公司首席架构师，主导多个千万级用户产品的架构设计与技术演进，精通复杂系统设计与团队管理。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.639930+00:00"
-  },
-  {
-    "itemId": "sim_aef74022",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_b0ce.json",
-    "generatedData": {
-      "name": "李娜",
-      "phone": "13987654321",
-      "email": "lina.pm@example.com",
-      "education": [
-        {
-          "school": "北京大学光华管理学院",
-          "degree": "MBA",
+          "school": "西安工业大学",
+          "degree": "本科",
           "major": "工商管理",
-          "graduationYear": 2011
-        },
-        {
-          "school": "浙江大学",
-          "degree": "学士",
-          "major": "软件工程",
-          "graduationYear": 2009
-        }
-      ],
-      "experience": [
-        {
-          "company": "阿里巴巴",
-          "title": "产品总监",
-          "startDate": "2018-06-01",
-          "endDate": "至今",
-          "description": "负责电商平台核心业务线的产品战略规划、路线图制定及团队管理，成功孵化并上线多款创新产品，实现用户增长与商业变现双重目标。"
-        },
-        {
-          "company": "美团点评",
-          "title": "高级产品经理",
-          "startDate": "2014-03-01",
-          "endDate": "2018-05-31",
-          "description": "负责O2O生活服务类产品的功能设计、用户体验优化和数据分析，协调研发、运营团队，推动产品迭代与市场推广。"
-        },
-        {
-          "company": "新浪微博",
-          "title": "产品经理",
-          "startDate": "2011-07-01",
-          "endDate": "2014-02-28",
-          "description": "参与社交媒体产品的功能规划与需求分析，撰写产品文档，跟进开发测试，熟悉产品从0到1的全生命周期管理。"
-        }
-      ],
-      "skills": [
-        "产品战略",
-        "产品生命周期管理",
-        "市场分析",
-        "用户体验设计",
-        "敏捷开发",
-        "团队管理",
-        "商业模式创新",
-        "数据驱动决策"
-      ],
-      "summary": "具备12年产品管理经验，曾任头部互联网公司产品总监，成功孵化并运营多款用户过亿级产品，对市场和用户需求有深刻洞察。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.639993+00:00"
-  },
-  {
-    "itemId": "sim_9b831107",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_081c.json",
-    "generatedData": {
-      "name": "张强",
-      "phone": "13700112233",
-      "email": "zhangqiang.ai@example.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "博士",
-          "major": "人工智能",
-          "graduationYear": 2013
-        },
-        {
-          "school": "华中科技大学",
-          "degree": "学士",
-          "major": "自动化",
-          "graduationYear": 2008
-        }
-      ],
-      "experience": [
-        {
-          "company": "百度研究院",
-          "title": "AI技术负责人",
-          "startDate": "2018-09-01",
-          "endDate": "至今",
-          "description": "领导AI核心算法团队，负责自然语言处理和计算机视觉前沿技术研发，将研究成果应用于多个商业化产品，提升产品智能化水平。"
-        },
-        {
-          "company": "商汤科技",
-          "title": "高级数据科学家",
-          "startDate": "2015-04-01",
-          "endDate": "2018-08-31",
-          "description": "专注于深度学习模型的设计、训练与优化，解决图像识别和人脸识别领域的实际问题，发表多篇顶级学术论文。"
-        },
-        {
-          "company": "科大讯飞",
-          "title": "数据科学家",
-          "startDate": "2013-10-01",
-          "endDate": "2015-03-31",
-          "description": "负责语音识别和语义理解的数据清洗、特征工程与模型构建，参与多个智能语音产品的算法实现。"
-        }
-      ],
-      "skills": [
-        "机器学习",
-        "深度学习",
-        "自然语言处理 (NLP)",
-        "计算机视觉",
-        "Python",
-        "TensorFlow",
-        "PyTorch",
-        "大数据处理",
-        "算法设计与优化",
-        "科研与团队管理"
-      ],
-      "summary": "10年人工智能领域资深专家，博士毕业于上海交通大学，曾带领团队攻克多项AI核心技术难题，具备丰富的算法设计与模型优化经验。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640034+00:00"
-  },
-  {
-    "itemId": "sim_6e3d5858",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_45a8.json",
-    "generatedData": {
-      "name": "刘洋",
-      "phone": "13655443322",
-      "email": "liuyang.cto@example.com",
-      "education": [
-        {
-          "school": "浙江大学",
-          "degree": "硕士",
-          "major": "计算机软件与理论",
-          "graduationYear": 2005
-        },
-        {
-          "school": "南京大学",
-          "degree": "学士",
-          "major": "计算机科学",
-          "graduationYear": 2002
-        }
-      ],
-      "experience": [
-        {
-          "company": "创新工场 (某孵化公司)",
-          "title": "CTO",
-          "startDate": "2016-11-01",
-          "endDate": "至今",
-          "description": "全面负责公司技术战略、研发团队建设与管理，从零搭建技术架构，带领团队实现产品快速迭代与上线，支持公司业务高速增长。"
-        },
-        {
-          "company": "京东集团",
-          "title": "研发总监",
-          "startDate": "2010-08-01",
-          "endDate": "2016-10-31",
-          "description": "管理多个研发部门，负责电商核心系统的技术规划与实施，推动技术创新与平台化建设，提升系统性能与稳定性，管理百人以上技术团队。"
-        },
-        {
-          "company": "IBM中国研发中心",
-          "title": "高级软件开发工程师",
-          "startDate": "2005-07-01",
-          "endDate": "2010-07-31",
-          "description": "参与企业级软件产品的设计与开发，熟悉软件工程全流程，积累了丰富的项目管理和团队协作经验。"
-        }
-      ],
-      "skills": [
-        "全栈开发",
-        "云架构",
-        "DevOps",
-        "项目管理",
-        "技术战略规划",
-        "预算管理",
-        "团队建设与领导",
-        "导师指导"
-      ],
-      "summary": "拥有18年资深技术管理经验，曾担任创业公司CTO及大型企业研发总监，精通技术战略规划与团队建设，成功交付多个复杂技术项目。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640071+00:00"
-  },
-  {
-    "itemId": "sim_abde76d3",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_9ecd.json",
-    "generatedData": {
-      "name": "陈芳",
-      "phone": "13599887766",
-      "email": "chenfang.mkt@example.com",
-      "education": [
-        {
-          "school": "复旦大学",
-          "degree": "硕士",
-          "major": "市场营销",
-          "graduationYear": 2009
-        },
-        {
-          "school": "厦门大学",
-          "degree": "学士",
-          "major": "广告学",
-          "graduationYear": 2006
-        }
-      ],
-      "experience": [
-        {
-          "company": "宝洁中国",
-          "title": "市场总监",
-          "startDate": "2016-01-01",
-          "endDate": "至今",
-          "description": "负责多个快消品品牌的市场战略制定与执行，管理千万级营销预算，成功推出多款新品，实现市场份额和销售额的显著增长。"
-        },
-        {
-          "company": "联合利华",
-          "title": "高级市场经理",
-          "startDate": "2012-05-01",
-          "endDate": "2015-12-31",
-          "description": "负责特定产品线的品牌管理、数字营销和公关活动，分析市场数据，制定营销方案，提升品牌知名度与消费者忠诚度。"
-        },
-        {
-          "company": "奥美公关",
-          "title": "市场专员",
-          "startDate": "2009-07-01",
-          "endDate": "2012-04-30",
-          "description": "协助客户进行市场调研、竞品分析和营销活动策划，撰写市场报告和新闻稿，积累了扎实的市场基础知识。"
-        }
-      ],
-      "skills": [
-        "数字营销",
-        "品牌管理",
-        "内容策略",
-        "SEO/SEM",
-        "社交媒体营销",
-        "公关",
-        "市场调研",
-        "团队领导",
-        "跨部门协作"
-      ],
-      "summary": "14年营销管理经验，曾任世界500强企业市场总监，擅长品牌策略制定与执行，成功推动多项市场活动实现显著增长。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640108+00:00"
-  },
-  {
-    "itemId": "sim_a1ee8c26",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_2a4a.json",
-    "generatedData": {
-      "name": "赵明",
-      "phone": "13322110099",
-      "email": "zhaoming.game@example.com",
-      "education": [
-        {
-          "school": "南加州大学 (University of Southern California)",
-          "degree": "硕士",
-          "major": "游戏开发",
-          "graduationYear": 2010
-        },
-        {
-          "school": "北京邮电大学",
-          "degree": "学士",
-          "major": "软件工程",
-          "graduationYear": 2008
-        }
-      ],
-      "experience": [
-        {
-          "company": "米哈游",
-          "title": "首席游戏工程师",
-          "startDate": "2017-04-01",
-          "endDate": "至今",
-          "description": "负责多款3A级开放世界游戏的核心引擎开发与性能优化，主导图形渲染、物理模拟和网络同步模块的设计与实现，解决复杂技术挑战。"
-        },
-        {
-          "company": "网易游戏",
-          "title": "高级游戏开发工程师",
-          "startDate": "2013-08-01",
-          "endDate": "2017-03-31",
-          "description": "参与大型多人在线游戏的客户端与服务器端开发，负责游戏逻辑、UI系统和工具链的开发与维护，提升开发效率。"
-        },
-        {
-          "company": "EA中国",
-          "title": "游戏开发工程师",
-          "startDate": "2010-09-01",
-          "endDate": "2013-07-31",
-          "description": "负责体育类游戏的功能模块开发与bug修复，熟悉游戏开发流程和常用引擎，积累了扎实的C++编程能力。"
-        }
-      ],
-      "skills": [
-        "C++",
-        "Unreal Engine",
-        "Unity",
-        "游戏物理",
-        "图形编程",
-        "多人网络",
-        "性能优化",
-        "游戏设计",
-        "团队指导"
-      ],
-      "summary": "13年游戏开发经验，曾任顶级游戏公司首席工程师，主导多款3A级游戏的核心引擎开发与性能优化，对游戏架构有深入理解。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640145+00:00"
-  },
-  {
-    "itemId": "sim_293acead",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_9dd4.json",
-    "generatedData": {
-      "name": "孙丽",
-      "phone": "13411223344",
-      "email": "sunli.finance@example.com",
-      "education": [
-        {
-          "school": "中国人民大学",
-          "degree": "硕士",
-          "major": "金融学",
-          "graduationYear": 2012
-        },
-        {
-          "school": "中央财经大学",
-          "degree": "学士",
-          "major": "会计学",
-          "graduationYear": 2009
-        }
-      ],
-      "experience": [
-        {
-          "company": "中金公司",
-          "title": "投资经理",
-          "startDate": "2017-07-01",
-          "endDate": "至今",
-          "description": "负责权益类投资组合管理，进行宏观经济分析、行业研究和公司估值，制定投资策略并执行交易，实现稳健的投资回报。"
-        },
-        {
-          "company": "华泰证券",
-          "title": "高级金融分析师",
-          "startDate": "2014-03-01",
-          "endDate": "2017-06-30",
-          "description": "进行深入的财务分析和估值建模，撰写行业研究报告和投资建议，为机构客户提供专业的投资咨询服务。"
-        },
-        {
-          "company": "普华永道",
-          "title": "金融分析师",
-          "startDate": "2012-07-01",
-          "endDate": "2014-02-28",
-          "description": "参与企业并购重组项目，进行尽职调查和财务分析，协助客户完成交易，熟悉资本市场运作。"
-        }
-      ],
-      "skills": [
-        "财务建模",
-        "估值分析",
-        "投资策略",
-        "投资组合管理",
-        "风险管理",
-        "数据分析 (Excel, Python)",
-        "CFA",
-        "股权研究",
-        "宏观经济分析"
-      ],
-      "summary": "11年金融投资经验，硕士毕业于中国人民大学，并持有CFA证书。曾担任知名资产管理公司投资经理，擅长宏观经济分析与证券投资组合管理。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640183+00:00"
-  },
-  {
-    "itemId": "sim_f5c4ee4b",
-    "type": "resume",
-    "subType": "overqualified",
-    "filename": "simulated_overqualified_aaaf.json",
-    "generatedData": {
-      "name": "高明",
-      "phone": "13100998877",
-      "email": "gaoming.pm@example.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "博士",
-          "major": "管理科学与工程",
-          "graduationYear": 2010
-        },
-        {
-          "school": "同济大学",
-          "degree": "学士",
-          "major": "土木工程",
-          "graduationYear": 2005
-        }
-      ],
-      "experience": [
-        {
-          "company": "中国建筑集团",
-          "title": "高级项目总监",
-          "startDate": "2018-01-01",
-          "endDate": "至今",
-          "description": "负责多个超大型城市综合体和基础设施建设项目的全生命周期管理，协调政府、业主、设计、施工等多方资源，确保项目按时、按质、按预算完成。"
-        },
-        {
-          "company": "万科集团",
-          "title": "项目总监",
-          "startDate": "2013-06-01",
-          "endDate": "2017-12-31",
-          "description": "管理多个商业地产和住宅开发项目，负责项目规划、成本控制、进度管理和质量监督，带领团队成功交付多个标杆项目。"
-        },
-        {
-          "company": "中建八局",
-          "title": "项目经理",
-          "startDate": "2010-09-01",
-          "endDate": "2013-05-31",
-          "description": "负责具体工程项目的施工管理、技术指导和安全生产，熟悉国家工程建设标准和规范。"
-        }
-      ],
-      "skills": [
-        "项目管理",
-        "工程管理",
-        "成本控制",
-        "进度管理",
-        "质量管理",
-        "风险管理",
-        "合同管理",
-        "团队领导",
-        "政府关系"
-      ],
-      "summary": "拥有14年大型工程项目管理经验，博士毕业于上海交通大学，曾担任知名建筑集团高级项目总监，成功主导多个百亿级项目，具备卓越的统筹协调能力。"
-    },
-    "generatedAt": "2026-03-09T06:26:22.640206+00:00"
-  },
-  {
-    "itemId": "sim_cb8ebc27",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_df51.json",
-    "generatedData": {
-      "name": "王强",
-      "phone": "13512345678",
-      "email": "wangqiang.dev@qq.com",
-      "education": [
-        {
-          "school": "北京理工大学",
-          "degree": "本科",
-          "major": "计算机科学与技术",
           "graduationYear": 2018
         }
       ],
       "experience": [
         {
-          "company": "创新科技公司",
-          "title": "软件开发工程师",
+          "company": "灵犀文化传播有限公司",
+          "title": "高级能量调频顾问",
+          "startDate": "2021-07",
+          "endDate": "2023-12",
+          "description": "负责企业客户的职场磁场分析与员工情绪调频工作。通过量子干预理论优化团队沟通效率，减少部门间协作摩擦，提升整体办公环境的“正向能量流”。"
+        },
+        {
+          "company": "某大型零售贸易公司",
+          "title": "人力资源助理",
           "startDate": "2018-07",
-          "endDate": "2023-03",
-          "description": "参与公司核心产品的后端模块开发与维护，协助进行系统测试和性能优化。负责日常代码管理和版本控制，与团队成员紧密合作，确保项目按时交付。"
-        },
-        {
-          "company": "未来数码科技",
-          "title": "初级开发工程师",
-          "startDate": "2016-07",
-          "endDate": "2017-06",
-          "description": "在校期间实习，主要负责协助开发团队进行文档编写、单元测试以及简单的功能实现。"
+          "endDate": "2020-08",
+          "description": "负责日常招聘信息的发布与简历初筛，协助组织员工入职培训及社保公积金缴纳业务。"
         }
       ],
       "skills": [
-        "团队协作",
-        "问题解决",
-        "沟通能力",
-        "快速学习"
+        "磁场分析",
+        "NLP心理暗示",
+        "情绪压力管理",
+        "招聘面试",
+        "企业文化建设"
       ],
-      "summary": "拥有五年软件开发经验，熟悉项目开发流程，具备良好的团队合作精神和解决问题的能力。渴望在技术领域持续成长。"
+      "summary": "具备传统HR管理经验与前沿“宇宙能量协调”学术背景的复合型人才，擅长从微观能量角度解决职场冲突。",
+      "expectedSalary": "12000-15000元/月"
     },
-    "generatedAt": "2026-03-09T06:26:40.294077+00:00"
+    "generatedAt": "2026-03-11T11:55:58.539252+00:00"
   },
   {
-    "itemId": "sim_14e4748a",
+    "itemId": "sim_254eaa85",
     "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_b725.json",
+    "subType": "overqualified",
+    "filename": "simulated_overqualified_003d.json",
     "generatedData": {
-      "name": "李娜",
-      "phone": "13876543210",
-      "email": "lina.mkt@163.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "硕士",
-          "major": "市场营销",
-          "graduationYear": 2019
-        },
-        {
-          "school": "复旦大学",
-          "degree": "本科",
-          "major": "新闻学",
-          "graduationYear": 2016
-        }
-      ],
-      "experience": [
-        {
-          "company": "全球品牌咨询",
-          "title": "市场专员",
-          "startDate": "2019-09",
-          "endDate": "2024-01",
-          "description": "负责协助市场经理进行市场调研、竞品分析，撰写市场报告。参与品牌推广活动策划与执行，维护客户关系，协助内容创作和社交媒体运营。"
-        }
-      ],
-      "skills": [
-        "市场调研",
-        "报告撰写",
-        "活动策划",
-        "客户沟通"
-      ],
-      "summary": "硕士学历，五年市场营销经验，擅长市场分析和活动执行。致力于为品牌增长贡献力量。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294139+00:00"
-  },
-  {
-    "itemId": "sim_7e46c36b",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_efb6.json",
-    "generatedData": {
-      "name": "张伟",
-      "phone": "13900112233",
-      "email": "zhangwei.pm@sina.com",
+      "name": "赵博远",
+      "phone": "13912345678",
+      "email": "zhaoboyuan_phd@163.com",
       "education": [
         {
           "school": "清华大学",
-          "degree": "本科",
-          "major": "工业工程",
-          "graduationYear": 2017
-        }
-      ],
-      "experience": [
-        {
-          "company": "效率管理咨询",
-          "title": "项目协调员",
-          "startDate": "2017-07",
-          "endDate": "2023-11",
-          "description": "协助项目经理规划、执行和监控多个企业级项目。负责项目文档管理、会议组织和进度跟踪，确保项目资源有效利用，并与各方进行沟通协调。"
-        }
-      ],
-      "skills": [
-        "项目协调",
-        "进度跟踪",
-        "文档管理",
-        "跨部门沟通"
-      ],
-      "summary": "拥有六年项目协调经验，熟悉项目生命周期管理，具备优秀的组织协调和沟通能力。致力于提升项目交付效率。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294177+00:00"
-  },
-  {
-    "itemId": "sim_082e63be",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_8adf.json",
-    "generatedData": {
-      "name": "陈芳",
-      "phone": "13322446688",
-      "email": "chenfang.data@gmail.com",
-      "education": [
-        {
-          "school": "浙江大学",
-          "degree": "本科",
-          "major": "统计学",
-          "graduationYear": 2019
-        }
-      ],
-      "experience": [
-        {
-          "company": "大数据服务公司",
-          "title": "数据助理",
-          "startDate": "2019-07",
-          "endDate": "2024-02",
-          "description": "负责日常数据收集、清洗和整理工作。协助分析师进行数据探索和报告制作，支持业务部门的数据需求，确保数据准确性。"
-        }
-      ],
-      "skills": [
-        "数据收集",
-        "数据清洗",
-        "数据整理",
-        "报告制作"
-      ],
-      "summary": "统计学专业背景，具备四年数据处理经验，对数据敏感，能够高效完成数据相关任务。期待在数据领域深耕发展。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294216+00:00"
-  },
-  {
-    "itemId": "sim_42841cea",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_a7bc.json",
-    "generatedData": {
-      "name": "周杰",
-      "phone": "13788990011",
-      "email": "zhoujie.hr@outlook.com",
-      "education": [
-        {
-          "school": "中山大学",
-          "degree": "本科",
-          "major": "人力资源管理",
-          "graduationYear": 2018
-        }
-      ],
-      "experience": [
-        {
-          "company": "大型制造企业",
-          "title": "HR专员",
-          "startDate": "2018-07",
-          "endDate": "2023-09",
-          "description": "负责员工入职、离职、转正等手续办理。协助招聘面试安排，管理员工档案，处理日常考勤和薪酬福利相关事宜。组织员工活动。"
-        }
-      ],
-      "skills": [
-        "招聘协调",
-        "员工关系",
-        "薪酬福利协助",
-        "行政事务"
-      ],
-      "summary": "五年人力资源管理经验，熟悉员工全生命周期管理，具备良好的沟通协调能力。致力于提供高效的人力资源服务。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294253+00:00"
-  },
-  {
-    "itemId": "sim_bb9a8d0d",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_e2ab.json",
-    "generatedData": {
-      "name": "林悦",
-      "phone": "15011223344",
-      "email": "linyue.design@yahoo.com",
-      "education": [
-        {
-          "school": "中央美术学院",
-          "degree": "本科",
-          "major": "视觉传达设计",
-          "graduationYear": 2017
-        }
-      ],
-      "experience": [
-        {
-          "company": "创意设计工作室",
-          "title": "平面设计师",
-          "startDate": "2017-07",
-          "endDate": "2023-05",
-          "description": "负责各类品牌宣传材料、海报、画册的设计工作。与客户沟通需求，进行创意构思和视觉呈现，确保设计符合品牌调性。"
-        }
-      ],
-      "skills": [
-        "平面设计",
-        "创意构思",
-        "客户沟通",
-        "视觉呈现"
-      ],
-      "summary": "拥有六年平面设计经验，具备深厚的艺术功底和创意能力。擅长将抽象概念转化为具象视觉作品。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294289+00:00"
-  },
-  {
-    "itemId": "sim_d1eaf86a",
-    "type": "resume",
-    "subType": "missing_skills",
-    "filename": "simulated_missing_skills_d12f.json",
-    "generatedData": {
-      "name": "高明",
-      "phone": "15988776655",
-      "email": "gaoming.ops@qq.com",
-      "education": [
-        {
-          "school": "武汉大学",
-          "degree": "本科",
-          "major": "物流管理",
-          "graduationYear": 2016
-        }
-      ],
-      "experience": [
-        {
-          "company": "大型电商物流",
-          "title": "运营专员",
-          "startDate": "2016-07",
-          "endDate": "2024-03",
-          "description": "负责仓库日常运营管理，包括货物入库、出库、库存盘点等。优化物流流程，协调运输资源，确保订单及时准确送达。处理运营数据并进行分析。"
-        }
-      ],
-      "skills": [
-        "物流管理",
-        "仓库运营",
-        "流程优化",
-        "数据分析协助"
-      ],
-      "summary": "八年物流运营经验，熟悉仓储及供应链管理，具备良好的数据分析和流程优化意识。致力于提升运营效率和客户满意度。"
-    },
-    "generatedAt": "2026-03-09T06:26:40.294325+00:00"
-  },
-  {
-    "itemId": "sim_9ed6fe42",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_3ca5.json",
-    "generatedData": {
-      "name": "王小明",
-      "phone": "13812345678",
-      "email": "wangxm@example.com",
-      "education": [
-        {
-          "school": "华南理工大学",
-          "degree": "学士",
+          "degree": "博士",
           "major": "计算机科学与技术",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
+          "graduationYear": 2012
+        },
         {
-          "company": "某科技公司",
-          "title": "软件开发实习生",
-          "startDate": "2023-07-01",
-          "endDate": "2023-12-31",
-          "description": "参与后端服务开发与维护，使用Python和Django框架；协助进行单元测试和bug修复；熟悉版本控制工具Git。"
-        }
-      ],
-      "skills": [
-        "Python",
-        "Java",
-        "C++",
-        "数据结构",
-        "算法",
-        "Git",
-        "Linux"
-      ],
-      "summary": "计算机科学与技术专业应届毕业生，对软件开发充满热情，具备扎实的编程基础和快速学习能力，渴望在技术领域贡献力量。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399031+00:00"
-  },
-  {
-    "itemId": "sim_da9b931e",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_d389.json",
-    "generatedData": {
-      "name": "李娜",
-      "phone": "13987654321",
-      "email": "lina@example.com",
-      "education": [
-        {
-          "school": "中山大学",
-          "degree": "学士",
-          "major": "市场营销",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
-        {
-          "company": "某互联网公司",
-          "title": "市场助理实习生",
-          "startDate": "2023-09-01",
-          "endDate": "2024-02-28",
-          "description": "协助市场调研与数据分析，制作市场推广材料；参与社交媒体内容策划与发布；支持线下活动执行。"
-        }
-      ],
-      "skills": [
-        "市场分析",
-        "社交媒体运营",
-        "PPT制作",
-        "Excel",
-        "文案撰写",
-        "活动策划"
-      ],
-      "summary": "市场营销专业应届生，积极主动，具备良好的沟通协调能力和团队合作精神，期待在市场领域施展才华。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399065+00:00"
-  },
-  {
-    "itemId": "sim_6f479361",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_7d61.json",
-    "generatedData": {
-      "name": "张伟",
-      "phone": "13700112233",
-      "email": "zhangw@example.com",
-      "education": [
-        {
-          "school": "北京大学",
-          "degree": "硕士",
-          "major": "金融学",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
-        {
-          "company": "某证券公司",
-          "title": "研究部实习生",
-          "startDate": "2023-08-01",
-          "endDate": "2024-01-31",
-          "description": "协助分析师进行行业研究和公司基本面分析；整理金融数据，构建估值模型；撰写研究报告辅助材料。"
-        }
-      ],
-      "skills": [
-        "金融建模",
-        "财务分析",
-        "风险管理",
-        "SQL",
-        "Python (数据分析)",
-        "Bloomberg Terminal"
-      ],
-      "summary": "金融学硕士应届毕业生，熟练掌握金融理论与分析工具，具备严谨的逻辑思维能力，渴望在金融行业寻求职业发展。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399084+00:00"
-  },
-  {
-    "itemId": "sim_c8c16e13",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_aa05.json",
-    "generatedData": {
-      "name": "刘芳",
-      "phone": "13655443322",
-      "email": "liufang@example.com",
-      "education": [
-        {
-          "school": "中国人民大学",
-          "degree": "学士",
-          "major": "人力资源管理",
-          "graduationYear": 2023
-        }
-      ],
-      "experience": [
-        {
-          "company": "某大型国企",
-          "title": "人力资源实习生",
-          "startDate": "2022-10-01",
-          "endDate": "2023-04-30",
-          "description": "协助招聘流程管理，包括简历筛选、面试安排；参与员工档案管理与数据更新；支持员工活动组织。"
-        }
-      ],
-      "skills": [
-        "招聘流程",
-        "员工关系",
-        "Office套件",
-        "人力资源管理理论",
-        "沟通协调"
-      ],
-      "summary": "人力资源管理专业毕业生，具备基础HR知识和实习经验，致力于成为一名优秀的人力资源专员，为企业发展贡献力量。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399101+00:00"
-  },
-  {
-    "itemId": "sim_2c74c903",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_f130.json",
-    "generatedData": {
-      "name": "陈涛",
-      "phone": "13599887766",
-      "email": "chentao@example.com",
-      "education": [
-        {
-          "school": "哈尔滨工业大学",
-          "degree": "学士",
-          "major": "电气工程及其自动化",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
-        {
-          "company": "学校实验室",
-          "title": "科研助理 (兼职)",
-          "startDate": "2022-09-01",
-          "endDate": "2024-06-30",
-          "description": "参与智能控制系统项目，负责电路设计与调试；使用MATLAB进行数据仿真与分析；协助完成项目报告撰写。"
-        }
-      ],
-      "skills": [
-        "C语言",
-        "嵌入式系统",
-        "电路设计",
-        "MATLAB",
-        "Altium Designer",
-        "单片机"
-      ],
-      "summary": "电气工程专业应届生，对硬件开发和嵌入式系统有浓厚兴趣，具备扎实的专业理论基础和实践能力，乐于学习新技术。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399118+00:00"
-  },
-  {
-    "itemId": "sim_9b8871cd",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_0260.json",
-    "generatedData": {
-      "name": "杨丽",
-      "phone": "13322110099",
-      "email": "yangli@example.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "学士",
-          "major": "软件工程",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
-        {
-          "company": "某金融科技公司",
-          "title": "后端开发实习生",
-          "startDate": "2023-06-01",
-          "endDate": "2023-11-30",
-          "description": "参与支付系统后端模块开发，使用Java和Spring Boot；负责API接口联调与测试；熟悉MySQL数据库操作。"
-        }
-      ],
-      "skills": [
-        "Java",
-        "Spring Boot",
-        "MySQL",
-        "Git",
-        "Linux",
-        "Redis",
-        "RESTful API"
-      ],
-      "summary": "软件工程专业应届毕业生，拥有扎实的编程功底和项目实践经验，期待加入充满活力的技术团队，共同创造价值。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399139+00:00"
-  },
-  {
-    "itemId": "sim_9a3d0496",
-    "type": "resume",
-    "subType": "junior_candidate",
-    "filename": "simulated_junior_candidate_b94b.json",
-    "generatedData": {
-      "name": "赵强",
-      "phone": "13477889900",
-      "email": "zhaoq@example.com",
-      "education": [
-        {
-          "school": "浙江大学",
-          "degree": "学士",
-          "major": "数据科学与大数据技术",
-          "graduationYear": 2024
-        }
-      ],
-      "experience": [
-        {
-          "company": "大学科研项目组",
-          "title": "数据分析助理",
-          "startDate": "2022-09-01",
-          "endDate": "2024-06-30",
-          "description": "参与用户行为数据分析项目，使用Python (Pandas, NumPy) 进行数据清洗与预处理；利用R语言进行统计建模和可视化；协助撰写数据分析报告。"
-        }
-      ],
-      "skills": [
-        "Python (Pandas, NumPy)",
-        "R",
-        "数据可视化",
-        "机器学习基础",
-        "SQL",
-        "Tableau"
-      ],
-      "summary": "数据科学专业应届生，擅长数据处理与分析，具备良好的统计学和编程基础，渴望运用数据驱动决策，解决实际问题。"
-    },
-    "generatedAt": "2026-03-09T06:26:58.399157+00:00"
-  },
-  {
-    "itemId": "sim_975d0a03",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_3bc2.json",
-    "generatedData": {
-      "name": "李明",
-      "phone": "13812345678",
-      "email": "liming.resume@qq.com",
-      "education": [
-        {
-          "school": "北京科技大学",
-          "degree": "学士",
+          "school": "清华大学",
+          "degree": "本科",
           "major": "计算机科学与技术",
-          "graduationYear": 2016
+          "graduationYear": 2007
         }
       ],
       "experience": [
-        {
-          "company": "京东集团",
-          "title": "高级软件工程师",
-          "startDate": "2016-07-01",
-          "endDate": "2018-06-30",
-          "description": "负责电商平台后端服务开发与优化，参与高并发系统设计与实现，提升系统稳定性与响应速度。主要使用Java、Spring Boot、MySQL。"
-        },
-        {
-          "company": "字节跳动",
-          "title": "后端开发工程师",
-          "startDate": "2021-09-01",
-          "endDate": "2023-12-31",
-          "description": "参与短视频推荐系统后端开发，负责用户画像与内容匹配算法的工程化落地。熟悉Go语言、Kafka、Redis。"
-        }
-      ],
-      "skills": [
-        "Java",
-        "Spring Boot",
-        "MySQL",
-        "Go",
-        "Kafka",
-        "Redis",
-        "高并发系统设计",
-        "微服务架构"
-      ],
-      "summary": "拥有7年软件开发经验，专注于后端服务与高并发系统。曾在京东和字节跳动任职，对电商和推荐系统有深入理解。因个人原因于2018-2021年期间暂停工作。"
-    },
-    "generatedAt": "2026-03-09T06:27:20.685645+00:00"
-  },
-  {
-    "itemId": "sim_034e6eb0",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_dd8e.json",
-    "generatedData": {
-      "name": "王芳",
-      "phone": "13987654321",
-      "email": "wangfang.cv@163.com",
-      "education": [
-        {
-          "school": "上海交通大学",
-          "degree": "硕士",
-          "major": "数据科学",
-          "graduationYear": 2017
-        },
-        {
-          "school": "复旦大学",
-          "degree": "学士",
-          "major": "统计学",
-          "graduationYear": 2014
-        }
-      ],
-      "experience": [
-        {
-          "company": "腾讯科技",
-          "title": "数据分析师",
-          "startDate": "2017-09-01",
-          "endDate": "2019-03-31",
-          "description": "负责游戏用户行为数据分析，构建用户流失预测模型，为产品运营提供数据支持。熟练使用Python、SQL、Tableau。"
-        },
         {
           "company": "阿里巴巴集团",
-          "title": "高级数据分析师",
-          "startDate": "2022-01-01",
-          "endDate": "2024-03-31",
-          "description": "负责电商平台营销活动效果评估，优化广告投放策略，通过数据挖掘提升转化率。精通A/B测试、机器学习算法。"
+          "title": "资深技术专家 (P8)",
+          "startDate": "2018-05",
+          "endDate": "2023-10",
+          "description": "负责核心交易系统的高可用架构设计与演进，带领50人以上的研发团队。主导双十一大促的系统重构，通过引入云原生架构与自研中间件，将系统峰值QPS提升300%，同时降低了20%的服务器成本。"
+        },
+        {
+          "company": "深圳市腾讯计算机系统有限公司",
+          "title": "高级后台开发工程师 / 技术Leader",
+          "startDate": "2012-07",
+          "endDate": "2018-04",
+          "description": "参与微信支付底层基础服务的研发与维护。从零搭建分布式缓存中间件，支撑日均百亿次调用，保障系统99.999%的可用性。"
         }
       ],
       "skills": [
-        "Python",
-        "SQL",
-        "Tableau",
-        "数据挖掘",
-        "机器学习",
-        "A/B测试",
-        "用户行为分析",
-        "业务建模"
+        "分布式架构设计",
+        "微服务治理",
+        "高并发处理",
+        "百人团队管理",
+        "Java",
+        "Golang",
+        "云原生架构",
+        "Kubernetes",
+        "性能调优"
       ],
-      "summary": "资深数据分析师，具备数据科学硕士背景和7年行业经验。曾在腾讯和阿里巴巴从事数据分析工作，擅长用户行为分析和营销策略优化。因行业调整于2019-2021年间有职业空窗期。"
+      "summary": "清华大学计算机博士，11年一线互联网大厂（阿里、腾讯）核心系统研发与架构经验。曾主导亿级用户规模的分布式系统重构，具备丰富的技术攻坚与大团队管理经验。远超一般外包开发岗位要求，适合作为核心架构师或技术总监引入。",
+      "expectedSalary": "35000-50000元/月"
     },
-    "generatedAt": "2026-03-09T06:27:20.685686+00:00"
+    "generatedAt": "2026-03-11T11:56:31.545352+00:00"
   },
   {
-    "itemId": "sim_dbac4f82",
+    "itemId": "sim_9d3fba1e",
     "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_2cb0.json",
+    "subType": "junior_candidate",
+    "filename": "simulated_junior_candidate_520e.json",
     "generatedData": {
-      "name": "张伟",
-      "phone": "13700001111",
-      "email": "zhangw.resume@gmail.com",
+      "name": "陈思远",
+      "phone": "13800138000",
+      "email": "chen_siyuan2024@163.com",
       "education": [
         {
-          "school": "浙江大学",
-          "degree": "学士",
+          "school": "武昌工学院",
+          "degree": "本科",
           "major": "软件工程",
-          "graduationYear": 2015
+          "graduationYear": 2024
         }
       ],
       "experience": [
         {
-          "company": "华为技术有限公司",
-          "title": "前端开发工程师",
-          "startDate": "2015-07-01",
-          "endDate": "2018-12-31",
-          "description": "负责企业级应用前端界面开发与维护，优化用户体验，参与组件库设计与实现。主要使用JavaScript、React、Vue.js。"
-        },
-        {
-          "company": "自由职业",
-          "title": "Web开发者",
-          "startDate": "2019-01-01",
-          "endDate": "2021-06-30",
-          "description": "期间从事个人项目和小型外包项目开发，主要技术栈为Node.js、React、MongoDB，探索全栈开发。"
-        },
-        {
-          "company": "美团点评",
-          "title": "高级前端工程师",
-          "startDate": "2021-07-01",
-          "endDate": "2024-03-31",
-          "description": "负责本地生活服务平台前端架构设计与开发，主导性能优化和跨端兼容方案。熟悉TypeScript、Webpack、小程序开发。"
+          "company": "武汉众诚信息技术有限公司",
+          "title": "软件开发实习生",
+          "startDate": "2023-09",
+          "endDate": "2024-01",
+          "description": "参与公司内部CRM系统的日常维护与小功能开发。主要负责前端页面的简单调整，协助导师编写简单的SQL查询语句，并参与了部分测试用例的执行工作。"
         }
       ],
       "skills": [
+        "Java基础",
+        "MySQL",
+        "HTML5/CSS3",
         "JavaScript",
-        "React",
-        "Vue.js",
-        "Node.js",
-        "TypeScript",
-        "Webpack",
-        "小程序开发",
-        "UI/UX设计"
+        "Git"
       ],
-      "summary": "拥有9年前端开发经验，精通主流前端框架和技术栈。曾在华为和美团任职，并于2019-2021年间尝试自由职业。对前端工程化和用户体验有深刻理解。"
+      "summary": "2024届应届毕业生，具备扎实的计算机专业基础，学习能力强，对待工作认真负责，希望在技术岗位上不断成长。",
+      "expectedSalary": "4000-5000元/月"
     },
-    "generatedAt": "2026-03-09T06:27:20.685710+00:00"
+    "generatedAt": "2026-03-11T11:56:55.021660+00:00"
   },
   {
-    "itemId": "sim_7469ff4d",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_bfce.json",
-    "generatedData": {
-      "name": "刘丽",
-      "phone": "13622223333",
-      "email": "liuli.career@outlook.com",
-      "education": [
-        {
-          "school": "中山大学",
-          "degree": "学士",
-          "major": "市场营销",
-          "graduationYear": 2013
-        }
-      ],
-      "experience": [
-        {
-          "company": "宝洁公司",
-          "title": "品牌经理",
-          "startDate": "2013-07-01",
-          "endDate": "2017-12-31",
-          "description": "负责快消品品牌策略制定与执行，市场调研与竞品分析，策划并落地多项全国性营销活动，显著提升品牌知名度和市场份额。"
-        },
-        {
-          "company": "个人创业项目",
-          "title": "联合创始人",
-          "startDate": "2018-01-01",
-          "endDate": "2020-06-30",
-          "description": "创立一家专注于美妆电商的初创公司，负责市场推广、渠道拓展和团队管理。积累了从0到1的创业经验，但项目最终未能成功。"
-        },
-        {
-          "company": "网易严选",
-          "title": "高级营销总监",
-          "startDate": "2020-12-01",
-          "endDate": "2024-03-31",
-          "description": "负责电商平台整体营销战略规划与实施，带领团队完成年度销售目标，成功推动多品类业务增长。擅长线上线下整合营销。"
-        }
-      ],
-      "skills": [
-        "品牌管理",
-        "市场营销",
-        "电商运营",
-        "渠道拓展",
-        "团队管理",
-        "战略规划",
-        "数据分析",
-        "公关传播"
-      ],
-      "summary": "拥有超过10年市场营销及品牌管理经验，曾在宝洁和网易严选担任要职。2018-2020年期间曾尝试创业，积累了丰富的从0到1经验。擅长快消品和电商领域的整合营销。"
-    },
-    "generatedAt": "2026-03-09T06:27:20.685732+00:00"
-  },
-  {
-    "itemId": "sim_fbf298b6",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_0112.json",
-    "generatedData": {
-      "name": "陈刚",
-      "phone": "13544445555",
-      "email": "chengang.job@sina.com",
-      "education": [
-        {
-          "school": "华中科技大学",
-          "degree": "学士",
-          "major": "机械设计制造及其自动化",
-          "graduationYear": 2012
-        }
-      ],
-      "experience": [
-        {
-          "company": "三一重工",
-          "title": "结构工程师",
-          "startDate": "2012-07-01",
-          "endDate": "2016-06-30",
-          "description": "负责大型工程机械结构设计与强度分析，参与多款新产品研发项目，优化设计方案，提高产品可靠性。熟练使用SolidWorks、Ansys。"
-        },
-        {
-          "company": "格力电器",
-          "title": "研发工程师",
-          "startDate": "2019-01-01",
-          "endDate": "2023-12-31",
-          "description": "负责家用电器产品结构设计与材料选型，解决生产过程中的技术难题，参与多项专利申请。熟悉CAD、Pro/E。"
-        }
-      ],
-      "skills": [
-        "机械设计",
-        "结构分析",
-        "SolidWorks",
-        "Ansys",
-        "CAD",
-        "Pro/E",
-        "材料力学",
-        "产品研发"
-      ],
-      "summary": "资深机械工程师，在工程机械和家电行业拥有超过10年研发经验。曾在三一重工和格力电器任职，精通产品结构设计与强度分析。期间于2016-2018年因家庭原因休假。"
-    },
-    "generatedAt": "2026-03-09T06:27:20.685756+00:00"
-  },
-  {
-    "itemId": "sim_6ad457c3",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_83b8.json",
-    "generatedData": {
-      "name": "周敏",
-      "phone": "13466667777",
-      "email": "zhoumin.work@qq.com",
-      "education": [
-        {
-          "school": "四川大学",
-          "degree": "学士",
-          "major": "人力资源管理",
-          "graduationYear": 2014
-        }
-      ],
-      "experience": [
-        {
-          "company": "新东方教育科技集团",
-          "title": "招聘专员",
-          "startDate": "2014-07-01",
-          "endDate": "2016-06-30",
-          "description": "负责教师岗位的招聘，包括简历筛选、面试组织、Offer发放等，完成月度招聘指标。"
-        },
-        {
-          "company": "链家",
-          "title": "HRBP",
-          "startDate": "2016-07-01",
-          "endDate": "2018-06-30",
-          "description": "支持业务部门人力资源需求，提供招聘、绩效、员工关系等全方位HR服务，协助部门负责人进行团队建设。"
-        },
-        {
-          "company": "字节跳动",
-          "title": "高级招聘专家",
-          "startDate": "2021-09-01",
-          "endDate": "2024-03-31",
-          "description": "负责技术岗位的招聘策略制定与执行，搭建人才寻访渠道，优化招聘流程，提升招聘效率与质量。擅长中高端人才招聘。"
-        }
-      ],
-      "skills": [
-        "招聘管理",
-        "HRBP",
-        "员工关系",
-        "绩效管理",
-        "人才寻访",
-        "团队建设",
-        "沟通协调",
-        "薪酬福利"
-      ],
-      "summary": "拥有近10年人力资源管理经验，尤其擅长招聘和HRBP工作。曾在教育、地产和互联网行业任职。因个人发展规划于2018-2021年间进行了职业调整和自我提升，现寻求新的挑战。"
-    },
-    "generatedAt": "2026-03-09T06:27:20.685778+00:00"
-  },
-  {
-    "itemId": "sim_e5b74083",
-    "type": "resume",
-    "subType": "career_gap",
-    "filename": "simulated_career_gap_5696.json",
-    "generatedData": {
-      "name": "赵华",
-      "phone": "13399998888",
-      "email": "zhaohua.reentry@126.com",
-      "education": [
-        {
-          "school": "南京大学",
-          "degree": "学士",
-          "major": "新闻学",
-          "graduationYear": 2010
-        }
-      ],
-      "experience": [
-        {
-          "company": "新浪网",
-          "title": "资深内容编辑",
-          "startDate": "2010-07-01",
-          "endDate": "2016-06-30",
-          "description": "负责新闻门户网站内容策划、采编与发布，管理专题页面，提升内容质量与用户阅读量。熟悉互联网内容运营。"
-        },
-        {
-          "company": "自由职业/家庭主妇",
-          "title": "内容创作者",
-          "startDate": "2016-07-01",
-          "endDate": "2023-06-30",
-          "description": "期间主要负责家庭事务，同时利用业余时间进行个人公众号和短视频内容创作，积累了新媒体运营和内容策划经验。"
-        },
-        {
-          "company": "某MCN机构",
-          "title": "新媒体运营经理",
-          "startDate": "2023-07-01",
-          "endDate": "2024-03-31",
-          "description": "负责MCN旗下达人账号的运营策略制定与执行，内容策划、粉丝互动、数据分析，提升账号影响力与商业变现能力。"
-        }
-      ],
-      "skills": [
-        "内容策划",
-        "新闻采编",
-        "新媒体运营",
-        "短视频制作",
-        "文案撰写",
-        "社交媒体管理",
-        "数据分析",
-        "公关传播"
-      ],
-      "summary": "拥有超过10年内容运营和新闻采编经验，曾在新浪网担任资深编辑。2016-2023年期间回归家庭，同时积极探索新媒体内容创作，积累了丰富的短视频和公众号运营经验。现已重返职场，寻求新媒体运营相关职位。"
-    },
-    "generatedAt": "2026-03-09T06:27:20.685800+00:00"
-  },
-  {
-    "itemId": "sim_0984c84a",
+    "itemId": "sim_afc62e5f",
     "type": "jd",
     "subType": "normal",
-    "filename": "simulated_normal_6ca3.json",
+    "filename": "simulated_normal_0bfd.json",
     "generatedData": {
-      "title": "高级后台开发工程师-腾讯云",
+      "title": "Java后端开发工程师",
       "department": "CSIG",
       "applicableClient": "腾讯",
       "requirements": [
-        "本科及以上学历，计算机、软件工程或相关专业，3年以上后台开发经验",
-        "精通C++或Go语言，熟悉Linux/Unix操作系统原理及网络编程，具备扎实的数据结构与算法基础",
-        "熟悉分布式系统架构设计，对微服务治理、RPC框架有深入理解，有高并发、大流量系统开发经验者优先",
-        "熟悉MySQL、Redis、Kafka等常用数据库与中间件的底层原理及性能调优",
-        "具备极强的责任心和技术内驱力，良好的沟通能力与团队协作精神，认同腾讯“用户为本，科技向善”的价值观"
+        "统招本科及以上学历，计算机科学或相关专业，具备3-5年Java后端实际开发经验",
+        "Java基础扎实，深入理解JVM原理、多线程并发编程及网络通信机制",
+        "熟练掌握Spring Boot、Spring Cloud、MyBatis等主流开源框架，了解其底层原理",
+        "熟悉MySQL数据库体系结构，具备优秀的SQL编写及性能调优能力",
+        "熟练使用Redis、Kafka、RocketMQ等常用中间件，并了解其应用场景与限制",
+        "具备良好的微服务架构设计经验，有高并发、大流量分布式系统开发经验者优先考虑",
+        "具备较强的逻辑思维能力、沟通协作能力及抗压能力，代码规范意识强"
       ],
       "responsibilities": [
-        "负责腾讯云核心业务系统后台架构设计与研发工作，保障系统的高可用性与可扩展性",
-        "参与海量请求、高并发场景下的分布式系统优化，解决业务发展带来的技术瓶颈",
-        "深入分析并理解业务需求，完成系统模块的设计、编码、测试以及日常维护",
-        "推动现有系统架构的重构与性能调优，提升整体研发效率与系统稳定性",
-        "指导初中级工程师，参与团队技术分享与技术氛围建设"
+        "参与腾讯云相关业务中台系统的需求分析、架构设计与核心模块研发工作",
+        "负责编写高质量、高可维护性的后台代码，并完成相应的单元测试",
+        "持续优化现有系统的性能，排查并解决线上系统运行中出现的各类疑难问题",
+        "保障所负责服务的高可用性、高并发处理能力及整体系统的稳定性",
+        "与产品经理、前端开发工程师及测试团队紧密配合，确保业务需求的高质量交付"
       ],
-      "salaryRange": "35k-55k",
-      "location": "深圳市南山区腾讯滨海大厦",
+      "salaryRange": "13000-17000元/月",
+      "location": "深圳市南山区腾讯海滨大厦",
       "experienceYears": "3-5年"
     },
-    "generatedAt": "2026-03-10T07:27:42.299199+00:00",
+    "generatedAt": "2026-03-11T11:57:41.565169+00:00",
     "applicableClient": "腾讯"
   },
   {
-    "itemId": "sim_df83d3f6",
+    "itemId": "sim_22f321d3",
     "type": "jd",
     "subType": "vague_requirements",
-    "filename": "simulated_vague_requirements_859c.json",
+    "filename": "simulated_vague_requirements_5295.json",
     "generatedData": {
-      "title": "PCG-后台开发专家",
+      "title": "系统研发工程师",
       "department": "PCG",
       "applicableClient": "腾讯",
       "requirements": [
-        "计算机相关专业本科及以上学历，具备扎实的计算机理论基础",
-        "熟练掌握互联网主流开发语言及相关技术栈，具备极强的快速学习能力",
-        "对分布式系统、高并发处理有一定理解，能够处理各种复杂的技术问题",
-        "具备良好的逻辑分析能力和解决问题的能力，对技术有极高的热情和钻研精神",
-        "具备较强的沟通能力和团队协作意识，能够应对互联网快节奏的工作环境",
-        "有大型互联网平台相关业务的成功实践经验者优先"
+        "统招本科及以上学历，计算机相关专业，具备扎实的技术功底。",
+        "精通至少一种主流后端开发语言，熟悉相关生态和流行框架，具备良好的代码习惯。",
+        "熟练掌握主流数据库的使用及调优，了解常见中间件的原理及应用场景。",
+        "具备优秀的逻辑思维能力和业务抽象能力，能快速理解复杂业务场景并落地。",
+        "具备良好的沟通协作能力，皮实抗压，能够拥抱互联网的快速变化，有海量服务经验者优先。"
       ],
       "responsibilities": [
-        "负责腾讯核心业务模块的架构设计、开发与日常维护工作",
-        "参与系统性能优化，解决业务发展过程中遇到的各类技术挑战与瓶颈",
-        "持续提升系统的稳定性和扩展性，保障业务在高并发下的平稳运行",
-        "关注行业前沿技术，结合业务场景进行技术预研与落地应用",
-        "与跨部门团队紧密协作，共同推动项目达成预期目标并不断迭代优化"
+        "负责腾讯相关内容生态业务的底层逻辑梳理与系统开发工作。",
+        "参与现有架构的优化与演进，打通各业务线的数据闭环。",
+        "配合产品和运营团队，快速响应业务诉求，通过技术赋能业务增长。",
+        "解决系统运行过程中的各类疑难杂症，保障海量服务的稳定性与高可用。"
       ],
-      "salaryRange": "30k-60k",
-      "location": "深圳",
-      "experienceYears": "5-10年"
-    },
-    "generatedAt": "2026-03-10T07:28:09.105733+00:00",
-    "applicableClient": "腾讯"
-  },
-  {
-    "itemId": "sim_bf428e0b",
-    "type": "jd",
-    "subType": "conflicting_criteria",
-    "filename": "simulated_conflicting_criteria_8269.json",
-    "generatedData": {
-      "title": "资深C++游戏后端架构师",
-      "department": "IEG",
-      "applicableClient": "腾讯",
-      "requirements": [
-        "2024届全日制应届毕业生，计算机科学与技术相关专业本科及以上学历。",
-        "具备10年以上大型MMORPG/MOBA游戏服务端主程经验，主导过至少两款千万级DAU游戏的核心架构设计。",
-        "精通C/C++，熟练掌握Tars、trpc等腾讯内部微服务框架，对Linux内核及底层网络协议有极深理解。",
-        "年龄严格要求在22周岁以下，且必须拥有管理过50人以上资深技术团队的实战经验。",
-        "热爱游戏行业，能适应IEG高强度的研发节奏，愿意接受入职前3个月的无薪实习考核。"
-      ],
-      "responsibilities": [
-        "负责腾讯头部游戏产品的核心战斗服务器架构设计、重构与性能瓶颈优化。",
-        "带领技术团队攻克百万级高并发、极低延迟等世界级技术难题。",
-        "作为技术带头人，指导并培养初中级开发人员，制定后端技术演进路线及规范。"
-      ],
-      "salaryRange": "60k-90k",
+      "salaryRange": "13000-17000元/月",
       "location": "深圳市南山区科兴科学园",
-      "experienceYears": "应届生/0-1年"
-    },
-    "generatedAt": "2026-03-10T07:28:48.842274+00:00",
-    "applicableClient": "腾讯"
-  },
-  {
-    "itemId": "sim_fe82693c",
-    "type": "jd",
-    "subType": "extreme_salary",
-    "filename": "simulated_extreme_salary_ba99.json",
-    "generatedData": {
-      "title": "高级C++/Go后台开发工程师（王者荣耀项目组）",
-      "department": "IEG",
-      "applicableClient": "腾讯",
-      "requirements": [
-        "计算机相关专业本科及以上学历，5年以上高并发后台开发经验。",
-        "精通C/C++或Go语言，熟悉Linux/Unix操作系统架构，具备扎实的算法和数据结构基础。",
-        "熟悉TCP/IP、HTTP等网络协议，有大型分布式系统、微服务架构设计和调优经验。",
-        "具备强烈的责任心和团队合作精神，能够承受高强度的工作压力（能接受突发性加班及节假日重保）。",
-        "有大型MMORPG或MOBA类游戏服务器端架构设计经验者优先（腾讯内部对标9级-10级）。"
-      ],
-      "responsibilities": [
-        "负责《王者荣耀》核心战斗服及周边系统的架构设计、开发与性能优化。",
-        "解决海量并发场景下的高可用、高吞吐、低延迟等技术难题，保障千万级DAU平稳运行。",
-        "主导系统微服务化改造及云原生架构演进，提升研发效率及资源利用率。",
-        "指导初中级开发工程师，参与技术方案评审，沉淀游戏后台开发通用组件。"
-      ],
-      "salaryRange": "2,000 - 3,500 元/月",
-      "location": "深圳市 - 腾讯科兴科学园",
-      "experienceYears": "5-10年"
-    },
-    "generatedAt": "2026-03-10T07:29:11.205222+00:00",
-    "applicableClient": "腾讯"
-  },
-  {
-    "itemId": "sim_92d95ef1",
-    "type": "jd",
-    "subType": "niche_role",
-    "filename": "simulated_niche_role_f8a1.json",
-    "generatedData": {
-      "title": "脑机接口(BCI)与神经流渲染架构师",
-      "department": "IEG",
-      "applicableClient": "腾讯",
-      "requirements": [
-        "神经生物学、量子计算或计算神经科学相关专业博士学位，且同时具备计算机科学硕士及以上学位。",
-        "拥有至少5年以上非侵入式脑机接口(BCI)底层硬件驱动开发经验，且主导过DAU千万级以上的C++高并发系统架构设计。",
-        "精通脑电信号(EEG/fNIRS)的微秒级降噪算法，熟练使用C++20与CUDA进行算子级优化，熟悉腾讯自研芯片指令集者优先。",
-        "在Nature, Science, 或SIGGRAPH等顶级期刊/会议上以第一作者发表过脑机交互或神经渲染相关论文。",
-        "极度罕见的复合背景：既懂Unreal Engine 5底层源码（修改过核心渲染管线），又具备临床脑电图数据分析及伦理合规经验。"
-      ],
-      "responsibilities": [
-        "负责腾讯下一代全真互联(VR/AR/BCI)游戏硬件底层的脑电波(EEG)信号解码与意图识别算法研发。",
-        "设计并实现基于非侵入式脑机接口的超低延迟神经流渲染管线，深度对接并改造Unreal Engine 5底层架构。",
-        "攻克十万级并发下的脑电波数据云端实时同步、微秒级延迟优化与防作弊校验难题。",
-        "带领跨学科团队（涵盖神经科学、图形学、分布式系统）完成从0到1的硬件原型打样与跨平台软件SDK适配。"
-      ],
-      "salaryRange": "120k-200k/月",
-      "location": "深圳",
-      "experienceYears": "8-15年"
-    },
-    "generatedAt": "2026-03-10T07:29:53.828696+00:00",
-    "applicableClient": "腾讯"
-  },
-  {
-    "itemId": "sim_50a99262",
-    "type": "jd",
-    "subType": "normal",
-    "filename": "simulated_normal_11e0.json",
-    "generatedData": {
-      "title": "高级后台开发工程师",
-      "department": "WXG",
-      "applicableClient": "腾讯",
-      "requirements": [
-        "本科及以上学历，计算机相关专业，3年以上后台服务开发经验",
-        "精通C/C++或Go语言编程，具备扎实的数据结构和算法基础",
-        "深入理解Linux操作系统，精通网络编程、多线程及高并发处理机制",
-        "熟悉MySQL、Redis等关系型及NoSQL数据库，具备优秀的数据库设计及调优能力",
-        "有海量分布式系统设计和开发经验，熟悉微服务架构者优先",
-        "具备极强的责任心和自我驱动力，追求极致的用户体验和代码质量"
-      ],
-      "responsibilities": [
-        "负责微信核心业务线的后台系统设计、开发与架构演进",
-        "应对海量高并发请求，进行系统性能调优及瓶颈突破，保障服务高可用",
-        "参与微服务架构的建设与重构，提升系统的扩展性与容灾能力",
-        "与产品经理、前端开发、测试团队紧密协作，推动项目高质量落地"
-      ],
-      "salaryRange": "35k-60k",
-      "location": "广州",
       "experienceYears": "3-5年"
     },
-    "generatedAt": "2026-03-10T07:30:21.303926+00:00",
+    "generatedAt": "2026-03-11T11:58:19.549249+00:00",
     "applicableClient": "腾讯"
   },
   {
-    "itemId": "sim_fd7bbcab",
+    "itemId": "sim_1cc5b748",
     "type": "jd",
-    "subType": "normal",
-    "filename": "simulated_normal_1063.json",
+    "subType": "conflicting_criteria",
+    "filename": "simulated_conflicting_criteria_c62d.json",
     "generatedData": {
-      "title": "游戏客户端开发工程师",
-      "department": "IEG",
-      "applicableClient": "腾讯",
-      "requirements": [
-        "本科及以上学历，计算机、软件工程或相关专业，2年以上游戏客户端开发经验",
-        "熟练掌握C++或C#，具备良好的面向对象编程思想，熟悉常用的设计模式",
-        "熟练使用Unreal Engine 4/5或Unity3D引擎，了解引擎底层架构及渲染管线",
-        "具备扎实的3D数学基础，熟悉计算机图形学原理者优先",
-        "对游戏开发充满热情，有大型3D动作类或射击类游戏项目经验者优先",
-        "具备良好的沟通协作能力，能承受一定的工作压力，有强烈的责任感"
-      ],
-      "responsibilities": [
-        "负责腾讯自研重点游戏项目的客户端核心逻辑开发与维护",
-        "参与游戏UI、战斗系统、角色控制等核心模块的架构设计与功能实现",
-        "配合技术美术（TA）和策划团队，实现并优化游戏表现效果",
-        "对游戏客户端进行性能分析与内存优化，确保游戏在多端平稳运行"
-      ],
-      "salaryRange": "25k-45k",
-      "location": "深圳",
-      "experienceYears": "2-5年"
-    },
-    "generatedAt": "2026-03-10T07:30:21.303959+00:00",
-    "applicableClient": "腾讯"
-  },
-  {
-    "itemId": "sim_7c849221",
-    "type": "jd",
-    "subType": "normal",
-    "filename": "simulated_normal_f428.json",
-    "generatedData": {
-      "title": "资深产品经理-云原生方向",
+      "title": "腾讯云后台开发工程师 (CSIG-外包)",
       "department": "CSIG",
       "applicableClient": "腾讯",
       "requirements": [
-        "本科及以上学历，5年以上互联网或ToB软件产品经验，其中至少3年云原生/PaaS相关经验",
-        "深刻理解云计算行业，熟悉Kubernetes、Docker、微服务、Service Mesh等云原生技术生态",
-        "具备优秀的需求分析与抽象能力，能将复杂的B端客户需求转化为标准化的产品解决方案",
-        "具备出色的跨部门沟通与项目管理能力，能有效推动研发、测试、运营等多方团队协作",
-        "具备技术背景（如曾担任过开发、架构师）优先考虑",
-        "具有强烈的商业敏锐度和数据驱动意识，以客户价值为导向"
+        "计算机相关专业本科及以上学历，基础扎实",
+        "精通Go或C++开发，具备8年以上大型互联网高并发系统架构与研发经验",
+        "欢迎2024届优秀应届毕业生投递，有大厂实习经验者优先考虑",
+        "深入理解Linux内核、网络协议栈，具备处理亿级QPS场景的性能优化能力",
+        "熟练掌握K8s及云原生相关技术，要求有5年以上生产环境大规模集群管理经验",
+        "具备极强的学习能力和抗压能力，能够适应腾讯节奏的高强度加班"
       ],
       "responsibilities": [
-        "负责腾讯云原生相关产品（如容器服务、微服务平台）的规划、设计与生命周期管理",
-        "深入调研ToB市场趋势、竞品动态及行业客户需求，制定产品演进路线图（Roadmap）",
-        "撰写高质量的产品需求文档（PRD），与研发团队紧密配合，确保产品按时高质量交付",
-        "协同GTM、销售和技术支持团队，制定产品商业化策略，推动产品在重点行业的落地与营收增长"
+        "负责腾讯云核心业务模块的后端架构设计、开发与持续优化",
+        "参与海量分布式系统的稳定性保障，解决复杂的系统性能瓶颈问题",
+        "负责高质量代码编写及技术文档沉淀，推动团队技术进步"
       ],
-      "salaryRange": "40k-70k",
-      "location": "北京",
-      "experienceYears": "5-10年"
+      "salaryRange": "18000-28000元/月",
+      "location": "深圳",
+      "experienceYears": "8年以上"
     },
-    "generatedAt": "2026-03-10T07:30:21.303975+00:00",
+    "generatedAt": "2026-03-11T11:58:54.897857+00:00",
+    "applicableClient": "腾讯"
+  },
+  {
+    "itemId": "sim_1109c223",
+    "type": "jd",
+    "subType": "extreme_salary",
+    "filename": "simulated_extreme_salary_467c.json",
+    "generatedData": {
+      "title": "腾讯TEG-高级后台开发工程师(Go/C++)",
+      "department": "TEG",
+      "applicableClient": "腾讯",
+      "requirements": [
+        "本科及以上学历，计算机相关专业，5年以上后台开发经验",
+        "精通Go或C++语言，具备扎实的数据结构与算法功底",
+        "深入理解Linux内核原理、网络协议栈（TCP/IP）及多线程编程",
+        "有大规模分布式系统开发经验，熟悉Raft、Paxos等分布式一致性协议者优先",
+        "具备处理海量并发、高可用架构设计能力，能够独立排查复杂的线上技术问题",
+        "具备良好的沟通能力和团队协作精神，能适应高强度研发节奏"
+      ],
+      "responsibilities": [
+        "负责腾讯云底层基础设施及分布式存储系统的核心模块研发",
+        "参与系统架构设计与性能调优，支撑海量数据的高并发访问需求",
+        "编写高质量、可维护的代码，并负责核心代码的Code Review工作",
+        "持续优化系统稳定性，通过技术手段提升服务治理水平和运维效率",
+        "跟进业界前沿技术，将新技术应用于实际业务场景中"
+      ],
+      "salaryRange": "32000-38000元/月",
+      "location": "深圳腾讯滨海大厦",
+      "experienceYears": "5-8年"
+    },
+    "generatedAt": "2026-03-11T11:59:14.802086+00:00",
+    "applicableClient": "腾讯"
+  },
+  {
+    "itemId": "sim_b246c58d",
+    "type": "jd",
+    "subType": "niche_role",
+    "filename": "simulated_niche_role_0d0c.json",
+    "generatedData": {
+      "title": "核心交易系统重构工程师（Cobol转Go双栈）",
+      "department": "CDG",
+      "applicableClient": "腾讯",
+      "requirements": [
+        "统招本科及以上学历，计算机或相关专业，8年以上金融/支付核心系统开发经验。",
+        "极度垂直的技术栈要求：必须同时具备5年以上IBM Mainframe环境下大型机COBOL/CICS/DB2开发经验，以及3年以上现代互联网Go语言高并发微服务开发经验。",
+        "精通传统银行核心账务系统的底层逻辑，能独立逆向阅读并解析缺乏文档的千万级历史COBOL代码。",
+        "深入理解云原生架构，熟练掌握Docker、K8s、Tars框架及TDSQL分布式数据库。",
+        "具备极强的跨代际技术栈思维转换能力，有大型金融系统异构迁移或去IOE经验者优先。",
+        "能适应金融业务特有的高压环境，接受重大节假日及夜间凌晨的系统割接与护航任务。"
+      ],
+      "responsibilities": [
+        "参与腾讯金融科技（FiT）底层核心支付与清结算系统从传统大型机架构向自研分布式云原生架构的整体迁移工程。",
+        "负责对历史遗留的复杂COBOL业务逻辑进行逆向工程，提取核心交易规则并使用Go语言进行微服务化重构。",
+        "设计并研发新老异构系统并行运行期间的数据双写、流量回放及高精度资金对账一致性校验组件。",
+        "排查并解决跨语言、跨架构迁移过程中的极端并发问题与分布式事务难题，确保重构过程中的绝对零资损。"
+      ],
+      "salaryRange": "28000-35000元/月",
+      "location": "深圳市南山区腾讯滨海大厦",
+      "experienceYears": "8年以上"
+    },
+    "generatedAt": "2026-03-11T11:59:41.425712+00:00",
     "applicableClient": "腾讯"
   }
 ]

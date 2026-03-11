@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Typography, Card, Table, Tag, Space, Button, Row, Col, message, Descriptions, Popconfirm } from 'antd';
-import { ReloadOutlined, EyeOutlined, BugOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Typography, Card, Table, Tag, Space, Button, Row, Col, Descriptions, Popconfirm, App } from 'antd';
+import { ReloadOutlined, EyeOutlined, BugOutlined, DeleteOutlined, AimOutlined } from '@ant-design/icons';
 import api from '../api';
-import type { ApiResponse, TestRun, FailedNode } from '../types';
+import type { ApiResponse, TestRun, FailedNode, StepTraceItem } from '../types';
+import StepTraceModal from '../components/StepTraceModal';
 
 function FailedNodePanel({ node }: { node: FailedNode }) {
     const entities = (node.relatedEntities || '').split('\n').filter((e: string) => e.trim());
@@ -58,10 +59,41 @@ function FailedNodePanel({ node }: { node: FailedNode }) {
     );
 }
 
+function PassDetailPanel({ row }: { row: any }) {
+    return (
+        <Card size="small" style={{ background: 'rgba(74, 222, 128, 0.08)', border: '1px solid rgba(74, 222, 128, 0.3)' }}>
+            <Space direction="vertical" style={{ width: '100%' }} size="small">
+                {row.reasoning && (
+                    <div>
+                        <Typography.Text type="secondary" style={{ color: '#4ade80' }}>推理说明：</Typography.Text>
+                        <Typography.Paragraph style={{ margin: 0 }}>{row.reasoning}</Typography.Paragraph>
+                    </div>
+                )}
+                {row.triggeredRules?.length > 0 && (
+                    <div>
+                        <Typography.Text type="secondary">触发规则：</Typography.Text>
+                        <div style={{ marginTop: 4 }}>
+                            {row.triggeredRules.map((r: string) => (
+                                <Tag key={r} color="green" style={{ marginBottom: 2 }}>{r}</Tag>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </Space>
+        </Card>
+    );
+}
+
 export default function HistoryPage() {
+    const { message } = App.useApp();
     const [runs, setRuns] = useState<TestRun[]>([]);
     const [detail, setDetail] = useState<TestRun | null>(null);
     const [loading, setLoading] = useState(false);
+
+    // Step trace modal
+    const [traceVisible, setTraceVisible] = useState(false);
+    const [traceData, setTraceData] = useState<StepTraceItem[]>([]);
+    const [traceTitle, setTraceTitle] = useState('');
 
     const fetchRuns = () => {
         setLoading(true);
@@ -87,6 +119,12 @@ export default function HistoryPage() {
             setRuns(prev => prev.filter(r => r.runId !== runId));
             if (detail?.runId === runId) setDetail(null);
         } catch { message.error('删除失败'); }
+    };
+
+    const openTrace = (row: any) => {
+        setTraceData(row.stepTrace && row.stepTrace.length > 0 ? row.stepTrace : []);
+        setTraceTitle(row.title || row.caseId || '');
+        setTraceVisible(true);
     };
 
     return (
@@ -163,21 +201,41 @@ export default function HistoryPage() {
                             { title: '推理', dataIndex: 'reasoning', ellipsis: true },
                             { title: '触发规则', dataIndex: 'triggeredRules', render: (rules: string[]) => rules?.map(r => <Tag key={r} color="volcano">{r}</Tag>) },
                             {
-                                title: '调试信息', width: 90,
-                                render: (_: any, row: any) => row.failedNode ? (
-                                    <Tag color="red" icon={<BugOutlined />}>追踪</Tag>
-                                ) : null,
+                                title: '链路', width: 80,
+                                render: (_: any, row: any) => {
+                                    if (row.verdict === 'ERROR') return null;
+                                    const hasTrace = row.stepTrace && row.stepTrace.length > 0;
+                                    return (
+                                        <Tag
+                                            color={hasTrace ? 'geekblue' : 'default'}
+                                            icon={hasTrace ? <AimOutlined /> : <BugOutlined />}
+                                            style={{ cursor: hasTrace ? 'pointer' : 'not-allowed', opacity: hasTrace ? 1 : 0.45 }}
+                                            onClick={(e) => { e.stopPropagation(); if (hasTrace) openTrace(row); }}
+                                        >
+                                            链路
+                                        </Tag>
+                                    );
+                                },
                             },
                         ]}
                         expandable={{
                             expandedRowRender: (row: any) => row.failedNode ? (
                                 <FailedNodePanel node={row.failedNode} />
-                            ) : null,
-                            rowExpandable: (row: any) => !!row.failedNode,
+                            ) : (
+                                <PassDetailPanel row={row} />
+                            ),
+                            rowExpandable: (row: any) => row.verdict !== 'ERROR',
                         }}
                     />
                 </Card>
             )}
+
+            <StepTraceModal
+                stepTrace={traceData}
+                visible={traceVisible}
+                onClose={() => setTraceVisible(false)}
+                title={traceTitle}
+            />
         </div>
     );
 }

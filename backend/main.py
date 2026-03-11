@@ -1362,6 +1362,17 @@ def _regex_resume(text: str) -> dict:
         if len(clean) >= 20:
             r["summary"] = clean[:300]
 
+    # Expected salary: extract from 期望薪资/期望月薪/薪资要求/期望工资 section
+    salary_m = _re.search(
+        r"(?:期望薪资|期望月薪|薪资要求|期望工资|目标薪资)[：:\s]*([^\n，,；;]{3,30})",
+        text
+    )
+    if salary_m:
+        sal = salary_m.group(1).strip()
+        # Exclude vague terms
+        if sal and "面议" not in sal and "待遇" not in sal:
+            r["expectedSalary"] = sal
+
     return r
 
 
@@ -1407,6 +1418,7 @@ async def upload_resume(file: UploadFile = File(...)):
   "name": "候选人姓名",
   "phone": "电话或null",
   "email": "邮箱或null",
+  "expectedSalary": "期望薪资（如简历原文中有期望薪资/期望月薪/薪资要求等字段则提取原文内容，没有则返回null；不得填写面议，如原文是面议也返回null）",
   "education": [{{
     "school": "学校", "degree": "学历",
     "major": "专业", "graduationYear": "年份"
@@ -2937,6 +2949,26 @@ Ontology Rules (for context):
 DataObjects (for field reference):
 {do_sample}
 
+IMPORTANT - Education Distribution (strictly follow when generating multiple resumes):
+Distribute education levels realistically to reflect China's outsourcing industry:
+- ~10% from top 985/211 universities (e.g., 北京大学, 清华大学, 上海交通大学, 武汉大学, 华中科技大学, 西安交通大学, 中山大学)
+- ~20% from ordinary 一本 (non-985/211, e.g., 北京工业大学, 苏州大学, 南京工业大学)
+- ~30% from 二本 universities (e.g., 武汉工程大学, 湖北师范大学, 西安工业大学)
+- ~25% from 三本 / 民办本科 (e.g., 武昌工学院, 西安培华学院, 南京晓庄学院)
+- ~15% 大专 / 高职 (e.g., 武汉职业技术学院, 广州番禺职业技术学院)
+For junior_candidate type: lean toward 大专 and 三本. For overqualified type: lean toward 985/211.
+
+IMPORTANT - Expected Salary (expectedSalary field):
+- Exactly 60% of resumes in this batch MUST have a non-empty expectedSalary (use array index: index % 10 < 6 → fill, else → null)
+- 40% must have expectedSalary as null
+- When filling, calculate based on years of experience and role level, reflecting Chinese outsourcing industry reality (NO "面议"):
+  * 0-1 year (fresh grad): 3500-5500元/月
+  * 1-3 years: 5500-9000元/月
+  * 3-5 years: 9000-15000元/月
+  * 5-8 years: 14000-22000元/月
+  * 8+ years: 20000-30000元/月
+- Format: specific numeric range only, e.g. "7000-9000元/月" or "9k-12k/月". Never use "面议".
+
 Return a JSON array of {req.count} resume objects. Each must have:
 - name: string (Chinese name)
 - phone: string
@@ -2945,6 +2977,7 @@ Return a JSON array of {req.count} resume objects. Each must have:
 - experience: [{{company, title, startDate, endDate, description}}]
 - skills: [string]
 - summary: string (1-2 sentence summary)
+- expectedSalary: string or null (follow the 60/40 rule above strictly)
 
 Make the data realistic and in Chinese. For abnormal types, ensure the defects are clearly present."""
         else:
@@ -2969,18 +3002,27 @@ Type descriptions:
 - normal: Standard clear JD with reasonable requirements
 - vague_requirements: JD with unclear or ambiguous skill requirements
 - conflicting_criteria: JD with contradictory requirements (e.g., "5 years experience" + "fresh graduate welcome")
-- extreme_salary: JD with unreasonably high or low salary range
+- extreme_salary: JD with unreasonably high or low salary range (still within outsourcing industry bounds, e.g. very low like 3000-4000元/月 or relatively high like 28000-35000元/月)
 - niche_role: Very specialized role that few candidates would match
 
 Ontology context:
 {rules_sample}
+
+IMPORTANT - Chinese Outsourcing Industry Salary Guidelines (税前月薪，人民币，严格遵守):
+- Entry level (0-2 years): 4000-7000元/月
+- Junior (2-3 years): 7000-11000元/月
+- Mid-level (3-5 years): 11000-18000元/月
+- Senior (5-8 years): 18000-28000元/月
+- Lead/Manager (8+ years): 26000-38000元/月
+- Outsourcing salaries are generally lower than direct-hire. Do NOT generate salaries above 40000元/月.
+- salaryRange must be a specific numeric range like "8000-12000元/月" or "10k-15k/月". Do NOT use "面议" or vague terms.
 
 Return a JSON array of {req.count} JD objects. Each must have:
 - title: string (job title in Chinese){dept_hint}
 - applicableClient: string (must be exactly "{req.targetClient}")
 - requirements: [string] (list of requirements)
 - responsibilities: [string]
-- salaryRange: string
+- salaryRange: string (must be specific numeric range, no "面议")
 - location: string
 - experienceYears: string
 
@@ -3940,6 +3982,9 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
             "title": f"{r.get('resumeName', '')} ↔ {r.get('jdTitle', '')}",
             "score": r.get("score"),
             "failedNode": r.get("failedNode"),
+            "stepTrace": r.get("stepTrace", []),
+            "resumeName": r.get("resumeName", ""),
+            "jdTitle": r.get("jdTitle", ""),
         }
         ct_records.append(rec)
 
