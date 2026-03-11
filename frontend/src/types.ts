@@ -52,10 +52,26 @@ export interface GeneratedTestCase {
     generatedAt: string;
 }
 
-export interface MatchTraceStep {
-    step: string;
+// ── Action → Step → Rule chain trace ──
+
+export interface StepRuleResult {
+    ruleId: string;
     status: 'pass' | 'fail' | 'skip';
+    criteriaMatch: boolean;
     detail: string;
+    terminateFlow: boolean;
+}
+
+export interface StepTraceItem {
+    actionId: string;
+    actionName: string;
+    stepOrder: string;
+    stepName: string;
+    stepDescription?: string;
+    stepStatus: 'pass' | 'fail' | 'skip' | 'terminated' | 'error';
+    rules: StepRuleResult[];
+    stepSummary?: string;
+    candidateStatusUpdates?: string[];
 }
 
 export interface FailedNode {
@@ -65,6 +81,10 @@ export interface FailedNode {
     funnelStage?: string;
     failureType?: string;
     contextSnapshot?: Record<string, any>;
+    // Action-Step 定位（新交叉测试模型）
+    actionId?: string;
+    actionName?: string;
+    stepName?: string;
     // 规则详情字段（从本体快照注入）
     id?: string;
     specificScenarioStage?: string;
@@ -207,7 +227,7 @@ export interface CrossTestResult {
         triggeredRules: string[];
         reasoning: string;
         failedNode?: FailedNode;
-        matchTrace?: MatchTraceStep[];
+        stepTrace?: StepTraceItem[];
     }[];
     executedAt: string;
 }

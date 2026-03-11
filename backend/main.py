@@ -231,7 +231,7 @@ class GeminiClient:
             "Authorization": f"Bearer {key_info['key']}",
             "Content-Type": "application/json",
         }
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=45.0) as client:
             resp = await client.post(endpoint, json=payload, headers=headers)
         if resp.status_code != 200:
             raise Exception(f"HTTP {resp.status_code}: {resp.text[:300]}")
@@ -3154,18 +3154,22 @@ def _get_business_item(item_id: str):
     return None
 
 
-# ── Cross-test rule filtering by specificScenarioStage ────────────────────────
+# ── Cross-test: Action → Step → Rule chain-based testing ──────────────────────
 
-# Scenario stages relevant to cross-test (resume × JD matching), ordered by priority
-CROSS_TEST_STAGES = [
-    "简历匹配",              # Highest: direct resume-JD matching rules
-    "简历处理",              # High: resume parsing, dedup, compliance
-    "需求分析",              # Medium: JD-side requirement structuring
-    "候选人沟通&简历下载",    # Auxiliary: candidate info collection
-]
+# Actions relevant to cross-test (resume × JD matching)
+# Action 9 = processResume (简历处理), Action 10 = matchResume (简历匹配)
+# Optional: Action 2 = analyzeRequirement (需求分析)
+CROSS_TEST_ACTION_IDS = {"10"}
+CROSS_TEST_OPTIONAL_ACTION_IDS = {"2", "9"}
 
-MAX_RULES_FOR_CROSS_TEST = 50
+# Steps whose rule failure terminates subsequent steps within the same action
+_TERMINATING_STEPS = {
+    "validateRedlineAndBlacklist",   # Action 10, Step 1: red-line → terminate
+    "matchHardRequirements",         # Action 10, Step 2: hard requirements → terminate
+    "validateCandidacy",             # Action 9, Step 5: candidacy check → may terminate
+}
 
+MAX_RULES_PER_STEP_BATCH = 8
 
 _DEPT_SPLIT_RE = _re.compile(r"[,，;；、/\s]+")
 
@@ -3177,10 +3181,32 @@ def _split_departments(dept_str: str) -> set:
     return {d.strip() for d in _DEPT_SPLIT_RE.split(dept_str.strip()) if d.strip()}
 
 
-def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
-    """Filter ontology rules by specificScenarioStage, applicableClient, and applicableDepartment."""
-    # Extract applicableClient and department values from JD items
-    jd_clients: set = set()
+def _filter_step_rules_by_client_dept(rules: list, jd_clients: set, jd_departments: set) -> list:
+    """Filter rules within a step by applicableClient and applicableDepartment."""
+    filtered = []
+    for rule in rules:
+        client = rule.get("applicableClient", "")
+        rule_dept = rule.get("applicableDepartment")
+        # Client filter
+        if client and client != "通用" and client not in jd_clients:
+            continue
+        # Department filter
+        if rule_dept and rule_dept.strip() and jd_departments:
+            rule_depts = _split_departments(rule_dept)
+            if rule_depts and not rule_depts.intersection(jd_departments):
+                continue
+        filtered.append(rule)
+    return filtered
+
+
+def _build_cross_test_plan(snap: dict, jd_items: list, include_optional: bool = False) -> list:
+    """Build Action → Step → Rule execution plan from snapshot actions.
+
+    Returns a list of action dicts, each containing ordered steps with filtered rules.
+    Only includes actions relevant to resume-JD cross-testing.
+    """
+    # Extract client/department from JDs for rule filtering
+    jd_clients: set = {"通用"}
     jd_departments: set = set()
     for j in jd_items:
         client = j.get("applicableClient", "")
@@ -3189,67 +3215,290 @@ def _filter_rules_for_cross_test(rules: list, jd_items: list) -> list:
         dept = j.get("department", "")
         if dept:
             jd_departments.add(dept)
-        # Also check generatedData for simulated JDs
         gd = j.get("generatedData", {})
         if gd:
             if gd.get("applicableClient"):
                 jd_clients.add(gd["applicableClient"])
             if gd.get("department"):
                 jd_departments.add(gd["department"])
-    # Always include "通用"
-    jd_clients.add("通用")
 
-    # Build stage priority map for sorting
-    stage_priority = {stage: i for i, stage in enumerate(CROSS_TEST_STAGES)}
+    allowed_ids = CROSS_TEST_ACTION_IDS.copy()
+    if include_optional:
+        allowed_ids |= CROSS_TEST_OPTIONAL_ACTION_IDS
 
-    filtered = []
-    for rule in rules:
-        stage = rule.get("specificScenarioStage", "")
-        client = rule.get("applicableClient", "")
-        rule_dept = rule.get("applicableDepartment")
+    # Build flat rule lookup from snapshot rules (for enrichment)
+    snapshot_rules_by_id = {}
+    for r in snap.get("rules", []):
+        rid = r.get("id", "")
+        if rid:
+            snapshot_rules_by_id[rid] = r
 
-        # Condition A: stage must be in CROSS_TEST_STAGES
-        if stage not in stage_priority:
+    actions = snap.get("actions", [])
+    plan = []
+    for action in actions:
+        aid = str(action.get("id", ""))
+        if aid not in allowed_ids:
             continue
 
-        # Condition B: client must match (通用, empty/null, or matching JD client)
-        if client and client != "通用" and client not in jd_clients:
-            continue
+        steps_data = list(action.get("action_steps", []))  # shallow copy to avoid mutating snapshot
+        # Sort steps by order (safe conversion)
+        def _safe_order(s):
+            try:
+                return int(s.get("order", 999))
+            except (ValueError, TypeError):
+                return 999
+        steps_data.sort(key=_safe_order)
 
-        # Condition C: department must match
-        # - rule_dept is None/empty → applies to all departments → pass
-        # - jd_departments is empty → cannot determine, don't exclude → pass
-        # - otherwise → split rule_dept and intersect with jd_departments
-        if rule_dept and rule_dept.strip() and jd_departments:
-            rule_depts = _split_departments(rule_dept)
-            if rule_depts and not rule_depts.intersection(jd_departments):
+        built_steps = []
+        for step in steps_data:
+            raw_rules = step.get("rules", [])
+            if not raw_rules:
+                continue  # Skip steps with no rules
+
+            # Enrich step rules with full snapshot rule data
+            enriched_rules = []
+            for sr in raw_rules:
+                rule_id = sr.get("id", "")
+                # Merge step-embedded rule with full snapshot rule
+                full_rule = snapshot_rules_by_id.get(rule_id, {}).copy()
+                full_rule.update({k: v for k, v in sr.items() if v})
+                enriched_rules.append(full_rule)
+
+            # Filter by client/department
+            filtered_rules = _filter_step_rules_by_client_dept(enriched_rules, jd_clients, jd_departments)
+            if not filtered_rules:
                 continue
 
-        filtered.append(rule)
+            step_name = step.get("name", "")
+            built_steps.append({
+                "order": step.get("order", "0"),
+                "name": step_name,
+                "description": step.get("description", ""),
+                "condition": step.get("condition", ""),
+                "terminateOnFail": step_name in _TERMINATING_STEPS,
+                "rules": filtered_rules,
+            })
 
-    # Sort by stage priority (简历匹配 first)
-    filtered.sort(key=lambda r: stage_priority.get(r.get("specificScenarioStage", ""), 999))
+        if built_steps:
+            plan.append({
+                "actionId": aid,
+                "actionName": action.get("name", ""),
+                "actionDescription": action.get("description", ""),
+                "category": action.get("category", ""),
+                "steps": built_steps,
+            })
 
-    # Truncate to MAX_RULES_FOR_CROSS_TEST
-    if len(filtered) > MAX_RULES_FOR_CROSS_TEST:
-        logger.info(f"Cross-test rule filtering: truncating {len(filtered)} -> {MAX_RULES_FOR_CROSS_TEST}")
-        filtered = filtered[:MAX_RULES_FOR_CROSS_TEST]
+    # Sort actions: Action 9 (processResume) before Action 10 (matchResume)
+    action_order = {"9": 0, "2": 1, "10": 2}
+    plan.sort(key=lambda a: action_order.get(a["actionId"], 99))
 
-    # Fallback: if no rules matched, use first 15 from full list
-    if not filtered and rules:
-        logger.warning("Cross-test rule filtering: no matching stages found, falling back to first 15 rules")
-        filtered = rules[:15]
-
-    # Log stage distribution
-    from collections import Counter
-    stage_counts = Counter(r.get("specificScenarioStage", "") for r in filtered)
+    total_rules = sum(len(s["rules"]) for a in plan for s in a["steps"])
+    total_steps = sum(len(a["steps"]) for a in plan)
     logger.info(
-        f"交叉测试规则筛选: {len(filtered)}/{len(rules)} 条入选, "
-        f"客户集合: {jd_clients}, 部门集合: {jd_departments}, "
-        f"阶段分布: {dict(stage_counts)}"
+        f"交叉测试执行计划: {len(plan)} 个 Action, {total_steps} 个 Step, "
+        f"{total_rules} 条规则, 客户集合: {jd_clients}, 部门集合: {jd_departments}"
     )
+    return plan
 
-    return filtered
+
+async def _evaluate_step_rules_batch(
+    action_id: str,
+    action_name: str,
+    step_name: str,
+    step_description: str,
+    rules_batch: list,
+    resume_summary: str,
+    jd_summary: str,
+    previous_results_summary: str,
+    candidate_status: list,
+) -> dict:
+    """Evaluate a batch of rules in a single LLM call. Used internally by _evaluate_step_rules."""
+    rules_ctx = json.dumps([{
+        "id": r.get("id", ""),
+        "ruleName": r.get("businessLogicRuleName", ""),
+        "submissionCriteria": r.get("submission_criteria", r.get("submissionCriteria", "")),
+        "ruleLogic": r.get("description", r.get("standardizedLogicRule", "")),
+        "applicableClient": r.get("applicableClient", ""),
+        "applicableDepartment": r.get("applicableDepartment", ""),
+        "relatedEntities": r.get("relatedEntities", ""),
+    } for r in rules_batch], ensure_ascii=False, indent=1)
+
+    status_str = ", ".join(candidate_status) if candidate_status else "无"
+
+    prompt = f"""你是 HRO 招聘规则匹配评估器。
+当前处于 Action "{action_name}" (ID: {action_id}) 的 Step "{step_name}" 阶段。
+Step 描述: {step_description}
+
+## 前序步骤执行结果
+{previous_results_summary or '无（这是第一个步骤）'}
+
+## 候选人当前状态标记
+{status_str}
+
+## 当前步骤的规则列表
+{rules_ctx}
+
+## 简历数据
+{resume_summary}
+
+## JD 数据
+{jd_summary}
+
+对每条规则，请严格按照以下流程判断:
+1. 先检查 submissionCriteria（规则前置条件）是否被当前简历/JD数据满足
+   - 不满足 → status: "skip"，说明原因
+   - 满足 → 继续执行规则逻辑
+2. 执行 ruleLogic 中描述的业务逻辑判断
+   - 通过 → status: "pass"
+   - 不通过 → status: "fail"，说明原因和影响
+   - 若规则描述中明确要求"终止匹配流程"/"直接拦截"/"标记为不匹配" → terminateFlow: true
+
+返回JSON:
+{{
+  "stepName": "{step_name}",
+  "stepStatus": "pass" | "fail" | "terminated",
+  "rules": [
+    {{
+      "ruleId": "<规则ID>",
+      "status": "pass" | "fail" | "skip",
+      "criteriaMatch": true | false,
+      "detail": "<中文，说明检查了什么以及结果>",
+      "terminateFlow": false
+    }}
+  ],
+  "candidateStatusUpdates": ["<新增的状态标记，如'高龄风险'、'语言能力待确认'等，没有则为空数组>"],
+  "stepSummary": "<中文，一句话总结本步骤执行结果>"
+}}
+
+IMPORTANT:
+- stepStatus 为 "terminated" 当任一规则的 terminateFlow 为 true 时
+- stepStatus 为 "fail" 当有规则 fail 但没有 terminateFlow 时
+- stepStatus 为 "pass" 当所有规则 pass 或 skip 时
+- 只返回JSON，不要有其他内容"""
+
+    return await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
+
+
+async def _evaluate_step_rules(
+    action_id: str,
+    action_name: str,
+    step: dict,
+    resume_summary: str,
+    jd_summary: str,
+    previous_results_summary: str,
+    candidate_status: list,
+) -> dict:
+    """Evaluate all rules in a single step via LLM.
+
+    If the step has more rules than MAX_RULES_PER_STEP_BATCH, split into
+    parallel batches and merge results.
+    """
+    all_rules = step["rules"]
+    step_name = step["name"]
+    step_desc = step.get("description", "")
+
+    if not all_rules:
+        return {
+            "stepName": step_name, "stepStatus": "pass", "rules": [],
+            "candidateStatusUpdates": [], "stepSummary": "无规则需要评估",
+        }
+
+    # Split rules into batches of MAX_RULES_PER_STEP_BATCH
+    batches = [all_rules[i:i + MAX_RULES_PER_STEP_BATCH]
+               for i in range(0, len(all_rules), MAX_RULES_PER_STEP_BATCH)]
+
+    if len(batches) == 1:
+        # Single batch — call directly
+        result = await _evaluate_step_rules_batch(
+            action_id, action_name, step_name, step_desc,
+            batches[0], resume_summary, jd_summary,
+            previous_results_summary, candidate_status,
+        )
+    else:
+        # Multiple batches — call in parallel
+        logger.info(f"Step '{step_name}' has {len(all_rules)} rules, splitting into {len(batches)} parallel batches")
+        tasks = [
+            _evaluate_step_rules_batch(
+                action_id, action_name, step_name, step_desc,
+                batch, resume_summary, jd_summary,
+                previous_results_summary, candidate_status,
+            )
+            for batch in batches
+        ]
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Merge batch results
+        merged_rules = []
+        all_status_updates = []
+        summaries = []
+        has_error = False
+        for idx, br in enumerate(batch_results):
+            if isinstance(br, Exception):
+                logger.error(f"Batch {idx} exception: {br}")
+                merged_rules.extend([
+                    {"ruleId": r.get("id", ""), "status": "skip", "criteriaMatch": False,
+                     "detail": f"批次评估异常: {str(br)[:80]}", "terminateFlow": False}
+                    for r in batches[idx]
+                ])
+                has_error = True
+            elif not br or not isinstance(br, dict):
+                merged_rules.extend([
+                    {"ruleId": r.get("id", ""), "status": "skip", "criteriaMatch": False,
+                     "detail": gemini.last_error or "LLM 服务不可用", "terminateFlow": False}
+                    for r in batches[idx]
+                ])
+                has_error = True
+            else:
+                merged_rules.extend(br.get("rules", []))
+                all_status_updates.extend(br.get("candidateStatusUpdates", []))
+                if br.get("stepSummary"):
+                    summaries.append(br["stepSummary"])
+
+        has_fail = any(r.get("status") == "fail" for r in merged_rules)
+        has_terminate = any(r.get("terminateFlow") for r in merged_rules)
+        if has_error and not has_fail and not has_terminate:
+            merged_status = "error"
+        elif has_terminate:
+            merged_status = "terminated"
+        elif has_fail:
+            merged_status = "fail"
+        else:
+            merged_status = "pass"
+
+        result = {
+            "stepName": step_name,
+            "stepStatus": merged_status,
+            "rules": merged_rules,
+            "candidateStatusUpdates": list(set(all_status_updates)),
+            "stepSummary": "；".join(summaries) if summaries else ("批次评估部分失败" if has_error else ""),
+        }
+        return result
+
+    # Handle single-batch result
+    if not result or not isinstance(result, dict):
+        return {
+            "stepName": step_name,
+            "stepStatus": "error",
+            "rules": [{"ruleId": r.get("id", ""), "status": "skip", "criteriaMatch": False,
+                        "detail": gemini.last_error or "LLM 服务不可用", "terminateFlow": False}
+                       for r in all_rules],
+            "candidateStatusUpdates": [],
+            "stepSummary": "LLM 评估失败",
+        }
+
+    if "rules" not in result or not isinstance(result.get("rules"), list):
+        result["rules"] = []
+    if "stepStatus" not in result:
+        has_fail = any(r.get("status") == "fail" for r in result.get("rules", []))
+        has_terminate = any(r.get("terminateFlow") for r in result.get("rules", []))
+        result["stepStatus"] = "terminated" if has_terminate else ("fail" if has_fail else "pass")
+    if "candidateStatusUpdates" not in result:
+        result["candidateStatusUpdates"] = []
+    if "stepSummary" not in result:
+        result["stepSummary"] = ""
+    result["stepName"] = step_name
+
+    return result
 
 
 def _resume_summary(item: dict) -> str:
@@ -3276,164 +3525,307 @@ def _jd_summary(item: dict) -> str:
     }, ensure_ascii=False)
 
 
+def _extract_jd_title(j: dict) -> str:
+    """Extract JD title from a business data item."""
+    j_title = j.get("title", "")
+    if not j_title and j.get("records"):
+        cols = j.get("columns", [])
+        first_rec = j["records"][0] if j["records"] else {}
+        for col in cols:
+            if any(kw in col.lower() for kw in ("职位", "岗位", "title", "名称")):
+                j_title = first_rec.get(col, "")
+                break
+        if not j_title and cols:
+            j_title = first_rec.get(cols[0], "")
+    if not j_title and j.get("generatedData"):
+        j_title = j["generatedData"].get("title", "")
+    if not j_title:
+        j_title = j.get("filename", "unknown")
+    return j_title
+
+
 async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: str) -> dict:
-    """Core cross-test logic: match resumes against JDs using LLM."""
+    """Core cross-test logic: Action → Step → Rule chain-based evaluation.
+
+    For each resume-JD pair, walks through the execution plan (Action 9 → Action 10),
+    evaluating rules step-by-step with short-circuit on terminating failures.
+    """
+    # Build pairs
     pairs = []
     for r in resume_items:
         r_name = (r.get("parsedData") or r.get("generatedData") or {}).get("name", r.get("filename", "unknown"))
         for j in jd_items:
-            # Extract JD title: prefer title field, then first column of first record, then filename
-            j_title = j.get("title", "")
-            if not j_title and j.get("records"):
-                cols = j.get("columns", [])
-                first_rec = j["records"][0] if j["records"] else {}
-                # Try to find a title-like column
-                for col in cols:
-                    if any(kw in col.lower() for kw in ("职位", "岗位", "title", "名称")):
-                        j_title = first_rec.get(col, "")
-                        break
-                if not j_title and cols:
-                    j_title = first_rec.get(cols[0], "")
-            if not j_title and j.get("generatedData"):
-                j_title = j["generatedData"].get("title", "")
-            if not j_title:
-                j_title = j.get("filename", "unknown")
+            j_title = _extract_jd_title(j)
             pairs.append({"resumeName": r_name, "jdTitle": j_title, "resumeId": r["itemId"], "jdId": j["itemId"]})
 
-    # Build context
-    resume_texts = [_resume_summary(r) for r in resume_items[:10]]
-    jd_texts = [_jd_summary(j) for j in jd_items[:10]]
-    # Filter rules by specificScenarioStage relevance instead of hard-coded [:10]
-    filtered_rules = _filter_rules_for_cross_test(snap.get("rules", []), jd_items)
-    rules_ctx = json.dumps([{
-        "id": r.get("id"),
-        "ruleName": r.get("businessLogicRuleName"),
-        "stage": r.get("specificScenarioStage"),
-        "client": r.get("applicableClient"),
-        "department": r.get("applicableDepartment"),
-        "criteria": r.get("submissionCriteria"),
-        "rule": r.get("standardizedLogicRule"),
-    } for r in filtered_rules], ensure_ascii=False, indent=1)
-    pairs_json = json.dumps(
-        [{"resumeName": p["resumeName"], "jdTitle": p["jdTitle"]} for p in pairs],
-        ensure_ascii=False,
-    )
-
-    prompt = f"""You are an HRO recruitment matching evaluator. Evaluate each resume-JD pair below.
-
-## Ontology Rules
-{rules_ctx}
-
-## Resumes
-{chr(10).join(resume_texts)}
-
-## Job Descriptions
-{chr(10).join(jd_texts)}
-
-## Pairs to evaluate ({len(pairs)})
-{pairs_json}
-
-For each pair, return:
-{{
-  "resumeName": "<name>",
-  "jdTitle": "<title>",
-  "verdict": "PASS" | "FAIL" | "WARNING",
-  "score": <integer 0-100, overall match score where 100=perfect match>,
-  "triggeredRules": ["<rule IDs that exactly match rule names from the Ontology Rules list above>"],
-  "reasoning": "<Chinese, 2-3 sentences explaining WHY the rules are violated or satisfied>",
-  "failedNode": <only if FAIL> {{
-    "ruleName": "<failed rule, must match a rule name from the Ontology Rules above>",
-    "ruleDescription": "<description>",
-    "brokenLink": "<broken link or null>",
-    "funnelStage": "<stage like screening/interview/offer>",
-    "failureType": "<RULE_MISMATCH|SKILL_GAP|EDUCATION_MISMATCH|EXPERIENCE_INSUFFICIENT|PRECONDITION_FAIL>",
-    "contextSnapshot": {{}}
-  }},
-  "matchTrace": [
-    {{"step": "<matching dimension name in Chinese, e.g. 技能匹配/学历要求/工作经验/规则校验>", "status": "pass"|"fail"|"skip", "detail": "<Chinese, explain what was checked and the result>"}}
-  ]
-}}
-
-IMPORTANT: matchTrace must contain 3-6 steps showing the full matching process. Each step represents a dimension checked. Mark the step where matching failed with status "fail" and explain why. Steps after a critical failure should be "skip".
-
-Return a JSON array."""
-
-    result = await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
-
-    # Build rule name -> full rule document mapping from snapshot
+    # Build execution plan from snapshot actions
+    plan = _build_cross_test_plan(snap, jd_items)
     rules_list = snap.get("rules", [])
-    rule_doc_map = {}
-    for rule in rules_list:
-        rname = rule.get("name", rule.get("ruleName", ""))
-        if rname:
-            # Build full rule text from all available fields
-            parts = []
-            if rule.get("description"):
-                parts.append(f"描述: {rule['description']}")
-            if rule.get("conditions"):
-                cond = rule["conditions"] if isinstance(rule["conditions"], str) else json.dumps(rule["conditions"], ensure_ascii=False)
-                parts.append(f"条件: {cond}")
-            if rule.get("actions"):
-                act = rule["actions"] if isinstance(rule["actions"], str) else json.dumps(rule["actions"], ensure_ascii=False)
-                parts.append(f"动作: {act}")
-            if rule.get("priority"):
-                parts.append(f"优先级: {rule['priority']}")
-            if rule.get("category"):
-                parts.append(f"类别: {rule['category']}")
-            rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
+
+    if not plan:
+        logger.warning("交叉测试: 未找到可用的 Action 执行计划，回退到扁平规则评估")
+        # Fallback: return error results
+        now_iso = datetime.now(timezone.utc).isoformat()
+        return {
+            "testId": f"ct_{uuid.uuid4().hex[:8]}",
+            "mode": mode,
+            "resumeNames": list(set(p["resumeName"] for p in pairs)),
+            "jdTitles": list(set(p["jdTitle"] for p in pairs)),
+            "results": [{
+                "resumeName": p["resumeName"], "jdTitle": p["jdTitle"],
+                "verdict": "ERROR", "score": 0, "triggeredRules": [],
+                "reasoning": "未找到可用的 Action-Step-Rule 执行计划",
+                "stepTrace": [],
+            } for p in pairs],
+            "executedAt": now_iso,
+        }
+
+    async def _process_one_pair(pair_idx: int, pair: dict) -> dict:
+        """Process a single resume-JD pair through the Action→Step→Rule chain."""
+        r_item = next((r for r in resume_items if r["itemId"] == pair["resumeId"]), None)
+        j_item = next((j for j in jd_items if j["itemId"] == pair["jdId"]), None)
+        if not r_item or not j_item:
+            return {
+                "resumeName": pair["resumeName"], "jdTitle": pair["jdTitle"],
+                "verdict": "ERROR", "score": 0, "triggeredRules": [],
+                "reasoning": "数据项未找到", "stepTrace": [],
+            }
+
+        r_summary = _resume_summary(r_item)
+        j_summary = _jd_summary(j_item)
+
+        # Walk the execution plan
+        all_step_results = []     # Full trace of all steps
+        triggered_rules = []      # IDs of all triggered (non-skip) rules
+        terminated = False
+        candidate_status = []
+        first_failed_rule = None  # For failedNode
+        first_failed_action = None
+        first_failed_step = None
+
+        for action in plan:
+            if terminated:
+                # Record remaining steps as skipped
+                for step in action["steps"]:
+                    all_step_results.append({
+                        "actionId": action["actionId"],
+                        "actionName": action["actionName"],
+                        "stepOrder": step["order"],
+                        "stepName": step["name"],
+                        "stepDescription": step.get("description", ""),
+                        "stepStatus": "skip",
+                        "rules": [{"ruleId": r.get("id", ""), "status": "skip",
+                                    "criteriaMatch": False, "detail": "前序步骤已终止流程",
+                                    "terminateFlow": False} for r in step["rules"]],
+                        "stepSummary": "前序步骤已终止，跳过",
+                    })
+                continue
+
+            # Group steps by condition for parallel execution
+            steps_list = action["steps"]
+            step_groups = []  # list of lists: steps sharing same condition run in parallel
+            for step in steps_list:
+                cond = step.get("condition", "")
+                if step_groups and step_groups[-1][0].get("condition", "") == cond:
+                    step_groups[-1].append(step)
+                else:
+                    step_groups.append([step])
+
+            for group in step_groups:
+                if terminated:
+                    for step in group:
+                        all_step_results.append({
+                            "actionId": action["actionId"],
+                            "actionName": action["actionName"],
+                            "stepOrder": step["order"],
+                            "stepName": step["name"],
+                            "stepDescription": step.get("description", ""),
+                            "stepStatus": "skip",
+                            "rules": [{"ruleId": r.get("id", ""), "status": "skip",
+                                        "criteriaMatch": False, "detail": "前序步骤已终止流程",
+                                        "terminateFlow": False} for r in step["rules"]],
+                            "stepSummary": "前序步骤已终止，跳过",
+                        })
+                    continue
+
+                # Build previous results summary for context (shared by this group)
+                prev_summary_parts = []
+                for prev in all_step_results[-3:]:
+                    status_label = {"pass": "通过", "fail": "失败", "skip": "跳过", "terminated": "终止", "error": "错误"}
+                    prev_status = prev.get('stepStatus', '')
+                    prev_summary_parts.append(
+                        f"- {prev['actionName']}/{prev['stepName']}: {status_label.get(prev_status, prev_status)} — {prev.get('stepSummary', '')}"
+                    )
+                prev_summary = "\n".join(prev_summary_parts) if prev_summary_parts else ""
+
+                # Execute steps in this group
+                if len(group) == 1:
+                    # Single step — sequential
+                    step = group[0]
+                    try:
+                        step_result = await _evaluate_step_rules(
+                            action["actionId"], action["actionName"],
+                            step, r_summary, j_summary,
+                            prev_summary, candidate_status,
+                        )
+                    except Exception as eval_err:
+                        logger.error(f"_evaluate_step_rules 异常: {eval_err}")
+                        step_result = {
+                            "stepName": step["name"], "stepStatus": "error",
+                            "rules": [{"ruleId": r.get("id", ""), "status": "skip",
+                                        "criteriaMatch": False, "detail": f"评估异常: {str(eval_err)[:120]}",
+                                        "terminateFlow": False} for r in step["rules"]],
+                            "candidateStatusUpdates": [], "stepSummary": f"步骤评估发生异常: {str(eval_err)[:80]}",
+                        }
+                    group_results = [(step, step_result)]
+                else:
+                    # Multiple steps with same condition — parallel
+                    logger.info(f"Parallel executing {len(group)} steps with same condition: {group[0].get('condition','')[:50]}")
+                    async def _eval_one(s):
+                        try:
+                            return await _evaluate_step_rules(
+                                action["actionId"], action["actionName"],
+                                s, r_summary, j_summary,
+                                prev_summary, candidate_status,
+                            )
+                        except Exception as eval_err:
+                            logger.error(f"_evaluate_step_rules 异常: {eval_err}")
+                            return {
+                                "stepName": s["name"], "stepStatus": "error",
+                                "rules": [{"ruleId": r.get("id", ""), "status": "skip",
+                                            "criteriaMatch": False, "detail": f"评估异常: {str(eval_err)[:120]}",
+                                            "terminateFlow": False} for r in s["rules"]],
+                                "candidateStatusUpdates": [], "stepSummary": f"步骤评估发生异常: {str(eval_err)[:80]}",
+                            }
+                    results_list = await asyncio.gather(*[_eval_one(s) for s in group])
+                    group_results = list(zip(group, results_list))
+
+                # Process results from this group
+                for step, step_result in group_results:
+                    step_result["actionId"] = action["actionId"]
+                    step_result["actionName"] = action["actionName"]
+                    step_result["stepOrder"] = step["order"]
+                    step_result["stepDescription"] = step.get("description", "")
+
+                    for rule_result in step_result.get("rules", []):
+                        if rule_result.get("status") in ("pass", "fail"):
+                            triggered_rules.append(rule_result.get("ruleId", ""))
+
+                    new_statuses = step_result.get("candidateStatusUpdates", [])
+                    if new_statuses:
+                        candidate_status.extend(new_statuses)
+
+                    all_step_results.append(step_result)
+
+                    step_status = step_result.get("stepStatus", "pass")
+                    if step_status == "terminated" or (step_status == "fail" and step.get("terminateOnFail")):
+                        terminated = True
+                        if not first_failed_rule:
+                            for rr in step_result.get("rules", []):
+                                if rr.get("status") == "fail":
+                                    first_failed_rule = rr
+                                    first_failed_action = action
+                                    first_failed_step = step
+                                    break
+                    elif step_status == "fail" and not first_failed_rule:
+                        for rr in step_result.get("rules", []):
+                            if rr.get("status") == "fail":
+                                first_failed_rule = rr
+                                first_failed_action = action
+                                first_failed_step = step
+                                break
+
+        # Determine verdict and score
+        has_error = any(sr.get("stepStatus") == "error" for sr in all_step_results)
+        has_fail = any(sr.get("stepStatus") in ("fail", "terminated") for sr in all_step_results)
+        total_rules_evaluated = sum(
+            1 for sr in all_step_results for rr in sr.get("rules", []) if rr.get("status") in ("pass", "fail")
+        )
+        passed_rules = sum(
+            1 for sr in all_step_results for rr in sr.get("rules", []) if rr.get("status") == "pass"
+        )
+
+        if has_error and not has_fail:
+            verdict = "ERROR"
+            score = 0
+        elif terminated:
+            verdict = "FAIL"
+            score = int(passed_rules / max(total_rules_evaluated, 1) * 60)  # Cap at 60 for terminated
+        elif has_fail:
+            verdict = "WARNING"
+            score = int(passed_rules / max(total_rules_evaluated, 1) * 80)  # Cap at 80 for non-terminating fail
+        else:
+            verdict = "PASS"
+            score = int(passed_rules / max(total_rules_evaluated, 1) * 100)
+
+        # Build reasoning from step summaries
+        reasoning_parts = []
+        for sr in all_step_results:
+            if sr.get("stepStatus") == "skip":
+                continue
+            status_emoji = {"pass": "✓", "fail": "✗", "terminated": "⊘", "error": "⚠"}
+            reasoning_parts.append(
+                f"{status_emoji.get(sr.get('stepStatus', ''), '?')} "
+                f"[{sr.get('actionName', '')}/{sr.get('stepName', '')}] {sr.get('stepSummary', '')}"
+            )
+        reasoning = "；".join(reasoning_parts) if reasoning_parts else "无规则被评估"
+
+        # Build failedNode
+        failed_node = None
+        if first_failed_rule and first_failed_step:
+            rule_id = first_failed_rule.get("ruleId", "")
+            # Find full rule from snapshot
+            full_rule = None
+            for rl in rules_list:
+                if rl.get("id") == rule_id:
+                    full_rule = rl
+                    break
+            failed_node = {
+                "ruleName": (full_rule or {}).get("businessLogicRuleName", rule_id),
+                "ruleDescription": first_failed_rule.get("detail", ""),
+                "brokenLink": None,
+                "funnelStage": (first_failed_action or {}).get("category", "screening"),
+                "failureType": "RULE_MISMATCH",
+                "contextSnapshot": {},
+                "actionId": (first_failed_action or {}).get("actionId", ""),
+                "actionName": (first_failed_action or {}).get("actionName", ""),
+                "stepName": first_failed_step.get("name", ""),
+            }
+            _enrich_failed_node(failed_node, rules_list)
+
+        result_entry = {
+            "resumeName": pair["resumeName"],
+            "jdTitle": pair["jdTitle"],
+            "verdict": verdict,
+            "score": score,
+            "triggeredRules": list(set(triggered_rules)),
+            "reasoning": reasoning,
+            "failedNode": failed_node,
+            "stepTrace": all_step_results,
+        }
+        logger.info(
+            f"交叉测试 [{pair_idx+1}/{len(pairs)}] {pair['resumeName']} × {pair['jdTitle']}: "
+            f"{verdict} (score={score}, rules={len(triggered_rules)})"
+        )
+        return result_entry
+
+    # Run all pairs in parallel
+    pair_tasks = [_process_one_pair(i, p) for i, p in enumerate(pairs)]
+    pair_results = await asyncio.gather(*pair_tasks, return_exceptions=True)
 
     results = []
-    if result:
-        if isinstance(result, list):
-            raw = result
-        elif isinstance(result, dict):
-            raw = result.get("results", [])
-        else:
-            raw = []
-        # Validate and fix each result entry
-        for i, entry in enumerate(raw):
-            if not isinstance(entry, dict):
-                continue
-            # Ensure required fields exist
-            if "verdict" not in entry:
-                entry["verdict"] = "WARNING"
-            if "reasoning" not in entry:
-                entry["reasoning"] = "LLM 未提供推理说明"
-            if "score" not in entry or not isinstance(entry.get("score"), (int, float)):
-                entry["score"] = 0
-            else:
-                entry["score"] = int(entry["score"])
-            if "triggeredRules" not in entry:
-                entry["triggeredRules"] = []
-            if "matchTrace" not in entry or not isinstance(entry.get("matchTrace"), list):
-                entry["matchTrace"] = []
-            # Map pair info if missing
-            if i < len(pairs):
-                if "resumeName" not in entry:
-                    entry["resumeName"] = pairs[i]["resumeName"]
-                if "jdTitle" not in entry:
-                    entry["jdTitle"] = pairs[i]["jdTitle"]
-            # Replace failedNode.ruleDescription with original rule doc text
-            fn = entry.get("failedNode")
-            if fn and isinstance(fn, dict):
-                rn = fn.get("ruleName", "")
-                if rn in rule_doc_map:
-                    fn["ruleDescription"] = rule_doc_map[rn]
-            _enrich_failed_node(entry.get("failedNode"), rules_list)
-            results.append(entry)
-    else:
-        error_msg = gemini.last_error or "LLM 服务不可用，请检查 API Key 配置"
-        logger.error(f"Cross-test LLM call failed: {error_msg}")
-        for p in pairs:
+    for i, pr in enumerate(pair_results):
+        if isinstance(pr, Exception):
+            logger.error(f"Pair {i} exception: {pr}")
             results.append({
-                "resumeName": p["resumeName"],
-                "jdTitle": p["jdTitle"],
-                "verdict": "ERROR",
-                "triggeredRules": [],
-                "reasoning": error_msg,
+                "resumeName": pairs[i]["resumeName"], "jdTitle": pairs[i]["jdTitle"],
+                "verdict": "ERROR", "score": 0, "triggeredRules": [],
+                "reasoning": f"执行异常: {str(pr)[:120]}", "stepTrace": [],
             })
+        else:
+            results.append(pr)
 
-    # Sort results by score descending
+    # Sort by score descending
     results.sort(key=lambda x: x.get("score", 0), reverse=True)
 
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -3446,12 +3838,12 @@ Return a JSON array."""
         "executedAt": now_iso,
     }
 
-    # ── Persist cross-test result as a TestRun for history & reports ──
+    # ── Persist as TestRun for history & reports ──
     ct_passed = sum(1 for r in results if r.get("verdict") == "PASS")
     ct_failed = sum(1 for r in results if r.get("verdict") == "FAIL")
     ct_warnings = sum(1 for r in results if r.get("verdict") == "WARNING")
     ct_records = []
-    for idx, r in enumerate(results):
+    for r in results:
         rec = {
             "recordId": f"rec_{uuid.uuid4().hex[:8]}",
             "caseId": f"{r.get('resumeName', '')} × {r.get('jdTitle', '')}",
@@ -3481,9 +3873,12 @@ Return a JSON array."""
         "records": ct_records,
         "executedAt": now_iso,
     }
-    with _lock:
-        _runs.insert(0, ct_run)
-        _persist_runs()
+    try:
+        with _lock:
+            _runs.insert(0, ct_run)
+            _persist_runs()
+    except Exception as persist_err:
+        logger.error(f"交叉测试结果持久化失败: {persist_err}")
 
     return ct_result
 
@@ -3507,8 +3902,16 @@ async def cross_test_by_resume(req: CrossTestByResumeRequest):
     if not jd_items:
         raise HTTPException(400, "No valid JDs found")
 
+    pair_count = len(jd_items)
+    timeout_secs = max(120.0, pair_count * 60.0)
     try:
-        result = await _run_cross_test(snap, [resume], jd_items, "by_resume")
+        result = await asyncio.wait_for(
+            _run_cross_test(snap, [resume], jd_items, "by_resume"),
+            timeout=timeout_secs,
+        )
+    except asyncio.TimeoutError:
+        logger.error(f"Cross-test by-resume timed out after {timeout_secs}s")
+        raise HTTPException(500, f"交叉测试执行超时({int(timeout_secs)}秒)，请减少测试规模或检查LLM响应速度")
     except Exception as e:
         logger.error(f"Cross-test by-resume failed: {e}")
         raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
@@ -3534,8 +3937,16 @@ async def cross_test_by_jd(req: CrossTestByJdRequest):
     if not resume_items:
         raise HTTPException(400, "No valid resumes found")
 
+    pair_count = len(resume_items)
+    timeout_secs = max(120.0, pair_count * 60.0)
     try:
-        result = await _run_cross_test(snap, resume_items, [jd], "by_jd")
+        result = await asyncio.wait_for(
+            _run_cross_test(snap, resume_items, [jd], "by_jd"),
+            timeout=timeout_secs,
+        )
+    except asyncio.TimeoutError:
+        logger.error(f"Cross-test by-jd timed out after {timeout_secs}s")
+        raise HTTPException(500, f"交叉测试执行超时({int(timeout_secs)}秒)，请减少测试规模或检查LLM响应速度")
     except Exception as e:
         logger.error(f"Cross-test by-jd failed: {e}")
         raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
@@ -3567,8 +3978,18 @@ async def cross_test_validate(req: CrossTestValidateRequest):
     if not resume_items or not jd_items:
         raise HTTPException(400, "Need at least 1 resume and 1 JD for cross-validation")
 
+    r_list = resume_items[:10]
+    j_list = jd_items[:10]
+    pair_count = len(r_list) * len(j_list)
+    timeout_secs = max(120.0, pair_count * 60.0)
     try:
-        result = await _run_cross_test(snap, resume_items[:10], jd_items[:10], "cross_validate")
+        result = await asyncio.wait_for(
+            _run_cross_test(snap, r_list, j_list, "cross_validate"),
+            timeout=timeout_secs,
+        )
+    except asyncio.TimeoutError:
+        logger.error(f"Cross-test cross-validate timed out after {timeout_secs}s")
+        raise HTTPException(500, f"交叉测试执行超时({int(timeout_secs)}秒)，请减少测试规模或检查LLM响应速度")
     except Exception as e:
         logger.error(f"Cross-test cross-validate failed: {e}")
         raise HTTPException(500, f"交叉测试执行失败: {str(e)}")
