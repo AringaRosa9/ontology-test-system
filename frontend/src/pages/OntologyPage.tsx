@@ -10,6 +10,7 @@ import {
     DatabaseOutlined, CloudServerOutlined, FolderOpenOutlined,
 } from '@ant-design/icons';
 import api from '../api';
+import { MINIO_ENDPOINT_HELP, syncMinioEndpointForm } from '../minio';
 import type { ApiResponse, OntologySnapshot, OntologySnapshotDetail } from '../types';
 
 // ── Neo4j Panel ──────────────────────────────────────────────────────────────
@@ -148,12 +149,7 @@ function MinIOOntologyPanel({ onImported }: { onImported: () => void }) {
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [pulling, setPulling] = useState(false);
 
-    const getConnValues = () => ({
-        endpoint: form.getFieldValue('endpoint') || 'localhost:9000',
-        access_key: form.getFieldValue('access_key') || '',
-        secret_key: form.getFieldValue('secret_key') || '',
-        secure: form.getFieldValue('secure') || false,
-    });
+    const getConnValues = () => syncMinioEndpointForm(form);
 
     const handleTestConnection = async () => {
         setTesting(true);
@@ -167,7 +163,7 @@ function MinIOOntologyPanel({ onImported }: { onImported: () => void }) {
                 message.error(`连接失败: ${data.data.error}`);
             }
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || '连接测试失败');
+            message.error(e?.response?.data?.detail || e?.message || '连接测试失败');
         }
         setTesting(false);
     };
@@ -183,7 +179,7 @@ function MinIOOntologyPanel({ onImported }: { onImported: () => void }) {
             setCurrentPrefix(prefix);
             setSelectedKeys([]);
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || '浏览失败');
+            message.error(e?.response?.data?.detail || e?.message || '浏览失败');
         }
         setBrowsing(false);
     };
@@ -209,7 +205,7 @@ function MinIOOntologyPanel({ onImported }: { onImported: () => void }) {
             onImported();
             setSelectedKeys([]);
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || 'MinIO拉取失败');
+            message.error(e?.response?.data?.detail || e?.message || 'MinIO拉取失败');
         }
         setPulling(false);
     };
@@ -242,8 +238,22 @@ function MinIOOntologyPanel({ onImported }: { onImported: () => void }) {
                 endpoint: 'localhost:9000', access_key: '', secret_key: '', secure: false,
             }}>
                 <Space wrap size="middle" style={{ width: '100%' }}>
-                    <Form.Item label="Endpoint" name="endpoint" style={{ marginBottom: 8, minWidth: 220 }}>
-                        <Input placeholder="localhost:9000" />
+                    <Form.Item
+                        label="Endpoint"
+                        name="endpoint"
+                        extra={MINIO_ENDPOINT_HELP}
+                        style={{ marginBottom: 8, minWidth: 320 }}
+                    >
+                        <Input
+                            placeholder="aicoe.chinasoftinc.com:9000 或 http://aicoe.chinasoftinc.com:9000"
+                            onBlur={() => {
+                                try {
+                                    syncMinioEndpointForm(form);
+                                } catch {
+                                    // Keep raw input so the submit handler can surface the error.
+                                }
+                            }}
+                        />
                     </Form.Item>
                     <Form.Item label="Access Key" name="access_key" style={{ marginBottom: 8, minWidth: 180 }}>
                         <Input />

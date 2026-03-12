@@ -12,6 +12,7 @@ import {
     TagOutlined,
 } from '@ant-design/icons';
 import api from '../api';
+import { MINIO_ENDPOINT_HELP, syncMinioEndpointForm } from '../minio';
 import type { ApiResponse, OntologySnapshot, BusinessDataItem, GeneratedTestCase } from '../types';
 
 const { Dragger } = Upload;
@@ -30,12 +31,7 @@ function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [pulling, setPulling] = useState(false);
 
-    const getConnValues = () => ({
-        endpoint: form.getFieldValue('endpoint') || 'localhost:9000',
-        access_key: form.getFieldValue('access_key') || '',
-        secret_key: form.getFieldValue('secret_key') || '',
-        secure: form.getFieldValue('secure') || false,
-    });
+    const getConnValues = () => syncMinioEndpointForm(form);
 
     const handleTestConnection = async () => {
         setTesting(true);
@@ -49,7 +45,7 @@ function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
                 message.error(`连接失败: ${data.data.error}`);
             }
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || '连接测试失败');
+            message.error(e?.response?.data?.detail || e?.message || '连接测试失败');
         }
         setTesting(false);
     };
@@ -65,7 +61,7 @@ function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
             setCurrentPrefix(prefix);
             setSelectedKeys([]);
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || '浏览失败');
+            message.error(e?.response?.data?.detail || e?.message || '浏览失败');
         }
         setBrowsing(false);
     };
@@ -91,7 +87,7 @@ function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
             onImported();
             setSelectedKeys([]);
         } catch (e: any) {
-            message.error(e?.response?.data?.detail || 'MinIO拉取失败');
+            message.error(e?.response?.data?.detail || e?.message || 'MinIO拉取失败');
         }
         setPulling(false);
     };
@@ -124,8 +120,18 @@ function MinIOBusinessPanel({ onImported }: { onImported: () => void }) {
                 <Form form={form} layout="inline" initialValues={{
                     endpoint: 'localhost:9000', access_key: '', secret_key: '', secure: false,
                 }}>
-                    <Form.Item label="Endpoint" name="endpoint">
-                        <Input placeholder="localhost:9000" style={{ width: 180 }} />
+                    <Form.Item label="Endpoint" name="endpoint" extra={MINIO_ENDPOINT_HELP}>
+                        <Input
+                            placeholder="aicoe.chinasoftinc.com:9000 或 http://aicoe.chinasoftinc.com:9000"
+                            style={{ width: 320 }}
+                            onBlur={() => {
+                                try {
+                                    syncMinioEndpointForm(form);
+                                } catch {
+                                    // Keep raw input so the submit handler can surface the error.
+                                }
+                            }}
+                        />
                     </Form.Item>
                     <Form.Item label="Access Key" name="access_key">
                         <Input style={{ width: 150 }} />

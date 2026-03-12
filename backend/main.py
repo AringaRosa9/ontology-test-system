@@ -19,6 +19,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Dict, Union, Any
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -2354,37 +2355,266 @@ class Neo4jPullRequest(BaseModel):
     description: Optional[str] = None
 
 
-@app.post("/import/neo4j/test-connection")
-async def neo4j_test_connection(req: Neo4jConnectionRequest):
-    """Test Neo4j connection and return basic stats."""
+def _load_neo4j_graph_database():
     try:
         from neo4j import GraphDatabase
-    except ImportError:
-        raise HTTPException(500, "neo4j驱动未安装，请运行 pip install neo4j")
+        return GraphDatabase
+    except Exception:
+        return None
+
+
+def _normalize_neo4j_http_url(uri: str) -> str:
+    raw = (uri or "").strip()
+    if not raw:
+        raise HTTPException(400, "Neo4j URI不能为空")
+
+    candidate = raw if "://" in raw else f"bolt://{raw}"
+    parsed = urlsplit(candidate)
+    if not parsed.hostname:
+        raise HTTPException(400, f"Neo4j URI格式无效: {uri}")
+
+    scheme = (parsed.scheme or "bolt").lower()
+    secure = scheme in {"https", "neo4j+s", "neo4j+ssc", "bolt+s", "bolt+ssc"}
+    host = parsed.hostname
+    host_display = f"[{host}]" if ":" in host else host
+
+    if scheme in {"http", "https"}:
+        port = parsed.port or (7473 if secure else 7474)
+    else:
+        # Bolt/neo4j 端口通常与 Browser/HTTP 端口不同，回退时使用默认 HTTP 端口。
+        port = 7473 if secure else 7474
+
+    http_scheme = "https" if secure else "http"
+    return f"{http_scheme}://{host_display}:{port}"
+
+
+async def _neo4j_http_query(req: Neo4jConnectionRequest, cypher: str, parameters: Optional[Dict[str, Any]] = None) -> List[List[Any]]:
+    import httpx
+
+    endpoint = f"{_normalize_neo4j_http_url(req.uri)}/db/{req.database}/tx/commit"
+    payload = {
+        "statements": [{
+            "statement": cypher,
+            "parameters": parameters or {},
+            "resultDataContents": ["row"],
+        }]
+    }
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                endpoint,
+                json=payload,
+                auth=(req.username, req.password),
+                headers={"Content-Type": "application/json"},
+            )
+    except Exception as exc:
+        raise HTTPException(
+            400,
+            f"Neo4j HTTP接口不可用，请确认 Browser/HTTP 端口可访问（默认 7474/7473）: {exc}",
+        ) from exc
 
     try:
-        driver = GraphDatabase.driver(req.uri, auth=(req.username, req.password))
+        body = response.json()
+    except Exception as exc:
+        raise HTTPException(
+            400,
+            f"Neo4j HTTP接口返回了非JSON响应（HTTP {response.status_code}）",
+        ) from exc
+
+    if response.status_code >= 400:
+        detail = body.get("message") if isinstance(body, dict) else None
+        raise HTTPException(400, detail or f"Neo4j HTTP接口访问失败（HTTP {response.status_code}）")
+
+    errors = body.get("errors") or []
+    if errors:
+        first = errors[0] if isinstance(errors[0], dict) else {"message": str(errors[0])}
+        raise HTTPException(400, first.get("message") or first.get("code") or "Neo4j查询失败")
+
+    results = body.get("results") or []
+    if not results:
+        return []
+    return [row.get("row", []) for row in results[0].get("data", [])]
+
+
+def _categorize_neo4j_node(node: Dict[str, Any], labels: List[str], rules: List[Dict[str, Any]],
+                           actions: List[Dict[str, Any]], events: List[Dict[str, Any]],
+                           dataobjects: List[Dict[str, Any]]) -> None:
+    labels_lower = " ".join(labels).lower()
+    if "rule" in labels_lower:
+        rules.append(node)
+    elif "action" in labels_lower:
+        actions.append(node)
+    elif "event" in labels_lower:
+        events.append(node)
+    else:
+        dataobjects.append(node)
+
+
+def _neo4j_fetch_via_driver(req: Neo4jPullRequest) -> Optional[Dict[str, List[Dict[str, Any]]]]:
+    graph_database = _load_neo4j_graph_database()
+    if not graph_database:
+        return None
+
+    try:
+        driver = graph_database.driver(req.uri, auth=(req.username, req.password))
+    except Exception as exc:
+        raise HTTPException(400, f"Neo4j连接失败: {str(exc)}") from exc
+
+    rules: List[Dict[str, Any]] = []
+    actions: List[Dict[str, Any]] = []
+    events: List[Dict[str, Any]] = []
+    dataobjects: List[Dict[str, Any]] = []
+    links: List[Dict[str, Any]] = []
+
+    try:
         with driver.session(database=req.database) as session:
-            # Get node count and label stats
-            result = session.run("CALL db.labels() YIELD label RETURN label")
-            labels = [r["label"] for r in result]
-            result = session.run("MATCH (n) RETURN count(n) as cnt")
-            node_count = result.single()["cnt"]
-            result = session.run("MATCH ()-[r]->() RETURN count(r) as cnt")
-            rel_count = result.single()["cnt"]
-            # Get relationship types
-            result = session.run("CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType")
-            rel_types = [r["relationshipType"] for r in result]
+            result = session.run("MATCH (n) RETURN n, labels(n) as labels, elementId(n) as eid")
+            for record in result:
+                node = dict(record["n"])
+                labels = record["labels"]
+                node["_labels"] = labels
+                node["_id"] = record["eid"]
+                _categorize_neo4j_node(node, labels, rules, actions, events, dataobjects)
+
+            result = session.run(
+                "MATCH (a)-[r]->(b) "
+                "RETURN type(r) as relType, properties(r) as props, "
+                "elementId(a) as srcId, elementId(b) as tgtId, "
+                "labels(a) as srcLabels, labels(b) as tgtLabels"
+            )
+            for record in result:
+                link = {
+                    "relationshipType": record["relType"],
+                    "sourceLabels": record["srcLabels"],
+                    "targetLabels": record["tgtLabels"],
+                    "sourceId": record["srcId"],
+                    "targetId": record["tgtId"],
+                }
+                props = record["props"]
+                if props:
+                    link["properties"] = dict(props)
+                links.append(link)
+    except Exception as exc:
+        raise HTTPException(400, f"Neo4j查询失败: {str(exc)}") from exc
+    finally:
         driver.close()
-        return {"status": "ok", "data": {
+
+    return {
+        "rules": rules,
+        "actions": actions,
+        "events": events,
+        "dataobjects": dataobjects,
+        "links": links,
+    }
+
+
+async def _neo4j_fetch_via_http(req: Neo4jPullRequest) -> Dict[str, List[Dict[str, Any]]]:
+    rules: List[Dict[str, Any]] = []
+    actions: List[Dict[str, Any]] = []
+    events: List[Dict[str, Any]] = []
+    dataobjects: List[Dict[str, Any]] = []
+    links: List[Dict[str, Any]] = []
+
+    node_rows = await _neo4j_http_query(
+        req,
+        "MATCH (n) RETURN properties(n) as props, labels(n) as labels, elementId(n) as eid",
+    )
+    for props, labels, element_id in node_rows:
+        node = dict(props or {})
+        node["_labels"] = list(labels or [])
+        node["_id"] = element_id
+        _categorize_neo4j_node(node, node["_labels"], rules, actions, events, dataobjects)
+
+    rel_rows = await _neo4j_http_query(
+        req,
+        "MATCH (a)-[r]->(b) "
+        "RETURN type(r) as relType, properties(r) as props, "
+        "elementId(a) as srcId, elementId(b) as tgtId, "
+        "labels(a) as srcLabels, labels(b) as tgtLabels",
+    )
+    for rel_type, props, src_id, tgt_id, src_labels, tgt_labels in rel_rows:
+        link = {
+            "relationshipType": rel_type,
+            "sourceLabels": list(src_labels or []),
+            "targetLabels": list(tgt_labels or []),
+            "sourceId": src_id,
+            "targetId": tgt_id,
+        }
+        if props:
+            link["properties"] = dict(props)
+        links.append(link)
+
+    return {
+        "rules": rules,
+        "actions": actions,
+        "events": events,
+        "dataobjects": dataobjects,
+        "links": links,
+    }
+
+
+def _neo4j_test_connection_via_driver(req: Neo4jConnectionRequest) -> Optional[Dict[str, Any]]:
+    graph_database = _load_neo4j_graph_database()
+    if not graph_database:
+        return None
+
+    driver = None
+    try:
+        driver = graph_database.driver(req.uri, auth=(req.username, req.password))
+        with driver.session(database=req.database) as session:
+            labels = [r["label"] for r in session.run("CALL db.labels() YIELD label RETURN label ORDER BY label")]
+            node_count = session.run("MATCH (n) RETURN count(n) as cnt").single()["cnt"]
+            rel_count = session.run("MATCH ()-[r]->() RETURN count(r) as cnt").single()["cnt"]
+            rel_types = [
+                r["relationshipType"]
+                for r in session.run(
+                    "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType ORDER BY relationshipType"
+                )
+            ]
+        return {
             "connected": True,
             "nodeCount": node_count,
             "relationshipCount": rel_count,
             "labels": labels,
             "relationshipTypes": rel_types,
-        }}
-    except Exception as e:
-        return {"status": "ok", "data": {"connected": False, "error": str(e)}}
+        }
+    except Exception as exc:
+        return {"connected": False, "error": str(exc)}
+    finally:
+        if driver:
+            driver.close()
+
+
+async def _neo4j_test_connection_via_http(req: Neo4jConnectionRequest) -> Dict[str, Any]:
+    labels = [row[0] for row in await _neo4j_http_query(
+        req, "CALL db.labels() YIELD label RETURN label ORDER BY label"
+    )]
+    node_count_rows = await _neo4j_http_query(req, "MATCH (n) RETURN count(n) as cnt")
+    rel_count_rows = await _neo4j_http_query(req, "MATCH ()-[r]->() RETURN count(r) as cnt")
+    rel_types = [row[0] for row in await _neo4j_http_query(
+        req,
+        "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType ORDER BY relationshipType",
+    )]
+    return {
+        "connected": True,
+        "nodeCount": node_count_rows[0][0] if node_count_rows else 0,
+        "relationshipCount": rel_count_rows[0][0] if rel_count_rows else 0,
+        "labels": labels,
+        "relationshipTypes": rel_types,
+    }
+
+
+@app.post("/import/neo4j/test-connection")
+async def neo4j_test_connection(req: Neo4jConnectionRequest):
+    """Test Neo4j connection and return basic stats."""
+    try:
+        data = _neo4j_test_connection_via_driver(req)
+        if data is None:
+            data = await _neo4j_test_connection_via_http(req)
+        return {"status": "ok", "data": data}
+    except Exception as exc:
+        detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
+        return {"status": "ok", "data": {"connected": False, "error": detail}}
 
 
 @app.post("/import/neo4j/pull")
@@ -2398,71 +2628,14 @@ async def neo4j_pull(req: Neo4jPullRequest):
     - All other nodes                            → dataobjects
     - All relationships                          → links
     """
-    try:
-        from neo4j import GraphDatabase
-    except ImportError:
-        raise HTTPException(500, "neo4j驱动未安装，请运行 pip install neo4j")
-
-    try:
-        driver = GraphDatabase.driver(req.uri, auth=(req.username, req.password))
-    except Exception as e:
-        raise HTTPException(400, f"Neo4j连接失败: {str(e)}")
-
-    rules = []
-    actions = []
-    events = []
-    dataobjects = []
-    links = []
-
-    try:
-        with driver.session(database=req.database) as session:
-            # Pull all nodes
-            result = session.run("MATCH (n) RETURN n, labels(n) as labels, elementId(n) as eid")
-            node_map = {}  # eid -> node data for link resolution
-            for record in result:
-                node = dict(record["n"])
-                lbls = record["labels"]
-                eid = record["eid"]
-                node["_labels"] = lbls
-                node["_id"] = eid
-                node_map[eid] = node
-
-                labels_lower = " ".join(lbls).lower()
-                if "rule" in labels_lower:
-                    rules.append(node)
-                elif "action" in labels_lower:
-                    actions.append(node)
-                elif "event" in labels_lower:
-                    events.append(node)
-                else:
-                    dataobjects.append(node)
-
-            # Pull all relationships
-            result = session.run(
-                "MATCH (a)-[r]->(b) "
-                "RETURN type(r) as relType, properties(r) as props, "
-                "elementId(a) as srcId, elementId(b) as tgtId, "
-                "labels(a) as srcLabels, labels(b) as tgtLabels"
-            )
-            for record in result:
-                src_labels = record["srcLabels"]
-                tgt_labels = record["tgtLabels"]
-                link = {
-                    "relationshipType": record["relType"],
-                    "sourceLabels": src_labels,
-                    "targetLabels": tgt_labels,
-                    "sourceId": record["srcId"],
-                    "targetId": record["tgtId"],
-                }
-                props = record["props"]
-                if props:
-                    link["properties"] = dict(props)
-                links.append(link)
-    except Exception as e:
-        driver.close()
-        raise HTTPException(400, f"Neo4j查询失败: {str(e)}")
-
-    driver.close()
+    graph = _neo4j_fetch_via_driver(req)
+    if graph is None:
+        graph = await _neo4j_fetch_via_http(req)
+    rules = graph["rules"]
+    actions = graph["actions"]
+    events = graph["events"]
+    dataobjects = graph["dataobjects"]
+    links = graph["links"]
 
     # Create snapshot
     snapshot_id = f"snap_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:8]}"
@@ -2531,12 +2704,53 @@ class MinIOPullRequest(BaseModel):
     objects: List[str]  # list of object keys to pull
 
 
+def _normalize_minio_connection(endpoint: str, secure: bool):
+    raw_endpoint = (endpoint or "").strip()
+    if not raw_endpoint:
+        raise HTTPException(400, "MinIO Endpoint不能为空，请填写主机:端口或完整 URL")
+
+    effective_secure = bool(secure)
+    normalized_endpoint = raw_endpoint
+
+    if "://" in raw_endpoint:
+        parsed = urlsplit(raw_endpoint)
+        if parsed.scheme not in {"http", "https"}:
+            raise HTTPException(400, "MinIO Endpoint只支持 http 或 https 协议")
+        if not parsed.netloc:
+            raise HTTPException(400, "MinIO Endpoint格式无效，请填写主机:端口或完整 URL")
+        if parsed.path not in ("", "/") or parsed.query or parsed.fragment:
+            raise HTTPException(400, "MinIO Endpoint 只支持主机和端口，不要包含路径、参数或片段")
+        if parsed.username or parsed.password:
+            raise HTTPException(400, "MinIO Endpoint 不要包含账号信息，请单独填写 Access Key 和 Secret Key")
+        normalized_endpoint = parsed.netloc
+        effective_secure = parsed.scheme == "https"
+
+    normalized_endpoint = normalized_endpoint.rstrip("/")
+    if not normalized_endpoint:
+        raise HTTPException(400, "MinIO Endpoint格式无效，请填写主机:端口或完整 URL")
+    if "/" in normalized_endpoint:
+        raise HTTPException(400, "MinIO Endpoint 只支持主机和端口，不要包含路径")
+
+    return normalized_endpoint, effective_secure
+
+
+def _format_minio_error(exc: Exception) -> str:
+    message = str(exc)
+    if "path in endpoint is not allowed" in message:
+        return "MinIO Endpoint格式不正确，请填写主机:端口，或填写 http(s)://主机:端口；不要包含路径"
+    return message
+
+
 def _get_minio_client(endpoint: str, access_key: str, secret_key: str, secure: bool):
     try:
         from minio import Minio
     except ImportError:
         raise HTTPException(500, "minio SDK未安装，请运行 pip install minio")
-    return Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
+    normalized_endpoint, effective_secure = _normalize_minio_connection(endpoint, secure)
+    try:
+        return Minio(normalized_endpoint, access_key=access_key, secret_key=secret_key, secure=effective_secure)
+    except ValueError as exc:
+        raise HTTPException(400, _format_minio_error(exc))
 
 
 @app.post("/import/minio/test-connection")
@@ -2549,8 +2763,10 @@ async def minio_test_connection(req: MinIOConnectionRequest):
             "connected": True,
             "buckets": [{"name": b.name, "creationDate": str(b.creation_date)} for b in buckets],
         }}
+    except HTTPException as e:
+        return {"status": "ok", "data": {"connected": False, "error": e.detail}}
     except Exception as e:
-        return {"status": "ok", "data": {"connected": False, "error": str(e)}}
+        return {"status": "ok", "data": {"connected": False, "error": _format_minio_error(e)}}
 
 
 @app.post("/import/minio/browse")
@@ -2576,8 +2792,10 @@ async def minio_browse(req: MinIOBrowseRequest):
                 "lastModified": str(obj.last_modified) if obj.last_modified else None,
             })
         return {"status": "ok", "data": {"bucket": req.bucket, "prefix": req.prefix, "objects": items}}
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(400, f"MinIO浏览失败: {str(e)}")
+        raise HTTPException(400, f"MinIO浏览失败: {_format_minio_error(e)}")
 
 
 @app.post("/import/minio/pull")
@@ -2591,8 +2809,10 @@ async def minio_pull(req: MinIOPullRequest):
     """
     try:
         client = _get_minio_client(req.endpoint, req.access_key, req.secret_key, req.secure)
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(400, f"MinIO连接失败: {str(e)}")
+        raise HTTPException(400, f"MinIO连接失败: {_format_minio_error(e)}")
 
     results = {"resumes": 0, "jds": 0, "ontologyFiles": 0, "errors": [], "snapshotId": None}
     ontology_sections = {"rules": [], "dataobjects": [], "actions": [], "events": [], "links": []}
