@@ -352,6 +352,18 @@ export interface RuleCheckFinding {
     suggestion: string;
 }
 
+export interface RuleCheckGroupResult {
+    clientGroup: string;
+    checkResults: Record<string, RuleCheckFinding[]>;
+    summary: {
+        total: number;
+        P0: number;
+        P1: number;
+        P2: number;
+        byStrategy: Record<string, number>;
+    };
+}
+
 export interface RuleCheckReport {
     snapshotId: string;
     checkResults: Record<string, RuleCheckFinding[]>;
@@ -362,6 +374,11 @@ export interface RuleCheckReport {
         P2: number;
         byStrategy: Record<string, number>;
     };
+}
+
+export interface RuleCheckReportByGroup {
+    snapshotId: string;
+    byClientGroup: Record<string, RuleCheckGroupResult>;
 }
 
 export interface BusinessDataDetail {

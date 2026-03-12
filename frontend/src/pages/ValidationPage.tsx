@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Typography, Card, Button, Table, Tag, Space, message, Select, Descriptions,
-    Progress, Collapse, Tooltip, Spin, Badge, Alert, Tabs, Empty, Statistic, Row, Col,
+    Progress, Collapse, Tooltip, Spin, Badge, Alert, Tabs, Empty, Statistic, Row, Col, Segmented,
 } from 'antd';
 import type { TabsProps, TableColumnsType } from 'antd';
 import {
@@ -13,8 +13,12 @@ import {
 import api from '../api';
 import { useValidationStore } from '../store';
 import type {
-    ApiResponse, OntologySnapshot, ValidationReport, ValidationErrorItem, RuleCheckReport, RuleCheckFinding,
+    ApiResponse, OntologySnapshot, ValidationReport, ValidationErrorItem,
+    RuleCheckFinding, RuleCheckGroupResult, RuleCheckReportByGroup,
 } from '../types';
+
+const CLIENT_GROUPS = ['通用', '通用+腾讯', '通用+字节'] as const;
+type ClientGroup = typeof CLIENT_GROUPS[number];
 
 const SEVERITY_COLOR: Record<string, string> = { P0: 'red', P1: 'orange', P2: 'blue' };
 const SEVERITY_LABEL: Record<string, string> = { P0: '阻塞', P1: '重要', P2: '提示' };
@@ -249,18 +253,24 @@ export default function ValidationPage() {
     const [report, setReport] = useState<ValidationReport | null>(null);
     const [loading, setLoading] = useState(false);
     const [runningDeterministic, setRunningDeterministic] = useState(false);
-    const ruleCheckReport = useValidationStore(s => s.ruleCheckReport);
-    const cachedSnapshotId = useValidationStore(s => s.cachedSnapshotId);
-    const setRuleCheckReport = useValidationStore(s => s.setRuleCheckReport);
-    const clearRuleCheck = useValidationStore(s => s.clearRuleCheck);
     const [ruleCheckLoading, setRuleCheckLoading] = useState(false);
+    const [activeClientGroup, setActiveClientGroup] = useState<ClientGroup>('通用');
+
+    // Store hooks
+    const ruleCheckByGroup = useValidationStore(s => s.ruleCheckByGroup);
+    const setGroupResult = useValidationStore(s => s.setGroupResult);
+    const loadAllGroups = useValidationStore(s => s.loadAllGroups);
+
+    // Derive current group result from store
+    const currentGroupResult: RuleCheckGroupResult | null =
+        selectedSnapshotId ? (ruleCheckByGroup[selectedSnapshotId]?.[activeClientGroup] ?? null) : null;
+    const snapshotGroups = selectedSnapshotId ? (ruleCheckByGroup[selectedSnapshotId] ?? {}) : {};
 
     const fetchSnapshots = () => {
         api.get<ApiResponse<OntologySnapshot[]>>('/ontology/snapshots')
             .then(r => {
                 const data = r.data.data || [];
                 setSnapshots(data);
-                // Auto-select first snapshot if none selected
                 if (!selectedSnapshotId && data.length > 0) {
                     setSelectedSnapshotId(data[0].snapshotId);
                 }
@@ -268,7 +278,30 @@ export default function ValidationPage() {
             .catch(() => message.error('加载快照列表失败'));
     };
 
+    // Load existing rule-check results from backend when snapshot changes
+    const loadExistingRuleCheck = async (snapshotId: string) => {
+        // Already have data in store for this snapshot? Skip fetch.
+        if (ruleCheckByGroup[snapshotId] && Object.keys(ruleCheckByGroup[snapshotId]).length > 0) return;
+        try {
+            const { data } = await api.get<ApiResponse<RuleCheckReportByGroup | null>>(
+                `/ontology/snapshots/${snapshotId}/rule-self-check`
+            );
+            if (data.data && data.data.byClientGroup) {
+                loadAllGroups(snapshotId, data.data.byClientGroup);
+            }
+        } catch {
+            // No existing results — that's fine
+        }
+    };
+
     useEffect(() => { fetchSnapshots(); }, []);
+
+    // Auto-load existing rule-check results when snapshot is selected
+    useEffect(() => {
+        if (selectedSnapshotId) {
+            loadExistingRuleCheck(selectedSnapshotId);
+        }
+    }, [selectedSnapshotId]);
 
     const handleValidate = async () => {
         if (!selectedSnapshotId) { message.warning('请先选择快照'); return; }
@@ -316,12 +349,13 @@ export default function ValidationPage() {
         if (!selectedSnapshotId) { message.warning('请先选择快照'); return; }
         setRuleCheckLoading(true);
         try {
-            const { data } = await api.post<ApiResponse<RuleCheckReport>>(
-                `/ontology/snapshots/${selectedSnapshotId}/rule-self-check`, {}
+            const { data } = await api.post<ApiResponse<RuleCheckGroupResult & { snapshotId: string }>>(
+                `/ontology/snapshots/${selectedSnapshotId}/rule-self-check`,
+                { clientGroup: activeClientGroup },
             );
-            setRuleCheckReport(selectedSnapshotId, data.data);
+            setGroupResult(selectedSnapshotId, activeClientGroup, data.data);
             const s = data.data.summary;
-            message.success(`规则自检完成：共 ${s.total} 个发现（P0: ${s.P0}, P1: ${s.P1}, P2: ${s.P2}）`);
+            message.success(`「${activeClientGroup}」规则自检完成：共 ${s.total} 个发现（P0: ${s.P0}, P1: ${s.P1}, P2: ${s.P2}）`);
         } catch (e: any) {
             message.error(e?.response?.data?.detail || '规则自检失败');
         }
@@ -365,6 +399,33 @@ export default function ValidationPage() {
 
     const ruleCheckTabContent = (
         <div>
+            {/* Client group selector */}
+            <div style={{ marginBottom: 16 }}>
+                <Typography.Text strong style={{ marginRight: 12 }}>适用客户分类：</Typography.Text>
+                <Segmented
+                    options={CLIENT_GROUPS.map(g => ({
+                        label: (
+                            <Space size={4}>
+                                <span>{g}</span>
+                                {snapshotGroups[g] && (
+                                    <Badge
+                                        count={snapshotGroups[g].summary.total}
+                                        style={{
+                                            backgroundColor: snapshotGroups[g].summary.P0 > 0 ? '#fb7185'
+                                                : snapshotGroups[g].summary.P1 > 0 ? '#fbbf24' : '#38bdf8',
+                                        }}
+                                        size="small"
+                                    />
+                                )}
+                            </Space>
+                        ),
+                        value: g,
+                    }))}
+                    value={activeClientGroup}
+                    onChange={(v) => setActiveClientGroup(v as ClientGroup)}
+                />
+            </div>
+
             <Space style={{ marginBottom: 16 }}>
                 <Button
                     type="primary"
@@ -374,21 +435,22 @@ export default function ValidationPage() {
                     disabled={!selectedSnapshotId}
                     style={{ background: 'linear-gradient(135deg, #a78bfa, #6366f1)', border: 'none' }}
                 >
-                    执行规则自检
+                    执行规则自检（{activeClientGroup}）
                 </Button>
-                {ruleCheckReport && (
+                {currentGroupResult && (
                     <Space>
-                        <Tag color="red">P0: {ruleCheckReport.summary.P0}</Tag>
-                        <Tag color="orange">P1: {ruleCheckReport.summary.P1}</Tag>
-                        <Tag color="blue">P2: {ruleCheckReport.summary.P2}</Tag>
-                        <Tag>总计: {ruleCheckReport.summary.total}</Tag>
+                        <Tag color="red">P0: {currentGroupResult.summary.P0}</Tag>
+                        <Tag color="orange">P1: {currentGroupResult.summary.P1}</Tag>
+                        <Tag color="blue">P2: {currentGroupResult.summary.P2}</Tag>
+                        <Tag>总计: {currentGroupResult.summary.total}</Tag>
                     </Space>
                 )}
             </Space>
-            {ruleCheckReport ? (
+            {currentGroupResult ? (
                 <Collapse
-                    defaultActiveKey={Object.keys(ruleCheckReport.checkResults).filter(k => (ruleCheckReport.checkResults[k]?.length || 0) > 0)}
-                    items={Object.entries(ruleCheckReport.checkResults).map(([strategy, findings]) => ({
+                    key={activeClientGroup}
+                    defaultActiveKey={Object.keys(currentGroupResult.checkResults).filter(k => (currentGroupResult.checkResults[k]?.length || 0) > 0)}
+                    items={Object.entries(currentGroupResult.checkResults).map(([strategy, findings]) => ({
                         key: strategy,
                         label: (
                             <Space>
@@ -411,7 +473,7 @@ export default function ValidationPage() {
                     }))}
                 />
             ) : (
-                <Alert type="info" showIcon message="点击「执行规则自检」对规则集合进行五维深度分析" />
+                <Alert type="info" showIcon message={`选择适用客户分类并点击「执行规则自检」对「${activeClientGroup}」规则集合进行五维深度分析`} />
             )}
         </div>
     );
@@ -438,13 +500,17 @@ export default function ValidationPage() {
                 });
             }
             // Insert rule self-check tab
+            const groupCount = Object.keys(snapshotGroups).length;
+            const totalGroupFindings = Object.values(snapshotGroups).reduce((sum, g) => sum + g.summary.total, 0);
+            const hasP0 = Object.values(snapshotGroups).some(g => g.summary.P0 > 0);
+            const hasP1 = Object.values(snapshotGroups).some(g => g.summary.P1 > 0);
             items.push({
                 key: 'rule_self_check',
                 label: (
                     <Space size={4}>
                         <AuditOutlined />
                         <span>规则自检</span>
-                        {ruleCheckReport && <Badge count={ruleCheckReport.summary.total} style={{ backgroundColor: ruleCheckReport.summary.P0 > 0 ? '#fb7185' : ruleCheckReport.summary.P1 > 0 ? '#fbbf24' : '#38bdf8' }} size="small" />}
+                        {groupCount > 0 && <Badge count={totalGroupFindings} style={{ backgroundColor: hasP0 ? '#fb7185' : hasP1 ? '#fbbf24' : '#38bdf8' }} size="small" />}
                     </Space>
                 ),
                 children: ruleCheckTabContent,
@@ -504,7 +570,7 @@ export default function ValidationPage() {
                         <Typography.Text strong>选择快照：</Typography.Text>
                         <Select
                             value={selectedSnapshotId}
-                            onChange={v => { setSelectedSnapshotId(v); setReport(null); if (v !== cachedSnapshotId) clearRuleCheck(); }}
+                            onChange={v => { setSelectedSnapshotId(v); setReport(null); }}
                             style={{ minWidth: 400 }}
                             placeholder="选择要校验的本体快照"
                             options={snapshots.map(s => ({

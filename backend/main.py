@@ -4809,6 +4809,14 @@ async def funnel_suggestions(req: FunnelSuggestionsRequest):
 
 class RuleSelfCheckRequest(BaseModel):
     strategies: Optional[List[str]] = None  # subset of the five; None = all
+    clientGroup: Optional[str] = None  # "通用" | "通用+腾讯" | "通用+字节"
+
+VALID_CLIENT_GROUPS = {"通用", "通用+腾讯", "通用+字节"}
+CLIENT_GROUP_FILTERS: Dict[str, set] = {
+    "通用": {"通用"},
+    "通用+腾讯": {"通用", "腾讯"},
+    "通用+字节": {"通用", "字节"},
+}
 
 
 RULE_CHECK_STRATEGIES = ["counter_example", "conflict", "boundary", "omission", "challenge"]
@@ -4934,7 +4942,7 @@ def _deterministic_rule_check(rules: list) -> dict:
 
 @app.post("/ontology/snapshots/{snapshot_id}/rule-self-check")
 async def rule_self_check(snapshot_id: str, req: RuleSelfCheckRequest = None):
-    """Perform inter-rule logic analysis using five strategies."""
+    """Perform inter-rule logic analysis using five strategies for a specific client group."""
     snap = None
     for s in _snapshots:
         if s["snapshotId"] == snapshot_id:
@@ -4943,9 +4951,20 @@ async def rule_self_check(snapshot_id: str, req: RuleSelfCheckRequest = None):
     if not snap:
         raise HTTPException(404, "快照不存在")
 
-    rules = snap.get("rules", [])
-    if not rules:
+    all_rules = snap.get("rules", [])
+    if not all_rules:
         raise HTTPException(400, "该快照不包含任何规则")
+
+    # Determine client group
+    client_group = (req.clientGroup if req and req.clientGroup else None) or "通用"
+    if client_group not in VALID_CLIENT_GROUPS:
+        raise HTTPException(400, f"clientGroup 必须是 {VALID_CLIENT_GROUPS} 之一")
+
+    # Filter rules by client group
+    allowed_clients = CLIENT_GROUP_FILTERS[client_group]
+    rules = [r for r in all_rules if r.get("applicableClient", "通用") in allowed_clients]
+    if not rules:
+        raise HTTPException(400, f"客户组「{client_group}」下无适用规则")
 
     strategies = (req.strategies if req and req.strategies else None) or RULE_CHECK_STRATEGIES
     strategies = [s for s in strategies if s in RULE_CHECK_STRATEGIES]
@@ -5021,17 +5040,43 @@ async def rule_self_check(snapshot_id: str, req: RuleSelfCheckRequest = None):
         "byStrategy": {s: len(items) for s, items in check_results.items()},
     }
 
-    result = {
-        "snapshotId": snapshot_id,
+    group_result = {
+        "clientGroup": client_group,
         "checkResults": check_results,
         "summary": summary,
     }
 
     with _lock:
-        snap["ruleCheckReport"] = result
+        # Persist per-client-group results inside ruleCheckReport.byClientGroup
+        if not snap.get("ruleCheckReport") or not isinstance(snap.get("ruleCheckReport", {}).get("byClientGroup"), dict):
+            snap["ruleCheckReport"] = {"snapshotId": snapshot_id, "byClientGroup": {}}
+        snap["ruleCheckReport"]["byClientGroup"][client_group] = group_result
         _persist_snapshots()
 
+    result = {
+        "snapshotId": snapshot_id,
+        "clientGroup": client_group,
+        "checkResults": check_results,
+        "summary": summary,
+    }
+
     return {"status": "ok", "data": result}
+
+
+@app.get("/ontology/snapshots/{snapshot_id}/rule-self-check")
+async def get_rule_self_check(snapshot_id: str):
+    """Return previously persisted rule-self-check results (all client groups)."""
+    snap = None
+    for s in _snapshots:
+        if s["snapshotId"] == snapshot_id:
+            snap = s
+            break
+    if not snap:
+        raise HTTPException(404, "快照不存在")
+    report = snap.get("ruleCheckReport")
+    if not report or not isinstance(report.get("byClientGroup"), dict):
+        return {"status": "ok", "data": None}
+    return {"status": "ok", "data": report}
 
 
 if __name__ == "__main__":

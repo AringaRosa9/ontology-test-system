@@ -241,13 +241,6 @@ export default function CoverageMatrixPage() {
                         defaultSortOrder: 'descend' as const,
                         render: (c: number) => <Tag color={c > 0 ? 'red' : 'green'}>{c}</Tag>,
                     },
-                    ...(isCross ? [{
-                        title: '平均评分', dataIndex: 'avgScore' as const, width: 90,
-                        sorter: (a: RuleCoverageItem, b: RuleCoverageItem) => (a.avgScore ?? 0) - (b.avgScore ?? 0),
-                        render: (s: number | null) => s != null ? (
-                            <Typography.Text strong style={{ color: scoreColor(s) }}>{s}</Typography.Text>
-                        ) : '—',
-                    }] : []),
                 ]}
                 expandable={{
                     expandedRowRender: (row: RuleCoverageItem) => (
@@ -259,10 +252,6 @@ export default function CoverageMatrixPage() {
                                     title: '判定', dataIndex: 'verdict', width: 80,
                                     render: (v: string) => <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : 'orange'}>{v}</Tag>,
                                 },
-                                ...(isCross ? [{
-                                    title: '评分', dataIndex: 'score' as const, width: 80,
-                                    render: (s: number | undefined) => s != null ? <Typography.Text strong style={{ color: scoreColor(s) }}>{s}</Typography.Text> : '—',
-                                }] : []),
                             ]}
                         />
                     ),
