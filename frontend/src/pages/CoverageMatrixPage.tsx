@@ -291,7 +291,17 @@ export default function CoverageMatrixPage() {
                     }] : []),
                     {
                         title: '触发规则', dataIndex: 'triggeredRuleIds', width: 250,
-                        render: (ids: string[]) => ids?.map(id => <Tag key={id} color="volcano" style={{ marginBottom: 2 }}>{id}</Tag>) || '—',
+                        render: (_: string[], row: CaseCoverageItem) => {
+                            const active = row.triggeredRuleDetails.filter(d => d.ruleStatus !== 'skip');
+                            if (!active.length) return <span style={{ color: '#8b95b0' }}>—</span>;
+                            return <>{active.map(d => (
+                                <Tag key={d.ruleId}
+                                    color={d.ruleStatus === 'pass' ? 'green' : 'red'}
+                                    style={{ marginBottom: 2 }}>
+                                    {d.ruleId}
+                                </Tag>
+                            ))}</>;
+                        },
                     },
                 ]}
                 expandable={{
@@ -321,9 +331,10 @@ export default function CoverageMatrixPage() {
                             {row.triggeredRuleDetails.length > 0 ? (
                                 <Table size="small" pagination={false} rowKey="ruleId"
                                     dataSource={row.triggeredRuleDetails}
+                                    scroll={{ x: 1170 }}
                                     columns={[
                                         {
-                                            title: '规则ID', dataIndex: 'ruleId', width: 100,
+                                            title: '规则ID', dataIndex: 'ruleId', width: 120,
                                             render: (id: string, r: any) => <a onClick={() => showRuleDetail(id, r.ruleName, r.ruleDescription, '', '', '')} style={{ color: '#1890ff' }}>{id}</a>,
                                         },
                                         {
@@ -344,15 +355,15 @@ export default function CoverageMatrixPage() {
                                             },
                                         },
                                         {
-                                            title: '所在步骤', dataIndex: 'stepName', width: 160, ellipsis: true,
+                                            title: '所在步骤', dataIndex: 'stepName', width: 180, ellipsis: true,
                                             render: (v: string) => v ? <Typography.Text type="secondary" style={{ fontSize: 12 }}>{v}</Typography.Text> : '—',
                                         },
-                                        { title: '规则名称', dataIndex: 'ruleName', width: 180 },
-                                        { title: '规则描述', dataIndex: 'ruleDescription',
+                                        { title: '规则名称', dataIndex: 'ruleName', width: 200 },
+                                        { title: '规则描述', dataIndex: 'ruleDescription', width: 280,
                                             render: (v: string) => <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{v || '—'}</div>,
                                         },
                                         {
-                                            title: 'AI思维链', dataIndex: 'aiChainOfThought', width: 320,
+                                            title: 'AI思维链', dataIndex: 'aiChainOfThought', width: 280,
                                             render: (v: string) => (
                                                 <Typography.Paragraph
                                                     ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}

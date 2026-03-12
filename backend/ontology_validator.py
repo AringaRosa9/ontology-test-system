@@ -375,7 +375,40 @@ def check_actions_events(
 
 # ── Check 4: Links ───────────────────────────────────────────────────────────
 
-_VALID_NODE_TYPES = {"ObjectDefinition", "RuleDefinition", "PropertyDefinition"}
+# Legacy Cypher-format valid node types
+_VALID_NODE_TYPES_LEGACY = {"ObjectDefinition", "RuleDefinition", "PropertyDefinition"}
+# New dict-format valid node labels
+_VALID_NODE_LABELS_NEW = {"Action", "Event", "ObjectType", "Rule", "FieldDef", "System"}
+
+
+def _extract_link_nodes(link: Dict) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str], Optional[str]]:
+    """
+    Detect link schema format and extract (n1_type, n1_uid, n2_type, n2_uid, rel_type).
+
+    New format: source/target are dicts, relationship is a dict.
+    Legacy format: node_1/node_2 are Cypher strings, relationship is a string.
+    """
+    src = link.get("source")
+    tgt = link.get("target")
+    rel = link.get("relationship")
+
+    if isinstance(src, dict) and isinstance(tgt, dict):
+        # New dict-based schema
+        n1_type = src.get("label")
+        n1_uid = src.get("uid")
+        n2_type = tgt.get("label")
+        n2_uid = tgt.get("uid")
+        rel_type = rel.get("type") if isinstance(rel, dict) else (rel if isinstance(rel, str) else None)
+        return n1_type, n1_uid, n2_type, n2_uid, rel_type
+    else:
+        # Legacy Cypher string schema
+        node_1_str = link.get("node_1", "") or ""
+        node_2_str = link.get("node_2", "") or ""
+        rel_str = link.get("relationship", "") or ""
+        n1_type, n1_uid = _parse_link_node(node_1_str)
+        n2_type, n2_uid = _parse_link_node(node_2_str)
+        rel_type = _parse_relationship(rel_str) if isinstance(rel_str, str) else None
+        return n1_type, n1_uid, n2_type, n2_uid, rel_type
 
 
 def check_links(
@@ -387,15 +420,15 @@ def check_links(
     seen_link_keys: Set[str] = set()
 
     for idx, link in enumerate(links):
-        link_id = f"link_{idx}"
+        link_id = link.get("link_id") or f"link_{idx}"
 
-        node_1_str = link.get("node_1", "")
-        node_2_str = link.get("node_2", "")
-        rel_str = link.get("relationship", "")
+        n1_type, n1_uid, n2_type, n2_uid, rel_type = _extract_link_nodes(link)
 
-        n1_type, n1_uid = _parse_link_node(node_1_str)
-        n2_type, n2_uid = _parse_link_node(node_2_str)
-        rel_type = _parse_relationship(rel_str)
+        # Determine which valid-type set applies based on schema format
+        is_new_schema = isinstance(link.get("source"), dict)
+        valid_types = _VALID_NODE_LABELS_NEW if is_new_schema else _VALID_NODE_TYPES_LEGACY
+        obj_label = "ObjectType" if is_new_schema else "ObjectDefinition"
+        rule_label = "Rule" if is_new_schema else "RuleDefinition"
 
         # 4a. Node type must be parseable
         if n1_type is None:
@@ -404,8 +437,8 @@ def check_links(
                 severity=Severity.P1,
                 entityType="links",
                 entityId=link_id,
-                message=f"Link #{idx} 的 node_1 无法解析节点类型",
-                evidence=node_1_str[:100],
+                message=f"Link #{idx} 的 source 无法解析节点类型",
+                evidence=str(link.get("source") or link.get("node_1", ""))[:100],
             ))
             continue
         if n2_type is None:
@@ -414,68 +447,67 @@ def check_links(
                 severity=Severity.P1,
                 entityType="links",
                 entityId=link_id,
-                message=f"Link #{idx} 的 node_2 无法解析节点类型",
-                evidence=node_2_str[:100],
+                message=f"Link #{idx} 的 target 无法解析节点类型",
+                evidence=str(link.get("target") or link.get("node_2", ""))[:100],
             ))
             continue
 
-        # 4b. Node type legality
-        if n1_type not in _VALID_NODE_TYPES:
-            errors.append(ValidationError(
-                code="LINK-002",
-                severity=Severity.P1,
-                entityType="links",
-                entityId=link_id,
-                message=f"Link #{idx} 的 node_1 类型 '{n1_type}' 不是合法节点类型",
-                evidence=f"合法类型: {_VALID_NODE_TYPES}",
-            ))
-        if n2_type not in _VALID_NODE_TYPES:
-            errors.append(ValidationError(
-                code="LINK-002",
-                severity=Severity.P1,
-                entityType="links",
-                entityId=link_id,
-                message=f"Link #{idx} 的 node_2 类型 '{n2_type}' 不是合法节点类型",
-                evidence=f"合法类型: {_VALID_NODE_TYPES}",
-            ))
+        # 4b. Node type legality (only enforce for legacy schema; new schema labels are open)
+        if not is_new_schema:
+            if n1_type not in valid_types:
+                errors.append(ValidationError(
+                    code="LINK-002",
+                    severity=Severity.P1,
+                    entityType="links",
+                    entityId=link_id,
+                    message=f"Link #{idx} 的 node_1 类型 '{n1_type}' 不是合法节点类型",
+                    evidence=f"合法类型: {valid_types}",
+                ))
+            if n2_type not in valid_types:
+                errors.append(ValidationError(
+                    code="LINK-002",
+                    severity=Severity.P1,
+                    entityType="links",
+                    entityId=link_id,
+                    message=f"Link #{idx} 的 node_2 类型 '{n2_type}' 不是合法节点类型",
+                    evidence=f"合法类型: {valid_types}",
+                ))
 
-        # 4c. ObjectDefinition uid must reference existing object
-        if n1_type == "ObjectDefinition" and n1_uid and all_object_ids and n1_uid not in all_object_ids:
+        # 4c. ObjectType/ObjectDefinition uid must reference existing object
+        if n1_type == obj_label and n1_uid and all_object_ids and n1_uid not in all_object_ids:
             errors.append(ValidationError(
                 code="LINK-003",
                 severity=Severity.P1,
                 entityType="links",
                 entityId=link_id,
-                message=f"Link #{idx} 的 node_1 ObjectDefinition uid '{n1_uid}' 不在已知对象中",
+                message=f"Link #{idx} 的 source {obj_label} uid '{n1_uid}' 不在已知对象中",
             ))
-        if n2_type == "ObjectDefinition" and n2_uid and all_object_ids and n2_uid not in all_object_ids:
+        if n2_type == obj_label and n2_uid and all_object_ids and n2_uid not in all_object_ids:
             errors.append(ValidationError(
                 code="LINK-003",
                 severity=Severity.P1,
                 entityType="links",
                 entityId=link_id,
-                message=f"Link #{idx} 的 node_2 ObjectDefinition uid '{n2_uid}' 不在已知对象中",
+                message=f"Link #{idx} 的 target {obj_label} uid '{n2_uid}' 不在已知对象中",
             ))
 
-        # 4d. RuleDefinition uid must reference existing rule
-        if n1_type == "RuleDefinition" and n1_uid and all_rule_ids:
-            if n1_uid not in all_rule_ids:
-                errors.append(ValidationError(
-                    code="LINK-004",
-                    severity=Severity.P1,
-                    entityType="links",
-                    entityId=link_id,
-                    message=f"Link #{idx} 的 node_1 RuleDefinition uid '{n1_uid}' 不在已知规则中",
-                ))
-        if n2_type == "RuleDefinition" and n2_uid and all_rule_ids:
-            if n2_uid not in all_rule_ids:
-                errors.append(ValidationError(
-                    code="LINK-004",
-                    severity=Severity.P1,
-                    entityType="links",
-                    entityId=link_id,
-                    message=f"Link #{idx} 的 node_2 RuleDefinition uid '{n2_uid}' 不在已知规则中",
-                ))
+        # 4d. Rule/RuleDefinition uid must reference existing rule
+        if n1_type == rule_label and n1_uid and all_rule_ids and n1_uid not in all_rule_ids:
+            errors.append(ValidationError(
+                code="LINK-004",
+                severity=Severity.P1,
+                entityType="links",
+                entityId=link_id,
+                message=f"Link #{idx} 的 source {rule_label} uid '{n1_uid}' 不在已知规则中",
+            ))
+        if n2_type == rule_label and n2_uid and all_rule_ids and n2_uid not in all_rule_ids:
+            errors.append(ValidationError(
+                code="LINK-004",
+                severity=Severity.P1,
+                entityType="links",
+                entityId=link_id,
+                message=f"Link #{idx} 的 target {rule_label} uid '{n2_uid}' 不在已知规则中",
+            ))
 
         # 4e. Relationship type must be parseable
         if not rel_type:
@@ -485,36 +517,38 @@ def check_links(
                 entityType="links",
                 entityId=link_id,
                 message=f"Link #{idx} 的 relationship 无法解析类型",
-                evidence=rel_str[:100],
+                evidence=str(link.get("relationship", ""))[:100],
             ))
 
-        # 4f. INVOLVES links: node_1 should be RuleDefinition
-        if rel_type == "INVOLVES" and n1_type != "RuleDefinition":
+        # 4f. INVOLVES links: source should be Rule/RuleDefinition
+        if rel_type == "INVOLVES" and n1_type != rule_label:
             errors.append(ValidationError(
                 code="LINK-006",
                 severity=Severity.P2,
                 entityType="links",
                 entityId=link_id,
-                message=f"Link #{idx} 的 INVOLVES 关系的 node_1 应为 RuleDefinition，实际为 '{n1_type}'",
+                message=f"Link #{idx} 的 INVOLVES 关系的 source 应为 {rule_label}，实际为 '{n1_type}'",
             ))
 
-        # 4g. HAS_PROPERTY links: node_1 should be ObjectDefinition, node_2 should be PropertyDefinition
-        if rel_type == "HAS_PROPERTY":
-            if n1_type != "ObjectDefinition":
+        # 4g. HAS_PROPERTY/HAS_FIELD links: source should be ObjectType, target should be FieldDef/PropertyDefinition
+        prop_rel = "HAS_FIELD" if is_new_schema else "HAS_PROPERTY"
+        prop_target = "FieldDef" if is_new_schema else "PropertyDefinition"
+        if rel_type == prop_rel:
+            if n1_type != obj_label:
                 errors.append(ValidationError(
                     code="LINK-007",
                     severity=Severity.P2,
                     entityType="links",
                     entityId=link_id,
-                    message=f"Link #{idx} 的 HAS_PROPERTY 关系的 node_1 应为 ObjectDefinition，实际为 '{n1_type}'",
+                    message=f"Link #{idx} 的 {prop_rel} 关系的 source 应为 {obj_label}，实际为 '{n1_type}'",
                 ))
-            if n2_type != "PropertyDefinition":
+            if n2_type != prop_target:
                 errors.append(ValidationError(
                     code="LINK-007",
                     severity=Severity.P2,
                     entityType="links",
                     entityId=link_id,
-                    message=f"Link #{idx} 的 HAS_PROPERTY 关系的 node_2 应为 PropertyDefinition，实际为 '{n2_type}'",
+                    message=f"Link #{idx} 的 {prop_rel} 关系的 target 应为 {prop_target}，实际为 '{n2_type}'",
                 ))
 
         # 4h. Duplicate link detection
