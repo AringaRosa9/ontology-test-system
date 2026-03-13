@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Typography, Card, Button, Table, Tag, Space, message, Select, Descriptions,
-    Progress, Collapse, Tooltip, Spin, Badge, Alert, Tabs, Empty, Statistic, Row, Col, Segmented,
+    Collapse, Tooltip, Spin, Badge, Alert, Tabs, Empty, Statistic, Row, Col, Segmented,
 } from 'antd';
 import type { TabsProps, TableColumnsType } from 'antd';
 import {

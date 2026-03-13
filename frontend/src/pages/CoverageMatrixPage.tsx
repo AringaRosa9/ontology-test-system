@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Typography, Card, Select, Table, Tag, Space, message, Tabs, Row, Col,
-    Statistic, Alert, Descriptions, Progress, Button, Slider, Checkbox, Modal,
+    Statistic, Alert, Descriptions, Progress, Button, Slider, Modal,
 } from 'antd';
 import type { TabsProps } from 'antd';
 import {
@@ -21,8 +21,23 @@ const FUNNEL_LABEL: Record<string, string> = {
     screening: '初筛', interview: '面试', offer: '录用', unknown: '未知',
 };
 
+const VERDICT_META: Record<string, { color: string; label: string }> = {
+    PASS: { color: 'green', label: 'PASS' },
+    FAIL: { color: 'red', label: 'FAIL' },
+    WARNING: { color: 'orange', label: 'WARNING' },
+    ERROR: { color: 'magenta', label: 'ERROR' },
+    MATCHED: { color: 'green', label: 'MATCHED' },
+    LOW_MATCH: { color: 'orange', label: 'LOW_MATCH' },
+    BLOCKED: { color: 'red', label: 'BLOCKED' },
+    PENDING_REVIEW: { color: 'gold', label: 'PENDING_REVIEW' },
+};
+
 function scoreColor(s: number) {
     return s >= 80 ? '#4ade80' : s >= 60 ? '#fbbf24' : '#fb7185';
+}
+
+function verdictMeta(verdict: string) {
+    return VERDICT_META[verdict] || { color: 'default', label: verdict || '—' };
 }
 
 /* ── Rule Detail Modal (shared) ────────────────────────────────────────────── */
@@ -250,7 +265,10 @@ export default function CoverageMatrixPage() {
                                 { title: '用例', dataIndex: 'title', ellipsis: true },
                                 {
                                     title: '判定', dataIndex: 'verdict', width: 80,
-                                    render: (v: string) => <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : 'orange'}>{v}</Tag>,
+                                    render: (v: string) => {
+                                        const meta = verdictMeta(v);
+                                        return <Tag color={meta.color}>{meta.label}</Tag>;
+                                    },
                                 },
                             ]}
                         />
@@ -264,22 +282,27 @@ export default function CoverageMatrixPage() {
             </Typography.Text>
             <Table
                 rowKey="caseId" size="small" loading={loading}
+                tableLayout="fixed"
+                scroll={{ x: isCross ? 1120 : 920 }}
                 pagination={{ pageSize: 10 }}
                 dataSource={matrixData?.caseCoverage || []}
                 columns={[
-                    { title: '用例标题', dataIndex: 'title', ellipsis: true },
-                    { title: '类别', dataIndex: 'category', width: 100, render: (c: string) => <Tag>{c}</Tag> },
+                    { title: '用例标题', dataIndex: 'title', width: 400, ellipsis: true },
+                    { title: '类别', dataIndex: 'category', width: 120, render: (c: string) => <Tag>{c}</Tag> },
                     {
-                        title: '判定', dataIndex: 'verdict', width: 80,
-                        render: (v: string) => <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : v === 'ERROR' ? 'magenta' : 'orange'}>{v}</Tag>,
+                        title: '判定', dataIndex: 'verdict', width: 170,
+                        render: (v: string) => {
+                            const meta = verdictMeta(v);
+                            return <Tag color={meta.color} style={{ minWidth: 118, textAlign: 'center' }}>{meta.label}</Tag>;
+                        },
                     },
                     ...(isCross ? [{
-                        title: '评分', dataIndex: 'score' as const, width: 80,
+                        title: '匹配分', dataIndex: 'score' as const, width: 96,
                         sorter: (a: CaseCoverageItem, b: CaseCoverageItem) => (a.score ?? 0) - (b.score ?? 0),
                         render: (s: number | undefined) => s != null ? <Typography.Text strong style={{ color: scoreColor(s) }}>{s}</Typography.Text> : '—',
                     }] : []),
                     {
-                        title: '触发规则', dataIndex: 'triggeredRuleIds', width: 250,
+                        title: '触发规则', dataIndex: 'triggeredRuleIds', width: 380,
                         render: (_: string[], row: CaseCoverageItem) => {
                             const active = row.triggeredRuleDetails.filter(d => d.ruleStatus !== 'skip');
                             if (!active.length) return <span style={{ color: '#8b95b0' }}>—</span>;
@@ -390,12 +413,12 @@ export default function CoverageMatrixPage() {
                         </Col>
                         {isCross && summary.avgScoreAll != null && (
                             <Col span={6}>
-                                <Statistic title="全部平均评分" value={summary.avgScoreAll} valueStyle={{ color: scoreColor(summary.avgScoreAll) }} />
+                                <Statistic title="全部平均匹配分" value={summary.avgScoreAll} valueStyle={{ color: scoreColor(summary.avgScoreAll) }} />
                             </Col>
                         )}
                         {isCross && summary.avgScoreBlocked != null && (
                             <Col span={6}>
-                                <Statistic title="被阻拦平均评分" value={summary.avgScoreBlocked} valueStyle={{ color: '#fb7185' }} />
+                                <Statistic title="被阻拦平均匹配分" value={summary.avgScoreBlocked} valueStyle={{ color: '#fb7185' }} />
                             </Col>
                         )}
                     </Row>
@@ -663,7 +686,9 @@ export default function CoverageMatrixPage() {
                                 const isCross = r.executionMode.startsWith('cross_test:');
                                 const prefix = isCross ? '[交叉测试] ' : '';
                                 return {
-                                    label: `${prefix}${r.runId} | ${r.totalCases} 用例 | ${r.passedCases}通过/${r.failedCases}失败 | ${(r.coverageRate * 100).toFixed(0)}%`,
+                                    label: isCross
+                                        ? `${prefix}${r.runId} | ${r.totalCases} 用例 | ${r.passedCases} MATCHED / ${r.warningCases} PENDING / ${r.failedCases} 非通过`
+                                        : `${prefix}${r.runId} | ${r.totalCases} 用例 | ${r.passedCases}通过/${r.failedCases}失败 | ${(r.coverageRate * 100).toFixed(0)}%`,
                                     value: r.runId,
                                 };
                             })}
@@ -672,10 +697,26 @@ export default function CoverageMatrixPage() {
                     {selectedRun && (
                         <Row gutter={16}>
                             <Col span={6}><Statistic title="总用例数" value={selectedRun.totalCases} /></Col>
-                            <Col span={6}><Statistic title="通过" value={selectedRun.passedCases} valueStyle={{ color: '#4ade80' }} prefix={<CheckCircleOutlined />} /></Col>
-                            <Col span={6}><Statistic title="失败" value={selectedRun.failedCases} valueStyle={{ color: '#fb7185' }} prefix={<CloseCircleOutlined />} /></Col>
                             <Col span={6}>
-                                <Typography.Text type="secondary" style={{ fontSize: 12 }}>通过率</Typography.Text>
+                                <Statistic
+                                    title={selectedRun.executionMode.startsWith('cross_test:') ? 'MATCHED' : '通过'}
+                                    value={selectedRun.passedCases}
+                                    valueStyle={{ color: '#4ade80' }}
+                                    prefix={<CheckCircleOutlined />}
+                                />
+                            </Col>
+                            <Col span={6}>
+                                <Statistic
+                                    title={selectedRun.executionMode.startsWith('cross_test:') ? 'PENDING' : '失败'}
+                                    value={selectedRun.executionMode.startsWith('cross_test:') ? selectedRun.warningCases : selectedRun.failedCases}
+                                    valueStyle={{ color: selectedRun.executionMode.startsWith('cross_test:') ? '#fbbf24' : '#fb7185' }}
+                                    prefix={selectedRun.executionMode.startsWith('cross_test:') ? <WarningOutlined /> : <CloseCircleOutlined />}
+                                />
+                            </Col>
+                            <Col span={6}>
+                                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                                    {selectedRun.executionMode.startsWith('cross_test:') ? 'MATCHED率' : '通过率'}
+                                </Typography.Text>
                                 <Progress percent={Math.round(selectedRun.coverageRate * 100)} strokeColor={selectedRun.coverageRate >= 0.7 ? '#4ade80' : '#fbbf24'} />
                             </Col>
                         </Row>

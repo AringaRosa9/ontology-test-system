@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { RuleCheckReport, RuleCheckReportByGroup, RuleCheckGroupResult, CoverageMatrixData, FunnelSuggestionItem } from './types';
+import type { RuleCheckReport, RuleCheckGroupResult, CoverageMatrixData, FunnelSuggestionItem } from './types';
 
 /* ── Validation Page Store ─────────────────────────────────────────────────── */
 

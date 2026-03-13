@@ -465,5 +465,137 @@
     },
     "generatedAt": "2026-03-11T11:59:41.425712+00:00",
     "applicableClient": "腾讯"
+  },
+  {
+    "itemId": "sim_c415d17a",
+    "type": "resume",
+    "subType": "normal",
+    "filename": "simulated_normal_828c.json",
+    "generatedData": {
+      "name": "王丽",
+      "phone": "13812345678",
+      "email": "wangli.dev@example.com",
+      "education": [
+        {
+          "school": "北京工业大学",
+          "degree": "本科",
+          "major": "计算机科学与技术",
+          "graduationYear": 2020
+        }
+      ],
+      "experience": [
+        {
+          "company": "某知名互联网公司",
+          "title": "后端开发工程师",
+          "startDate": "2020-07-01",
+          "endDate": "2024-03-31",
+          "description": "负责核心业务系统的后端开发与维护，使用Java、Spring Boot框架。参与高并发订单处理系统的设计与实现，优化数据库查询性能，将响应时间缩短20%。与前端团队紧密协作，完成多个新功能模块的接口设计与开发。熟练使用Git进行代码版本管理，参与团队敏捷开发流程。"
+        }
+      ],
+      "skills": [
+        "Java",
+        "Spring Boot",
+        "MySQL",
+        "Redis",
+        "Kafka",
+        "Git",
+        "RESTful API",
+        "微服务架构",
+        "Docker"
+      ],
+      "summary": "3年后端开发经验，精通Java和Spring Boot，具备独立完成模块设计与开发的能力，熟悉高并发系统优化，致力于提供高性能、高可用的解决方案。",
+      "expectedSalary": "12000-15000元/月"
+    },
+    "generatedAt": "2026-03-13T04:58:35.724646+00:00"
+  },
+  {
+    "itemId": "sim_f73ede57",
+    "type": "resume",
+    "subType": "normal",
+    "filename": "simulated_normal_33ce.json",
+    "generatedData": {
+      "name": "张强",
+      "phone": "13987654321",
+      "email": "zhangqiang.data@example.com",
+      "education": [
+        {
+          "school": "武汉工程大学",
+          "degree": "本科",
+          "major": "统计学",
+          "graduationYear": 2018
+        }
+      ],
+      "experience": [
+        {
+          "company": "某大型电商平台",
+          "title": "高级数据分析师",
+          "startDate": "2020-08-01",
+          "endDate": "2024-03-31",
+          "description": "负责用户行为数据分析，构建用户画像，为产品运营提供数据支持。使用SQL、Python进行数据提取、清洗与分析，完成多项专题报告。主导A/B测试设计与结果评估，通过数据驱动优化产品功能，提升用户转化率15%。利用Tableau、Power BI制作数据可视化报表，定期向管理层汇报业务洞察。"
+        },
+        {
+          "company": "某金融科技公司",
+          "title": "数据分析师",
+          "startDate": "2018-07-01",
+          "endDate": "2020-07-31",
+          "description": "参与风险控制模型的数据预处理与特征工程。负责日常数据报表生成与异常监控。"
+        }
+      ],
+      "skills": [
+        "Python (Pandas, NumPy, Scikit-learn)",
+        "SQL",
+        "Tableau",
+        "Power BI",
+        "Excel",
+        "数据建模",
+        "机器学习基础",
+        "A/B测试",
+        "统计分析"
+      ],
+      "summary": "5年数据分析经验，擅长用户行为分析、业务增长策略制定，精通SQL和Python，熟练使用主流数据可视化工具，具备独立解决复杂数据问题的能力。",
+      "expectedSalary": "18000-22000元/月"
+    },
+    "generatedAt": "2026-03-13T04:58:35.724692+00:00"
+  },
+  {
+    "itemId": "sim_110b5fa5",
+    "type": "resume",
+    "subType": "normal",
+    "filename": "simulated_normal_48c7.json",
+    "generatedData": {
+      "name": "李明",
+      "phone": "13700001111",
+      "email": "liming.pm@example.com",
+      "education": [
+        {
+          "school": "上海交通大学",
+          "degree": "硕士",
+          "major": "软件工程",
+          "graduationYear": 2022
+        }
+      ],
+      "experience": [
+        {
+          "company": "某领先科技公司",
+          "title": "产品经理",
+          "startDate": "2022-07-01",
+          "endDate": "2024-03-31",
+          "description": "负责企业级SaaS产品的需求调研、竞品分析和产品规划。撰写产品需求文档（PRD），绘制原型图（Axure/Sketch），与研发、设计团队紧密协作。主导产品功能迭代，跟踪上线效果，通过数据分析持续优化用户体验。与客户沟通，收集反馈，将用户需求转化为可落地的产品方案。"
+        }
+      ],
+      "skills": [
+        "产品规划",
+        "需求分析",
+        "原型设计 (Axure, Sketch)",
+        "用户研究",
+        "市场分析",
+        "SQL",
+        "项目管理",
+        "敏捷开发"
+      ],
+      "summary": "2年产品经理经验，拥有985/211硕士背景，熟悉产品全生命周期管理，擅长将复杂业务需求转化为清晰的产品方案，具备优秀的沟通协调能力。",
+      "expectedSalary": null
+    },
+    "generatedAt": "2026-03-13T04:58:35.724719+00:00"
   }
 ]

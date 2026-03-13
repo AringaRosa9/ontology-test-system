@@ -5,6 +5,21 @@ import api from '../api';
 import type { ApiResponse, TestRun, FailedNode, StepTraceItem } from '../types';
 import StepTraceModal from '../components/StepTraceModal';
 
+const VERDICT_META: Record<string, { color: string; label: string }> = {
+    PASS: { color: 'green', label: 'PASS' },
+    FAIL: { color: 'red', label: 'FAIL' },
+    WARNING: { color: 'orange', label: 'WARNING' },
+    ERROR: { color: 'magenta', label: 'ERROR' },
+    MATCHED: { color: 'green', label: 'MATCHED' },
+    LOW_MATCH: { color: 'orange', label: 'LOW_MATCH' },
+    BLOCKED: { color: 'red', label: 'BLOCKED' },
+    PENDING_REVIEW: { color: 'gold', label: 'PENDING_REVIEW' },
+};
+
+function verdictMeta(verdict: string) {
+    return VERDICT_META[verdict] || { color: 'default', label: verdict || '—' };
+}
+
 function FailedNodePanel({ node }: { node: FailedNode }) {
     const entities = (node.relatedEntities || '').split('\n').filter((e: string) => e.trim());
 
@@ -158,9 +173,19 @@ export default function HistoryPage() {
                             },
                         },
                         { title: '总用例', dataIndex: 'totalCases', width: 80 },
-                        { title: '通过', dataIndex: 'passedCases', width: 70, render: (c: number) => <Tag color="green">{c}</Tag> },
-                        { title: '失败', dataIndex: 'failedCases', width: 70, render: (c: number) => <Tag color={c ? 'red' : 'green'}>{c}</Tag> },
-                        { title: '通过率', dataIndex: 'coverageRate', width: 90, render: (r: number) => `${(r * 100).toFixed(0)}%` },
+                        {
+                            title: 'MATCHED/通过',
+                            dataIndex: 'passedCases',
+                            width: 110,
+                            render: (c: number) => <Tag color="green">{c}</Tag>,
+                        },
+                        {
+                            title: '非通过/失败',
+                            dataIndex: 'failedCases',
+                            width: 110,
+                            render: (c: number) => <Tag color={c ? 'red' : 'green'}>{c}</Tag>,
+                        },
+                        { title: 'MATCHED率/通过率', dataIndex: 'coverageRate', width: 130, render: (r: number) => `${(r * 100).toFixed(0)}%` },
                         { title: '时间', dataIndex: 'executedAt', width: 170, render: (t: string) => new Date(t).toLocaleString('zh-CN') },
                         {
                             title: '操作', width: 140, render: (_: any, row: TestRun) => (
@@ -181,8 +206,8 @@ export default function HistoryPage() {
                     <Descriptions bordered size="small" column={4} style={{ marginBottom: 16 }}>
                         <Descriptions.Item label="快照">{detail.snapshotId}</Descriptions.Item>
                         <Descriptions.Item label="总用例">{detail.totalCases}</Descriptions.Item>
-                        <Descriptions.Item label="通过">{detail.passedCases}</Descriptions.Item>
-                        <Descriptions.Item label="失败">{detail.failedCases}</Descriptions.Item>
+                        <Descriptions.Item label={detail.executionMode.startsWith('cross_test:') ? 'MATCHED' : '通过'}>{detail.passedCases}</Descriptions.Item>
+                        <Descriptions.Item label={detail.executionMode.startsWith('cross_test:') ? '非通过' : '失败'}>{detail.failedCases}</Descriptions.Item>
                     </Descriptions>
                     <Table
                         rowKey="recordId"
@@ -191,9 +216,17 @@ export default function HistoryPage() {
                         dataSource={detail.records || []}
                         columns={[
                             { title: '用例 ID', dataIndex: 'caseId', width: 200, ellipsis: true },
-                            { title: '裁定', dataIndex: 'verdict', width: 90, render: (v: string) => <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : 'orange'}>{v}</Tag> },
+                            {
+                                title: '裁定',
+                                dataIndex: 'verdict',
+                                width: 130,
+                                render: (v: string) => {
+                                    const meta = verdictMeta(v);
+                                    return <Tag color={meta.color}>{meta.label}</Tag>;
+                                },
+                            },
                             ...(detail.executionMode.startsWith('cross_test') ? [{
-                                title: '评分', dataIndex: 'score', width: 80, sorter: (a: any, b: any) => (a.score ?? 0) - (b.score ?? 0),
+                                title: '匹配分', dataIndex: 'score', width: 80, sorter: (a: any, b: any) => (a.score ?? 0) - (b.score ?? 0),
                                 render: (s: number | undefined) => s != null ? (
                                     <span style={{ color: s >= 80 ? '#4ade80' : s >= 60 ? '#fbbf24' : '#fb7185', fontWeight: 600 }}>{s}</span>
                                 ) : '—',

@@ -23,6 +23,21 @@ const ACTION_LABELS: Record<string, string> = {
     analyzeRequirement: '需求分析',
 };
 
+const VERDICT_META: Record<string, { color: string; label: string }> = {
+    PASS: { color: 'green', label: 'PASS' },
+    FAIL: { color: 'red', label: 'FAIL' },
+    WARNING: { color: 'orange', label: 'WARNING' },
+    ERROR: { color: 'magenta', label: 'ERROR' },
+    MATCHED: { color: 'green', label: 'MATCHED' },
+    LOW_MATCH: { color: 'orange', label: 'LOW_MATCH' },
+    BLOCKED: { color: 'red', label: 'BLOCKED' },
+    PENDING_REVIEW: { color: 'gold', label: 'PENDING_REVIEW' },
+};
+
+function verdictMeta(verdict: string) {
+    return VERDICT_META[verdict] || { color: 'default', label: verdict || '—' };
+}
+
 /* ── FailedNodePanel: display failure details with Action/Step location ── */
 function FailedNodePanel({ node, reasoning }: { node: FailedNode; reasoning?: string }) {
     const entities = (node.relatedEntities || '').split('\n').filter((e: string) => e.trim());
@@ -179,10 +194,12 @@ export default function CrossTestPage() {
             const { data } = await api.post<ApiResponse<CrossTestResult>>(endpoint, payload);
             setResult(data.data);
             const results = data.data.results || [];
-            const passed = results.filter(r => r.verdict === 'PASS').length;
-            const failed = results.filter(r => r.verdict === 'FAIL').length;
+            const matched = results.filter(r => r.verdict === 'MATCHED').length;
+            const pending = results.filter(r => r.verdict === 'PENDING_REVIEW').length;
+            const blocked = results.filter(r => r.verdict === 'BLOCKED').length;
+            const lowMatch = results.filter(r => r.verdict === 'LOW_MATCH').length;
             const errs = results.filter(r => r.verdict === 'ERROR').length;
-            let msg = `交叉测试完成：${passed} 通过 / ${failed} 失败`;
+            let msg = `交叉测试完成：${matched} MATCHED / ${pending} PENDING / ${blocked} BLOCKED / ${lowMatch} LOW_MATCH`;
             if (errs > 0) msg += ` / ${errs} 错误`;
             message.success(msg);
         } catch (e: any) {
@@ -314,9 +331,10 @@ export default function CrossTestPage() {
     ];
 
     const resultRows = (result?.results || []).slice().sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-    const passed = resultRows.filter(r => r.verdict === 'PASS').length;
-    const failed = resultRows.filter(r => r.verdict === 'FAIL').length;
-    const warnings = resultRows.filter(r => r.verdict === 'WARNING').length;
+    const matched = resultRows.filter(r => r.verdict === 'MATCHED').length;
+    const pending = resultRows.filter(r => r.verdict === 'PENDING_REVIEW').length;
+    const blocked = resultRows.filter(r => r.verdict === 'BLOCKED').length;
+    const lowMatch = resultRows.filter(r => r.verdict === 'LOW_MATCH').length;
     const errors = resultRows.filter(r => r.verdict === 'ERROR').length;
 
     return (
@@ -376,9 +394,9 @@ export default function CrossTestPage() {
                     )}
                     <Row gutter={16} style={{ marginBottom: 16 }}>
                         <Col span={6}><Statistic title="总计" value={resultRows.length} styles={{ content: { color: '#9ba6c7' } }} /></Col>
-                        <Col span={6}><Statistic title="通过" value={passed} styles={{ content: { color: '#4ade80' } }} prefix={<CheckCircleOutlined />} /></Col>
-                        <Col span={6}><Statistic title="失败" value={failed} styles={{ content: { color: '#fb7185' } }} prefix={<CloseCircleOutlined />} /></Col>
-                        <Col span={6}><Statistic title="警告" value={warnings} styles={{ content: { color: '#fbbf24' } }} prefix={<WarningOutlined />} /></Col>
+                        <Col span={6}><Statistic title="MATCHED" value={matched} styles={{ content: { color: '#4ade80' } }} prefix={<CheckCircleOutlined />} /></Col>
+                        <Col span={6}><Statistic title="PENDING" value={pending} styles={{ content: { color: '#fbbf24' } }} prefix={<WarningOutlined />} /></Col>
+                        <Col span={6}><Statistic title="BLOCKED / LOW_MATCH" value={blocked + lowMatch} styles={{ content: { color: '#fb7185' } }} prefix={<CloseCircleOutlined />} /></Col>
                     </Row>
 
                     <Table
@@ -391,12 +409,13 @@ export default function CrossTestPage() {
                             { title: 'JD', dataIndex: 'jdTitle', width: 150, ellipsis: true },
                             {
                                 title: '判定结果', dataIndex: 'verdict', width: 100,
-                                render: (v: string) => (
-                                    <Tag color={v === 'PASS' ? 'green' : v === 'FAIL' ? 'red' : v === 'ERROR' ? 'magenta' : 'orange'}>{v}</Tag>
-                                ),
+                                render: (v: string) => {
+                                    const meta = verdictMeta(v);
+                                    return <Tag color={meta.color}>{meta.label}</Tag>;
+                                },
                             },
                             {
-                                title: '评分', dataIndex: 'score', width: 80,
+                                title: '匹配分', dataIndex: 'score', width: 80,
                                 sorter: (a: any, b: any) => (a.score ?? 0) - (b.score ?? 0),
                                 defaultSortOrder: 'descend' as const,
                                 render: (s: number) => (

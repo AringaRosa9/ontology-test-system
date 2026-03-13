@@ -1149,11 +1149,11 @@ async def generate_report(request: ReportRequest):
             breakdown[comp] = {"passed": 0, "failed": 0, "warning": 0, "total": 0}
         verdict = rec.get("verdict", "")
         breakdown[comp]["total"] += 1
-        if verdict == "PASS":
+        if _is_successful_verdict(verdict):
             breakdown[comp]["passed"] += 1
-        elif verdict in ("FAIL", "ERROR"):
+        elif verdict in ("FAIL", "ERROR", "LOW_MATCH", "BLOCKED"):
             breakdown[comp]["failed"] += 1
-        elif verdict == "WARNING":
+        elif _is_warning_verdict(verdict):
             breakdown[comp]["warning"] += 1
 
     # ── Compact per-case summary (ALL records, no truncation) ──────────────────
@@ -3291,7 +3291,6 @@ async def list_simulated_data():
             item["applicableClient"] = "通用"
     return {"status": "ok", "data": _simulated_data}
 
-
 @app.delete("/simulated-data/{item_id}")
 async def delete_simulated_data(item_id: str):
     with _lock:
@@ -3442,8 +3441,18 @@ _TERMINATING_STEPS = {
 }
 
 MAX_RULES_PER_STEP_BATCH = 8
+MAX_CROSS_TEST_PAIR_CONCURRENCY = 3
+MAX_CROSS_TEST_LLM_BATCH_CONCURRENCY = 4
+_cross_test_llm_batch_semaphore = None
 
 _DEPT_SPLIT_RE = _re.compile(r"[,，;；、/\s]+")
+
+
+def _get_cross_test_llm_batch_semaphore() -> asyncio.Semaphore:
+    global _cross_test_llm_batch_semaphore
+    if _cross_test_llm_batch_semaphore is None:
+        _cross_test_llm_batch_semaphore = asyncio.Semaphore(MAX_CROSS_TEST_LLM_BATCH_CONCURRENCY)
+    return _cross_test_llm_batch_semaphore
 
 
 def _split_departments(dept_str: str) -> set:
@@ -3654,6 +3663,42 @@ IMPORTANT:
     return await gemini.generate_json(SYSTEM_PROMPT, prompt, temp=0.3)
 
 
+async def _evaluate_step_rules_batch_with_retry(
+    action_id: str,
+    action_name: str,
+    step_name: str,
+    step_description: str,
+    rules_batch: list,
+    resume_summary: str,
+    jd_summary: str,
+    previous_results_summary: str,
+    candidate_status: list,
+) -> dict:
+    """Run one cross-test LLM batch with bounded concurrency and a light retry."""
+    last_exc = None
+    for attempt in range(2):
+        try:
+            async with _get_cross_test_llm_batch_semaphore():
+                result = await _evaluate_step_rules_batch(
+                    action_id, action_name, step_name, step_description,
+                    rules_batch, resume_summary, jd_summary,
+                    previous_results_summary, candidate_status,
+                )
+            if result and isinstance(result, dict):
+                return result
+        except Exception as exc:
+            last_exc = exc
+            logger.warning(
+                f"交叉测试批次评估异常 step={step_name} attempt={attempt + 1}: {exc}"
+            )
+        if attempt == 0:
+            await asyncio.sleep(0.5)
+
+    if last_exc:
+        raise last_exc
+    return {}
+
+
 def _validate_llm_rule_results(
     llm_rules: list,
     valid_rule_ids: set,
@@ -3744,7 +3789,7 @@ async def _evaluate_step_rules(
 
     if len(batches) == 1:
         # Single batch — call directly
-        result = await _evaluate_step_rules_batch(
+        result = await _evaluate_step_rules_batch_with_retry(
             action_id, action_name, step_name, step_desc,
             batches[0], resume_summary, jd_summary,
             previous_results_summary, candidate_status,
@@ -3753,7 +3798,7 @@ async def _evaluate_step_rules(
         # Multiple batches — call in parallel
         logger.info(f"Step '{step_name}' has {len(all_rules)} rules, splitting into {len(batches)} parallel batches")
         tasks = [
-            _evaluate_step_rules_batch(
+            _evaluate_step_rules_batch_with_retry(
                 action_id, action_name, step_name, step_desc,
                 batch, resume_summary, jd_summary,
                 previous_results_summary, candidate_status,
@@ -3868,6 +3913,524 @@ def _jd_summary(item: dict) -> str:
     }, ensure_ascii=False)
 
 
+_DEGREE_RANKS = {
+    "中专": 1,
+    "高中": 2,
+    "专科": 3,
+    "大专": 3,
+    "本科": 4,
+    "学士": 4,
+    "硕士": 5,
+    "研究生": 5,
+    "博士": 6,
+}
+
+_FIT_SCORE_WEIGHTS = {
+    "skills": 0.4,
+    "experience": 0.3,
+    "education": 0.2,
+    "bonus": 0.1,
+}
+
+_FIT_LOW_MATCH_THRESHOLD = 70
+
+_LOW_MATCH_RULE_IDS = set()
+_PENDING_REVIEW_RULE_IDS = {"10-12", "10-18", "10-25", "10-26", "10-27", "10-29", "10-41", "10-46", "10-48", "10-49", "10-52"}
+_BLOCKED_RULE_IDS = {"10-3", "10-8", "10-11", "10-21", "10-28", "10-32", "10-34", "10-40", "10-42", "10-51", "10-54"}
+
+_PENDING_REVIEW_KEYWORDS = (
+    "挂起", "待确认", "待审核", "待办", "待补充", "补充信息",
+    "锁定", "待上传", "待获取", "审核提醒", "可协商", "暂停",
+)
+_BLOCKED_KEYWORDS = (
+    "禁止推荐", "终止匹配", "终止推荐", "直接拦截", "阻断", "黑名单",
+    "诚信红线", "不可回流", "淘汰", "不允许继续",
+)
+
+_FIT_TEXT_STOPWORDS = {
+    "具备", "负责", "要求", "需要", "能够", "相关", "优先", "以上", "以下",
+    "岗位", "工作", "能力", "经验", "处理", "理解", "应用", "流程", "系统",
+    "业务", "良好", "优秀", "一定", "至少", "熟悉", "精通", "掌握", "了解",
+    "愿意", "较强", "较好", "完成", "进行", "对应", "候选人", "需求", "公司",
+}
+
+_FIT_DOMAIN_FAMILIES = {
+    "tech": ("计算机", "软件", "开发", "后端", "前端", "数据库", "测试", "算法", "系统", "技术", "sql", "java", "javascript", "python"),
+    "ops": ("运营", "审核", "质检", "标注", "内容安全", "供应商管理", "数据分析", "excel", "客服", "社群", "公众号"),
+    "sales": ("销售", "顾问式销售", "电销", "网销", "拓展", "客户关系", "解决方案", "引流", "转化", "直播", "群运营"),
+    "admin": ("行政", "秘书", "公文", "合同", "档案", "招聘", "人事", "文秘", "项目管理"),
+}
+
+
+def _normalize_match_text(text: Any) -> str:
+    if text is None:
+        return ""
+    s = str(text).lower()
+    return _re.sub(r"[\s\-_/|,，。；;：:（）()【】\[\]<>《》“”\"'·]+", "", s)
+
+
+def _dedupe_keep_order(items: List[str]) -> List[str]:
+    seen = set()
+    ordered = []
+    for item in items:
+        if not item or item in seen:
+            continue
+        seen.add(item)
+        ordered.append(item)
+    return ordered
+
+
+def _extract_phrases(text: str) -> List[str]:
+    if not text:
+        return []
+    phrases: List[str] = []
+    for eng in _re.findall(r"[A-Za-z][A-Za-z0-9+#._-]{1,20}", text):
+        phrases.append(eng.lower())
+    chunks = _re.split(r"[\n\r。；;：:]+", text)
+    for chunk in chunks:
+        chunk = _re.sub(r"^[\s\d一二三四五六七八九十]+[、.)）\-]*", "", chunk.strip())
+        if not chunk:
+            continue
+        parts = _re.split(r"[，,、/]|以及|并且|且|和|与|及|或", chunk)
+        for part in parts:
+            token = part.strip()
+            token = _re.sub(r"^(具备|熟悉|精通|掌握|了解|负责|擅长|拥有|需要|要求|可|能|对|会|有|善于)", "", token)
+            token = _re.sub(r"(优先录取|优先考虑|经验优先|优先|为佳|能力者|能力|经验|背景|工作经验|相关专业|相关经验|要求|岗位|方向|流程|内容|处理)$", "", token)
+            token = token.strip(" .，,。；;：:()（）[]【】")
+            normalized = _normalize_match_text(token)
+            if 2 <= len(normalized) <= 18 and normalized not in _FIT_TEXT_STOPWORDS:
+                phrases.append(normalized)
+    return _dedupe_keep_order(phrases)
+
+
+def _extract_degree_rank(text: str) -> Optional[int]:
+    normalized = _normalize_match_text(text)
+    hit = None
+    for degree, rank in _DEGREE_RANKS.items():
+        if _normalize_match_text(degree) in normalized:
+            hit = max(hit or 0, rank)
+    return hit
+
+
+def _highest_resume_degree_rank(parsed_data: dict) -> Optional[int]:
+    highest = None
+    for edu in parsed_data.get("education", []) or []:
+        text = " ".join(str(edu.get(k, "")) for k in ("degree", "school", "major"))
+        rank = _extract_degree_rank(text)
+        if rank is not None:
+            highest = max(highest or 0, rank)
+    return highest
+
+
+def _parse_ym(value: Any) -> Optional[datetime]:
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    s = s.replace(".", "-").replace("/", "-")
+    if "至今" in s or "current" in s.lower() or "present" in s.lower():
+        return datetime.now(timezone.utc)
+    m = _re.match(r"^(\d{4})-(\d{1,2})", s)
+    if not m:
+        m = _re.match(r"^(\d{4})$", s)
+        if not m:
+            return None
+        year = int(m.group(1))
+        month = 1
+    else:
+        year = int(m.group(1))
+        month = int(m.group(2))
+    month = min(max(month, 1), 12)
+    return datetime(year, month, 1, tzinfo=timezone.utc)
+
+
+def _months_between(start: Optional[datetime], end: Optional[datetime]) -> int:
+    if not start or not end or end < start:
+        return 0
+    return max((end.year - start.year) * 12 + (end.month - start.month), 0)
+
+
+def _estimate_resume_experience_years(parsed_data: dict) -> float:
+    spans = []
+    for exp in parsed_data.get("experience", []) or []:
+        start = _parse_ym(exp.get("startDate"))
+        end = _parse_ym(exp.get("endDate")) or datetime.now(timezone.utc)
+        months = _months_between(start, end)
+        if months > 0:
+            spans.append(months)
+    if not spans:
+        return 0.0
+    return round(max(spans) / 12.0, 1)
+
+
+def _extract_required_experience_years(text: str, explicit_value: Any = None) -> Optional[float]:
+    candidates = []
+    if explicit_value:
+        candidates.append(str(explicit_value))
+    if text:
+        candidates.append(text)
+    for candidate in candidates:
+        normalized = candidate.replace(" ", "")
+        m = _re.search(r"(\d+(?:\.\d+)?)\s*[-~到至]\s*(\d+(?:\.\d+)?)\s*年", normalized)
+        if m:
+            return float(m.group(1))
+        m = _re.search(r"(\d+(?:\.\d+)?)\s*年(?:以上|及以上)", normalized)
+        if m:
+            return float(m.group(1))
+        m = _re.search(r"(?:至少|不少于|满)\s*(\d+(?:\.\d+)?)\s*年", normalized)
+        if m:
+            return float(m.group(1))
+    return None
+
+
+def _parse_salary_range(text: Any) -> Optional[tuple[float, float]]:
+    if text is None:
+        return None
+    raw = str(text).strip().lower()
+    if not raw or "面议" in raw:
+        return None
+
+    values: List[float] = []
+    for match in _re.finditer(r"(\d+(?:\.\d+)?)\s*(万|w|k|千)?", raw):
+        number = float(match.group(1))
+        unit = match.group(2)
+        if unit in ("万", "w"):
+            number *= 10000
+        elif unit in ("k", "千"):
+            number *= 1000
+        values.append(number)
+
+    if not values:
+        return None
+    if len(values) == 1:
+        return values[0], values[0]
+    return min(values), max(values)
+
+
+def _extract_resume_expected_salary_range(item: dict) -> Optional[tuple[float, float]]:
+    parsed = item.get("parsedData") or item.get("generatedData") or {}
+    return _parse_salary_range(parsed.get("expectedSalary"))
+
+
+def _extract_jd_salary_range(item: dict) -> Optional[tuple[float, float]]:
+    generated = item.get("generatedData") or {}
+    record = (item.get("records") or [{}])[0] if item.get("records") else {}
+    return _parse_salary_range(record.get("salaryRange") or generated.get("salaryRange"))
+
+
+def _match_keyword_ratio(keywords: List[str], text: str) -> Optional[float]:
+    if not keywords:
+        return None
+    normalized = _normalize_match_text(text)
+    matched = 0
+    for kw in keywords:
+        if kw and (kw in normalized or normalized in kw):
+            matched += 1
+    return matched / max(len(keywords), 1)
+
+
+def _extract_text_families(text: str) -> set:
+    normalized = _normalize_match_text(text)
+    families = set()
+    for family, signals in _FIT_DOMAIN_FAMILIES.items():
+        if any(_normalize_match_text(signal) in normalized for signal in signals):
+            families.add(family)
+    return families
+
+
+def _split_requirement_segments(parts: List[str]) -> List[str]:
+    segments: List[str] = []
+    for part in parts:
+        raw = str(part or "")
+        if not raw.strip():
+            continue
+        for seg in _re.split(r"[\n\r]+", raw):
+            cleaned = _re.sub(r"^[\s\d一二三四五六七八九十]+[、.)）\-]*", "", seg.strip())
+            if cleaned:
+                segments.append(cleaned)
+    return segments
+
+
+def _extract_jd_fit_profile(item: dict) -> dict:
+    generated = item.get("generatedData", {}) or {}
+    record = (item.get("records") or [{}])[0] if item.get("records") else {}
+    title = _extract_jd_title(item)
+    requirement_parts = []
+    responsibility_parts = []
+
+    if generated:
+        requirement_parts.extend(generated.get("requirements", []) or [])
+        responsibility_parts.extend(generated.get("responsibilities", []) or [])
+        if generated.get("title"):
+            requirement_parts.append(generated["title"])
+    if record:
+        for key in ("岗位要求", "交付澄清", "需求名称", "岗位类型", "title"):
+            if record.get(key):
+                requirement_parts.append(str(record[key]))
+        if isinstance(record.get("requirements"), list):
+            requirement_parts.extend(str(x) for x in record.get("requirements", []) if x)
+        elif record.get("requirements"):
+            requirement_parts.append(str(record["requirements"]))
+        for key in ("岗位职责",):
+            if record.get(key):
+                responsibility_parts.append(str(record[key]))
+        if isinstance(record.get("responsibilities"), list):
+            responsibility_parts.extend(str(x) for x in record.get("responsibilities", []) if x)
+        elif record.get("responsibilities"):
+            responsibility_parts.append(str(record["responsibilities"]))
+
+    requirement_segments = _split_requirement_segments(requirement_parts)
+    responsibility_segments = _split_requirement_segments(responsibility_parts)
+    bonus_lines = [seg for seg in requirement_segments if "优先" in seg]
+
+    full_requirement_text = "\n".join(requirement_segments)
+    full_resp_text = "\n".join(responsibility_segments)
+    full_text = "\n".join(x for x in [title, full_requirement_text, full_resp_text] if x)
+
+    must_keywords = _extract_phrases("\n".join(x for x in [title, full_requirement_text] if x))[:10]
+    role_keywords = _extract_phrases("\n".join(x for x in [title, full_resp_text, record.get("岗位类型", "")] if x))[:10]
+    bonus_keywords = _extract_phrases("\n".join(bonus_lines))[:8]
+
+    return {
+        "title": title,
+        "fullText": full_text,
+        "mustKeywords": must_keywords,
+        "roleKeywords": role_keywords,
+        "bonusKeywords": bonus_keywords,
+        "requiredDegreeRank": _extract_degree_rank(full_text),
+        "requiredExperienceYears": _extract_required_experience_years(full_text, generated.get("experienceYears") or record.get("经验要求")),
+        "families": _extract_text_families(full_text),
+    }
+
+
+def _extract_resume_fit_profile(item: dict) -> dict:
+    parsed = item.get("parsedData") or item.get("generatedData") or {}
+    skill_text = " ".join(str(x) for x in parsed.get("skills", []) or [])
+    exp_text = " ".join(
+        " ".join(str(exp.get(k, "")) for k in ("title", "company", "description"))
+        for exp in parsed.get("experience", []) or []
+    )
+    edu_text = " ".join(
+        " ".join(str(edu.get(k, "")) for k in ("degree", "major", "school"))
+        for edu in parsed.get("education", []) or []
+    )
+    summary = parsed.get("summary", "")
+    full_text = " ".join(x for x in [skill_text, exp_text, edu_text, summary] if x)
+    return {
+        "fullText": full_text,
+        "experienceText": exp_text,
+        "educationText": edu_text,
+        "highestDegreeRank": _highest_resume_degree_rank(parsed),
+        "experienceYears": _estimate_resume_experience_years(parsed),
+        "families": _extract_text_families(full_text),
+    }
+
+
+def _score_skills_dimension(resume_profile: dict, jd_profile: dict) -> Optional[int]:
+    ratio = _match_keyword_ratio(jd_profile.get("mustKeywords", []), resume_profile.get("fullText", ""))
+    family_overlap = bool(jd_profile.get("families", set()).intersection(resume_profile.get("families", set())))
+    family_score = 70 if family_overlap else 20
+    if ratio is None:
+        return family_score
+    return max(int(round(ratio * 100)), family_score)
+
+
+def _score_experience_dimension(resume_profile: dict, jd_profile: dict) -> Optional[int]:
+    exp_parts = []
+    required_years = jd_profile.get("requiredExperienceYears")
+    actual_years = resume_profile.get("experienceYears", 0.0)
+    if required_years is not None:
+        if actual_years >= required_years:
+            years_score = 100
+        elif actual_years >= max(required_years - 1.0, 0):
+            years_score = 65
+        elif actual_years > 0:
+            years_score = 35
+        else:
+            years_score = 0
+        exp_parts.append((0.7, years_score))
+    role_ratio = _match_keyword_ratio(jd_profile.get("roleKeywords", []), resume_profile.get("experienceText", ""))
+    role_floor = 65 if jd_profile.get("families", set()).intersection(resume_profile.get("families", set())) else 20
+    if role_ratio is not None:
+        exp_parts.append((0.3 if required_years is not None else 1.0, max(int(round(role_ratio * 100)), role_floor)))
+    elif role_floor:
+        exp_parts.append((0.3 if required_years is not None else 1.0, role_floor))
+    if not exp_parts:
+        return None
+    total_weight = sum(weight for weight, _ in exp_parts)
+    return int(round(sum(weight * score for weight, score in exp_parts) / max(total_weight, 1e-6)))
+
+
+def _score_education_dimension(resume_profile: dict, jd_profile: dict) -> Optional[int]:
+    parts = []
+    required_rank = jd_profile.get("requiredDegreeRank")
+    actual_rank = resume_profile.get("highestDegreeRank")
+    if required_rank is not None:
+        if actual_rank is not None and actual_rank >= required_rank:
+            degree_score = 100
+        elif actual_rank is not None and actual_rank + 1 == required_rank:
+            degree_score = 40
+        else:
+            degree_score = 0
+        parts.append((0.8, degree_score))
+    jd_families = jd_profile.get("families", set())
+    resume_families = resume_profile.get("families", set())
+    if jd_families:
+        family_score = 100 if jd_families.intersection(resume_families) else 35
+        parts.append((0.2 if required_rank is not None else 1.0, family_score))
+    if not parts:
+        return None
+    total_weight = sum(weight for weight, _ in parts)
+    return int(round(sum(weight * score for weight, score in parts) / max(total_weight, 1e-6)))
+
+
+def _score_bonus_dimension(resume_profile: dict, jd_profile: dict) -> Optional[int]:
+    ratio = _match_keyword_ratio(jd_profile.get("bonusKeywords", []), resume_profile.get("fullText", ""))
+    if ratio is None:
+        return None
+    return int(round(ratio * 100))
+
+
+def _compute_fit_score(resume_item: dict, jd_item: dict) -> tuple[int, Dict[str, int]]:
+    resume_profile = _extract_resume_fit_profile(resume_item)
+    jd_profile = _extract_jd_fit_profile(jd_item)
+    components = {
+        "skills": _score_skills_dimension(resume_profile, jd_profile),
+        "experience": _score_experience_dimension(resume_profile, jd_profile),
+        "education": _score_education_dimension(resume_profile, jd_profile),
+        "bonus": _score_bonus_dimension(resume_profile, jd_profile),
+    }
+    weighted_scores = []
+    for key, weight in _FIT_SCORE_WEIGHTS.items():
+        value = components.get(key)
+        if value is None:
+            continue
+        weighted_scores.append((weight, value))
+    if not weighted_scores:
+        return 60, {k: v for k, v in components.items() if v is not None}
+    total_weight = sum(weight for weight, _ in weighted_scores)
+    final_score = int(round(sum(weight * value for weight, value in weighted_scores) / max(total_weight, 1e-6)))
+    return final_score, {k: v for k, v in components.items() if v is not None}
+
+
+def _classify_salary_failure(
+    rule_result: dict,
+    resume_item: dict,
+    jd_item: dict,
+    fit_score: int,
+) -> str:
+    detail = rule_result.get("detail", "") or ""
+    normalized_detail = _normalize_match_text(detail)
+
+    if any(token in normalized_detail for token in ("期望薪资未知", "期望薪资信息缺失", "无期望薪资", "未填写期望薪资", "未提供期望薪资")):
+        return "PENDING_REVIEW"
+    if "可协商" in detail:
+        return "PENDING_REVIEW"
+    if any(token in normalized_detail for token in ("薪资不匹配", "终止匹配流程", "终止后续匹配")):
+        return "BLOCKED"
+
+    resume_salary = _extract_resume_expected_salary_range(resume_item)
+    jd_salary = _extract_jd_salary_range(jd_item)
+    if resume_salary and jd_salary:
+        _, expected_max = resume_salary
+        _, jd_max = jd_salary
+        if jd_max > 0 and expected_max >= jd_max * 2:
+            return "BLOCKED"
+        if expected_max > jd_max:
+            if rule_result.get("terminateFlow"):
+                return "BLOCKED"
+            if fit_score >= 90:
+                return "PENDING_REVIEW"
+            return "BLOCKED"
+
+    return "BLOCKED" if rule_result.get("terminateFlow") else "PENDING_REVIEW"
+
+
+def _is_tencent_marital_risk_age_boundary(detail: str) -> bool:
+    if not detail:
+        return False
+    if any(token in detail for token in ("约26岁", "26岁左右", "26-27岁", "26 到 27 岁", "26到27岁")):
+        return True
+    if "26岁" in detail and any(token in detail for token in ("符合>26岁逻辑", "满足>26岁条件", "大于26岁条件")):
+        return True
+    return False
+
+
+def _normalize_tencent_marital_risk_boundary(rule_result: dict) -> bool:
+    """Treat 10-47 age-boundary cases as not triggered instead of blocked."""
+    if rule_result.get("ruleId") != "10-47":
+        return False
+    detail = rule_result.get("detail", "") or ""
+    if not _is_tencent_marital_risk_age_boundary(detail):
+        return False
+    rule_result["status"] = "skip"
+    rule_result["criteriaMatch"] = False
+    rule_result["terminateFlow"] = False
+    rule_result["detail"] = "年龄边界为26岁或约26-27岁，未满足“严格大于26岁”的触发条件，10-47按不命中处理。"
+    return True
+
+
+def _rule_failure_category(
+    rule_result: dict,
+    full_rule: Optional[dict],
+    step_name: str,
+    resume_item: dict,
+    jd_item: dict,
+    fit_score: int,
+) -> str:
+    rule_id = rule_result.get("ruleId", "")
+    detail = rule_result.get("detail", "") or ""
+    logic = (full_rule or {}).get("standardizedLogicRule", "") or (full_rule or {}).get("description", "") or ""
+    terminate_flow = bool(rule_result.get("terminateFlow"))
+    normalized_detail = _normalize_match_text(detail)
+    normalized_logic = _normalize_match_text(logic)
+
+    if rule_id == "10-5":
+        return "BLOCKED"
+    if rule_id == "10-7":
+        return _classify_salary_failure(rule_result, resume_item, jd_item, fit_score)
+    if rule_id == "10-47" and _is_tencent_marital_risk_age_boundary(detail):
+        return "IGNORE"
+    if rule_id in _BLOCKED_RULE_IDS:
+        return "BLOCKED"
+    if rule_id in _PENDING_REVIEW_RULE_IDS:
+        return "PENDING_REVIEW"
+    if any(keyword in detail for keyword in _BLOCKED_KEYWORDS):
+        return "BLOCKED"
+    if any(keyword in detail for keyword in _PENDING_REVIEW_KEYWORDS):
+        return "PENDING_REVIEW"
+    if terminate_flow:
+        return "BLOCKED"
+    if step_name == "matchHardRequirements" and any(keyword in detail for keyword in ("学历", "经验", "技能", "专业", "语言", "年龄", "性别", "工作年限")):
+        return "BLOCKED"
+    if any(keyword in detail for keyword in ("加分项", "优先", "匹配度", "相关度")):
+        return "LOW_MATCH"
+    if any(keyword in normalized_logic for keyword in (_normalize_match_text("挂起"), _normalize_match_text("待确认"), _normalize_match_text("待补充"), _normalize_match_text("暂停"))):
+        return "PENDING_REVIEW"
+    if any(keyword in normalized_logic for keyword in (_normalize_match_text("终止匹配"), _normalize_match_text("标记为不匹配"), _normalize_match_text("直接拦截"))):
+        return "BLOCKED"
+    if rule_id in _LOW_MATCH_RULE_IDS:
+        return "LOW_MATCH"
+    return "LOW_MATCH" if fit_score < _FIT_LOW_MATCH_THRESHOLD else "BLOCKED"
+
+
+def _is_successful_verdict(verdict: str) -> bool:
+    return verdict in ("PASS", "MATCHED")
+
+
+def _is_warning_verdict(verdict: str) -> bool:
+    return verdict in ("WARNING", "PENDING_REVIEW")
+
+
+def _is_blocked_verdict(verdict: str) -> bool:
+    return verdict in ("FAIL", "BLOCKED")
+
+
+def _is_unsuccessful_verdict(verdict: str) -> bool:
+    return not _is_successful_verdict(verdict)
+
+
 def _extract_jd_title(j: dict) -> str:
     """Extract JD title from a business data item."""
     j_title = j.get("title", "")
@@ -3904,6 +4467,7 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
     # Build execution plan from snapshot actions
     plan = _build_cross_test_plan(snap, jd_items)
     rules_list = snap.get("rules", [])
+    rules_by_id = {r.get("id", ""): r for r in rules_list if r.get("id")}
     valid_snapshot_rule_ids = {r.get("id", "") for r in rules_list if r.get("id")}
 
     if not plan:
@@ -4048,12 +4612,28 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
                 for step, step_result in group_results:
                     step_result["actionId"] = action["actionId"]
                     step_result["actionName"] = action["actionName"]
+                    step_result["funnelStage"] = action.get("category", "screening")
                     step_result["stepOrder"] = step["order"]
                     step_result["stepDescription"] = step.get("description", "")
 
+                    boundary_rewritten = False
+                    for rule_result in step_result.get("rules", []):
+                        if _normalize_tencent_marital_risk_boundary(rule_result):
+                            boundary_rewritten = True
+                    if boundary_rewritten:
+                        step_result["candidateStatusUpdates"] = [
+                            s for s in (step_result.get("candidateStatusUpdates", []) or [])
+                            if "婚育风险" not in str(s)
+                        ]
+                        has_terminate = any(r.get("terminateFlow") for r in step_result.get("rules", []))
+                        has_fail = any(r.get("status") == "fail" for r in step_result.get("rules", []))
+                        step_result["stepStatus"] = "terminated" if has_terminate else ("fail" if has_fail else "pass")
+                        if step_result["stepStatus"] == "pass":
+                            step_result["stepSummary"] = "10-47 年龄边界未满足“严格大于26岁”条件，按不命中处理；本步骤其余规则结果不变。"
+
                     for rule_result in step_result.get("rules", []):
                         rid = rule_result.get("ruleId", "")
-                        if rule_result.get("status") in ("pass", "fail") and rid and rid in valid_snapshot_rule_ids:
+                        if rule_result.get("status") in ("pass", "fail", "terminated") and rid and rid in valid_snapshot_rule_ids:
                             triggered_rules.append(rid)
 
                     new_statuses = step_result.get("candidateStatusUpdates", [])
@@ -4067,41 +4647,90 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
                         terminated = True
                         if not first_failed_rule:
                             for rr in step_result.get("rules", []):
-                                if rr.get("status") == "fail":
+                                if rr.get("status") in ("fail", "terminated"):
                                     first_failed_rule = rr
                                     first_failed_action = action
                                     first_failed_step = step
                                     break
                     elif step_status == "fail" and not first_failed_rule:
                         for rr in step_result.get("rules", []):
-                            if rr.get("status") == "fail":
+                            if rr.get("status") in ("fail", "terminated"):
                                 first_failed_rule = rr
                                 first_failed_action = action
                                 first_failed_step = step
                                 break
 
-        # Determine verdict and score
+        # Determine business verdict and fit score
         has_error = any(sr.get("stepStatus") == "error" for sr in all_step_results)
-        has_fail = any(sr.get("stepStatus") in ("fail", "terminated") for sr in all_step_results)
-        total_rules_evaluated = sum(
-            1 for sr in all_step_results for rr in sr.get("rules", []) if rr.get("status") in ("pass", "fail")
+        has_fail = any(
+            rr.get("status") in ("fail", "terminated")
+            for sr in all_step_results for rr in sr.get("rules", [])
         )
-        passed_rules = sum(
-            1 for sr in all_step_results for rr in sr.get("rules", []) if rr.get("status") == "pass"
-        )
+        fit_breakdown: Dict[str, int] = {}
 
         if has_error and not has_fail:
             verdict = "ERROR"
             score = 0
-        elif terminated:
-            verdict = "FAIL"
-            score = int(passed_rules / max(total_rules_evaluated, 1) * 60)  # Cap at 60 for terminated
-        elif has_fail:
-            verdict = "WARNING"
-            score = int(passed_rules / max(total_rules_evaluated, 1) * 80)  # Cap at 80 for non-terminating fail
         else:
-            verdict = "PASS"
-            score = int(passed_rules / max(total_rules_evaluated, 1) * 100)
+            fit_score, fit_breakdown = _compute_fit_score(r_item, j_item)
+            score = fit_score
+
+            failed_rule_entries = []
+            for sr in all_step_results:
+                for rr in sr.get("rules", []):
+                    if rr.get("status") not in ("fail", "terminated"):
+                        continue
+                    rule_id = rr.get("ruleId", "")
+                    full_rule = rules_by_id.get(rule_id)
+                    category = _rule_failure_category(
+                        rr,
+                        full_rule,
+                        sr.get("stepName", ""),
+                        r_item,
+                        j_item,
+                        fit_score,
+                    )
+                    if category == "IGNORE":
+                        continue
+                    failed_rule_entries.append({
+                        "ruleId": rule_id,
+                        "ruleResult": rr,
+                        "fullRule": full_rule,
+                        "category": category,
+                        "stepName": sr.get("stepName", ""),
+                        "actionName": sr.get("actionName", ""),
+                        "actionId": sr.get("actionId", ""),
+                        "funnelStage": sr.get("funnelStage", "screening"),
+                    })
+
+            blocked_failures = [entry for entry in failed_rule_entries if entry["category"] == "BLOCKED"]
+            low_match_failures = [entry for entry in failed_rule_entries if entry["category"] == "LOW_MATCH"]
+            pending_failures = [entry for entry in failed_rule_entries if entry["category"] == "PENDING_REVIEW"]
+
+            if blocked_failures:
+                verdict = "BLOCKED"
+                selected_failure = blocked_failures[0]
+            elif low_match_failures:
+                verdict = "LOW_MATCH"
+                selected_failure = low_match_failures[0]
+            elif pending_failures:
+                verdict = "PENDING_REVIEW"
+                selected_failure = pending_failures[0]
+            elif fit_score < _FIT_LOW_MATCH_THRESHOLD:
+                verdict = "LOW_MATCH"
+                selected_failure = None
+            else:
+                verdict = "MATCHED"
+                selected_failure = None
+
+            if selected_failure:
+                first_failed_rule = selected_failure["ruleResult"]
+                first_failed_step = {"name": selected_failure["stepName"], "rules": []}
+                first_failed_action = {
+                    "actionName": selected_failure["actionName"],
+                    "category": selected_failure.get("funnelStage", "screening"),
+                    "actionId": selected_failure.get("actionId", ""),
+                }
 
         # Build reasoning from step summaries
         reasoning_parts = []
@@ -4114,17 +4743,21 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
                 f"[{sr.get('actionName', '')}/{sr.get('stepName', '')}] {sr.get('stepSummary', '')}"
             )
         reasoning = "；".join(reasoning_parts) if reasoning_parts else "无规则被评估"
+        if verdict != "ERROR":
+            fit_parts = []
+            fit_labels = {"skills": "技能", "experience": "经验", "education": "学历", "bonus": "加分项"}
+            for key in ("skills", "experience", "education", "bonus"):
+                if key in fit_breakdown:
+                    fit_parts.append(f"{fit_labels[key]}{fit_breakdown[key]}")
+            if fit_parts:
+                reasoning = f"{reasoning}；FIT评分={score}（{' / '.join(fit_parts)}）"
 
         # Build failedNode
         failed_node = None
         if first_failed_rule and first_failed_step:
             rule_id = first_failed_rule.get("ruleId", "")
             # Find full rule from snapshot
-            full_rule = None
-            for rl in rules_list:
-                if rl.get("id") == rule_id:
-                    full_rule = rl
-                    break
+            full_rule = rules_by_id.get(rule_id)
             # Fallback: search enriched rules in the step's plan data
             if not full_rule:
                 for sr in first_failed_step.get("rules", []):
@@ -4165,7 +4798,13 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
         return result_entry
 
     # Run all pairs in parallel
-    pair_tasks = [_process_one_pair(i, p) for i, p in enumerate(pairs)]
+    pair_semaphore = asyncio.Semaphore(MAX_CROSS_TEST_PAIR_CONCURRENCY)
+
+    async def _process_one_pair_guarded(pair_idx: int, pair: dict) -> dict:
+        async with pair_semaphore:
+            return await _process_one_pair(pair_idx, pair)
+
+    pair_tasks = [_process_one_pair_guarded(i, p) for i, p in enumerate(pairs)]
     pair_results = await asyncio.gather(*pair_tasks, return_exceptions=True)
 
     results = []
@@ -4194,15 +4833,15 @@ async def _run_cross_test(snap: dict, resume_items: list, jd_items: list, mode: 
     }
 
     # ── Persist as TestRun for history & reports ──
-    ct_passed = sum(1 for r in results if r.get("verdict") == "PASS")
-    ct_failed = sum(1 for r in results if r.get("verdict") == "FAIL")
-    ct_warnings = sum(1 for r in results if r.get("verdict") == "WARNING")
+    ct_passed = sum(1 for r in results if _is_successful_verdict(r.get("verdict", "")))
+    ct_failed = sum(1 for r in results if r.get("verdict") in ("LOW_MATCH", "BLOCKED", "ERROR", "FAIL"))
+    ct_warnings = sum(1 for r in results if _is_warning_verdict(r.get("verdict", "")))
     ct_records = []
     for r in results:
         rec = {
             "recordId": f"rec_{uuid.uuid4().hex[:8]}",
             "caseId": f"{r.get('resumeName', '')} × {r.get('jdTitle', '')}",
-            "verdict": r.get("verdict", "WARNING"),
+            "verdict": r.get("verdict", "PENDING_REVIEW"),
             "reasoning": r.get("reasoning", ""),
             "triggeredRules": r.get("triggeredRules", []),
             "assertionResults": [],
@@ -4403,7 +5042,7 @@ async def gap_analysis(req: GapAnalysisRequest):
                 rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
 
     records = run.get("records", [])
-    failed_records = [r for r in records if r.get("verdict") in ("FAIL", "ERROR", "WARNING")]
+    failed_records = [r for r in records if _is_unsuccessful_verdict(r.get("verdict", ""))]
 
     if not failed_records:
         return {"status": "ok", "data": {"analysis": []}}
@@ -4504,7 +5143,7 @@ async def optimization_suggestions(req: SuggestionsRequest):
                 rule_doc_map[rname] = "; ".join(parts) if parts else json.dumps(rule, ensure_ascii=False)
 
     records = run.get("records", [])
-    failed_records = [r for r in records if r.get("verdict") in ("FAIL", "ERROR", "WARNING")]
+    failed_records = [r for r in records if _is_unsuccessful_verdict(r.get("verdict", ""))]
 
     if not failed_records:
         return {"status": "ok", "data": {"suggestions": []}}
@@ -4683,7 +5322,7 @@ async def get_coverage_matrix(run_id: str):
             for rref in list(set(rec.get("triggeredRules", []))):
                 step_rule_entries.append({
                     "ruleId": rref,
-                    "status": "fail" if verdict == "FAIL" else "pass",
+                    "status": "fail" if _is_unsuccessful_verdict(verdict) else "pass",
                     "terminateFlow": False,
                     "aiChainOfThought": "",
                     "stepName": "",
@@ -4744,7 +5383,7 @@ async def get_coverage_matrix(run_id: str):
                 "score": score,
                 "ruleStatus": entry["status"],
             })
-            if entry["status"] == "fail":
+            if entry["status"] == "fail" and _is_blocked_verdict(verdict):
                 agg["blockedCount"] += 1
             if score is not None:
                 agg["scores"].append(score)
@@ -4815,7 +5454,7 @@ async def get_coverage_matrix(run_id: str):
 
     # ── Blocking summary ──
     all_scores = [r.get("score") for r in records if r.get("score") is not None]
-    blocked_records = [r for r in records if r.get("verdict") == "FAIL"]
+    blocked_records = [r for r in records if _is_blocked_verdict(r.get("verdict", ""))]
     blocked_scores = [r.get("score") for r in blocked_records if r.get("score") is not None]
 
     funnel_breakdown: Dict[str, dict] = {}
@@ -4825,7 +5464,7 @@ async def get_coverage_matrix(run_id: str):
         if stage not in funnel_breakdown:
             funnel_breakdown[stage] = {"total": 0, "blocked": 0}
         funnel_breakdown[stage]["total"] += 1
-        if rec.get("verdict") == "FAIL":
+        if _is_blocked_verdict(rec.get("verdict", "")):
             funnel_breakdown[stage]["blocked"] += 1
 
     top_rules = sorted(rule_coverage, key=lambda x: x["blockedCount"], reverse=True)[:10]
@@ -4842,8 +5481,8 @@ async def get_coverage_matrix(run_id: str):
             "ruleName": r["ruleName"],
             "blockedCount": r["blockedCount"],
             "avgBlockedScore": round(
-                sum(c["score"] for c in r["triggeredByCases"] if c["verdict"] == "FAIL" and c["score"] is not None) /
-                max(sum(1 for c in r["triggeredByCases"] if c["verdict"] == "FAIL" and c["score"] is not None), 1),
+                sum(c["score"] for c in r["triggeredByCases"] if _is_blocked_verdict(c["verdict"]) and c["score"] is not None) /
+                max(sum(1 for c in r["triggeredByCases"] if _is_blocked_verdict(c["verdict"]) and c["score"] is not None), 1),
                 1
             ) if any(c["score"] is not None for c in r["triggeredByCases"]) else None,
             "funnelStage": r["funnelStage"],
@@ -4891,7 +5530,7 @@ async def funnel_suggestions(req: FunnelSuggestionsRequest):
 
     records = run.get("records", [])
     total_cases = len(records)
-    passed_cases = sum(1 for r in records if r.get("verdict") == "PASS")
+    passed_cases = sum(1 for r in records if _is_successful_verdict(r.get("verdict", "")))
     current_pass_rate = round(passed_cases / max(total_cases, 1), 2)
 
     # Compute current funnel
@@ -4931,7 +5570,7 @@ async def funnel_suggestions(req: FunnelSuggestionsRequest):
                 fn_id = fn.get("id", "") if fn and isinstance(fn, dict) else ""
                 fn_name = fn.get("ruleName", "") if fn and isinstance(fn, dict) else ""
                 is_related = rule_id in triggered or fn_id == rule_id or fn_name == rule_id
-                is_blocked = rec.get("verdict") == "FAIL" or (rec.get("score") is not None and rec["score"] < req.scoreThreshold)
+                is_blocked = _is_blocked_verdict(rec.get("verdict", "")) or (rec.get("score") is not None and rec["score"] < req.scoreThreshold)
                 rule_failed = is_related and is_blocked
             if rule_failed:
                 # Extract candidate name from caseId or title

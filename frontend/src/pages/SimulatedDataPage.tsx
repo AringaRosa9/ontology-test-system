@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
     Typography, Card, Select, Button, Table, Tag, Space, message,
-    Row, Col, InputNumber, Checkbox, Descriptions, Modal, Spin, Empty,
+    Row, Col, InputNumber, Checkbox, Descriptions, Modal, Empty,
 } from 'antd';
 import {
-    RobotOutlined, ExperimentOutlined, FileTextOutlined, FilePdfOutlined,
-    EyeOutlined, DeleteOutlined, ImportOutlined,
+    RobotOutlined, ExperimentOutlined, EyeOutlined, DeleteOutlined, ImportOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 import type { ApiResponse, OntologySnapshot, SimulatedDataItem } from '../types';
